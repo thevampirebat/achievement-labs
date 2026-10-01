@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
  <PropertyGroup><TargetFramework>net9.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><AllowUnsafeBlocks>true</AllowUnsafeBlocks></PropertyGroup>
+ <ItemGroup><ProjectReference Include="../AchievementLabs.Enhancements/AchievementLabs.Enhancements.csproj" /></ItemGroup>
  <ItemGroup><PackageReference Include="System.Security.Cryptography.ProtectedData" Version="7.0.0"/><PackageReference Include="Newtonsoft.Json" Version="13.0.3"/><PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2"/></ItemGroup>
  <ItemGroup>
   <Compile Include="../AchievementLabs.App/Models/**/*.cs" LinkBase="Shared/Models"/>

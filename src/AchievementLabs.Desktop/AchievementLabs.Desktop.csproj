@@ -11,6 +11,7 @@
     <InformationalVersion>1.0.3</InformationalVersion>
   </PropertyGroup>
 
+  <ItemGroup><ProjectReference Include="../AchievementLabs.Enhancements/AchievementLabs.Enhancements.csproj" /></ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.2" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />

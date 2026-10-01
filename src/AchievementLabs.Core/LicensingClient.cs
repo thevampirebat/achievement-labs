@@ -18,9 +18,13 @@ public sealed class EventCatalogClient : IDisposable
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     public Task<EventCatalogStatus> GetCatalogAsync(CancellationToken ct) => SendAsync<EventCatalogStatus>(HttpMethod.Get, "catalog", null, ct);
-    public Task<EventTitleMapping> GetTitleAsync(string id, CancellationToken ct) => SendAsync<EventTitleMapping>(HttpMethod.Get, "titles/" + Uri.EscapeDataString(id), null, ct);
+    public Task<EventTitleMapping> GetTitleAsync(string id, CancellationToken ct) =>
+        AchievementLabs.MultiSelect.EventIdMapping.NormalizeCatalog(
+            SendAsync<EventTitleMapping>(HttpMethod.Get, "titles/" + Uri.EscapeDataString(id), null, ct), id);
     public Task<EventPayloads> GetPayloadsAsync(string id, string achievementId, string xuid, CancellationToken ct) =>
-        SendAsync<EventPayloads>(HttpMethod.Post, "titles/" + Uri.EscapeDataString(id) + "/payloads", new { achievementId, xuid }, ct);
+        AchievementLabs.MultiSelect.EventIdMapping.ValidatePayloads(
+            SendAsync<EventPayloads>(HttpMethod.Post, "titles/" + Uri.EscapeDataString(id) + "/payloads",
+                new { achievementId = AchievementLabs.MultiSelect.EventIdMapping.PayloadId(id, achievementId), xuid }, ct), id, achievementId);
 
     private async Task<T> SendAsync<T>(HttpMethod method, string path, object? body, CancellationToken ct)
     {

@@ -15,13 +15,17 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent(); DataContext = model; model.EventTokenRequired = ShowEventTokenRequiredAsync;
+        AchievementLabs.MultiSelect.BatchPicker.Attach(this);
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
         xboxPresenceTimer.Tick += (_, _) => model.RefreshXboxPcAppPresence();
-        xboxPresenceTimer.Start();
+        var offlineChecks = AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var offline) && offline;
+        if (!offlineChecks) xboxPresenceTimer.Start();
         Closed += (_, _) => { xboxPresenceTimer.Stop(); model.Dispose(); };
         model.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(model.MintAccent)) ApplyAccent(); };
         Opened += async (_, _) =>
         {
+            // Headless regression tests must never attach to a real account.
+            if (offlineChecks) return;
             if (Environment.GetCommandLineArgs().Contains("--release-smoke-test"))
             {
                 var releaseArgs = Environment.GetCommandLineArgs();

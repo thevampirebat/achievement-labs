@@ -6,6 +6,12 @@ Steam, Epic, and Ubisoft workflows.
 
 **[Download the latest release](https://github.com/ethanwp28/achievement-labs/releases/latest)**
 
+This enhancement branch adds achievement retry and batch selection, sorting,
+Ghosts DLC sections and reviewed event remaps, bulk export, recorded playtime,
+experimental token retrieval, and Auto Unlock queue review/editing. See
+[enhancement details and tests](docs/enhancements.md). The source baseline is
+upstream 1.0.3; the original release link above does not include these changes.
+
 Windows only. Editing achievement and stat data can carry account risk on a live
 service. Use test accounts and keep the backups created by the application.
 

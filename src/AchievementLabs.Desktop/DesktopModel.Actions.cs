@@ -28,7 +28,7 @@ public sealed partial class DesktopModel
     public ObservableCollection<ActionReport> ActionReports { get; } = [];
     public bool UnlockAllEnabled { get => unlockAllEnabled; set { unlockAllEnabled = value; Changed(); NotifyActions(); } }
     public string ActionSummary { get => actionSummary; private set { actionSummary = value; Changed(); } }
-    public bool CanUnlockSelected => CanQuery && liveAchievements && SelectedGame != null && !UsesLegacyEndpoint(SelectedGame) && SelectedAchievement is { Unlocked: false } a && definitions.ContainsKey(a.Id) && (!eventBased || eventTitleSupported && mappedIds.Contains(a.Id));
+    public bool CanUnlockSelected => AchievementLabs.MultiSelect.BatchPicker.CanUnlockSelected(this);
     public bool CanUnlockAll => CanQuery && liveAchievements && !eventBased && UnlockAllEnabled && SelectedGame != null && !UsesLegacyEndpoint(SelectedGame) && achievements.Any(a => !a.Unlocked);
     private void NotifyActions() { Changed(nameof(TitleComingSoon)); Changed(nameof(TitleTesting)); Changed(nameof(TitleNotSupported)); Changed(nameof(CanUnlockSelected)); Changed(nameof(CanUnlockAll)); }
     private void ResetActions() { titleComingSoon = false; titleTesting = false; eventBased = false; eventTitleSupported = false; liveAchievements = false; definitions = []; mappedIds = []; ActionSummary = "Load achievements from your account to enable actions."; NotifyActions(); }

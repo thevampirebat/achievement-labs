@@ -150,10 +150,10 @@ namespace AchievementLabs.Desktop.Workflows
             PopulateQueueDisplay();
             UpdateProgressText();
 
-            _snackbarService.Show("Session Restored", $"Resuming auto unlock for {state.GameName}",
+            _snackbarService.Show("Session Restored", $"Loaded saved queue for {state.GameName}",
                 NoticeAppearance.Success, new NoticeIcon(NoticeSymbol.Checkmark24), _snackbarDuration);
 
-            await StartAutoUnlockProcess();
+            await AchievementLabs.MultiSelect.QueueTools.LoadedOnly(this);
         }
 
         [RelayCommand]
