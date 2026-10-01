@@ -1,0 +1,75 @@
+name: Windows build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Run offline enhancement checks
+        run: ./tools/Test-Enhancements.ps1
+
+      - name: Build self-contained Windows executable
+        run: ./tools/Build-Release.ps1
+
+      - name: Prepare download and checksum
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $taskExecutables = @(Get-ChildItem -Path releases -Filter AchievementLabs.exe -Recurse -File)
+          if ($taskExecutables.Count -ne 1) { throw 'Expected exactly one release executable.' }
+          New-Item -ItemType Directory -Path artifacts/download -Force | Out-Null
+          Copy-Item -LiteralPath $taskExecutables[0].FullName -Destination artifacts/download/AchievementLabs.exe
+          $taskHash = (Get-FileHash artifacts/download/AchievementLabs.exe -Algorithm SHA256).Hash
+          "$taskHash  AchievementLabs.exe" | Set-Content artifacts/download/SHA256.txt -Encoding utf8
+          @(
+            'Achievement Labs fork build (Windows x64)'
+            "Commit: $env:GITHUB_SHA"
+            "Build: $env:GITHUB_RUN_NUMBER"
+            'Version: 1.0.3 source plus fork enhancements'
+            'Signing: unsigned'
+            'Offline enhancement checks: passed'
+            'Live Xbox sign-in, event delivery and licensing have not been verified by this workflow.'
+          ) | Set-Content artifacts/download/BUILD-INFO.txt -Encoding utf8
+          @(
+            '### Windows build ready'
+            'Download AchievementLabs-Windows-x64 from the Artifacts section below.'
+            "SHA-256: $taskHash"
+            "Source commit: $env:GITHUB_SHA"
+          ) | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Upload Windows download
+        uses: actions/upload-artifact@v4
+        with:
+          name: AchievementLabs-Windows-x64
+          path: artifacts/download/
+          if-no-files-found: error
+          retention-days: 30
