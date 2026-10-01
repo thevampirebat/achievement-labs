@@ -596,7 +596,8 @@ public class XboxApiClient : IDisposable
 #if DEBUG
         Console.WriteLine($"Heartbeat POST response: {(int)response.StatusCode} {response.StatusCode} - {body}");
 #endif
-        return ((int)response.StatusCode, body);
+        return await AchievementLabs.MultiSelect.PresenceDiagnostics.Observe(
+            Task.FromResult(((int)response.StatusCode, body)), this, spoofedTitleId);
     }
 
     public async Task<(int StatusCode, string Body)> StopHeartbeatAsync(string xuid, bool useFakeSignature = false)

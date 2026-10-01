@@ -52,7 +52,8 @@ public sealed partial class DesktopModel : Observable, IDisposable
     public IEnumerable<Game> VisibleGames => Games.Where(g => MatchesPlatform(g, PlatformFilter) && (g.Name.Contains(LibrarySearch, StringComparison.OrdinalIgnoreCase) || g.Id == LibrarySearch.Trim()));
     public string LibrarySearch { get => librarySearch; set { librarySearch = value ?? ""; Changed(); Changed(nameof(VisibleGames)); } }
     public string GameCount => Games.Length.ToString();
-    public Achievement[] VisibleAchievements => achievements.Where(a => (filter == "All" || a.ProgressKnown && (filter == "Unlocked") == a.Unlocked) && (a.Name.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Description.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Id == Search)).ToArray();
+    public Achievement[] VisibleAchievements => (Achievement[])AchievementLabs.MultiSelect.AchievementView.Transform(
+        achievements.Where(a => (filter == "All" || a.ProgressKnown && (filter == "Unlocked") == a.Unlocked) && (a.Name.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Description.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Id == Search)).ToArray(), this);
     public Game? SelectedGame { get => selectedGame; private set { selectedGame = value; Changed(); } }
     public Game? SelectedLibraryGame { get => selectedLibraryGame; set { selectedLibraryGame = value; Changed(); Changed(nameof(HasLibrarySelection)); } }
     public bool HasLibrarySelection => SelectedLibraryGame != null;

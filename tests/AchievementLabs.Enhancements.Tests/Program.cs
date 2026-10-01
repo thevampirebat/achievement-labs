@@ -1,0 +1,208 @@
+using AchievementLabs.MultiSelect;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Headless;
+using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
+using Avalonia.Threading;
+using System.ComponentModel;
+
+static class Test
+{
+ static void Assert(bool v,string message) { if(!v)throw new Exception(message); }
+ static void Click(Button b) { b.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));Dispatcher.UIThread.RunJobs(); }
+ static IEnumerable<T> Desc<T>(Control c)=>c.GetLogicalDescendants().OfType<T>();
+ static Window Open(FakeWindow w) { Click(Desc<Button>(w).Single(b=>(b.Content as string)=="Select multiple…"));return w.OwnedWindows.Single(); }
+ static void SelectAll(Window d)=>Click(Desc<Button>(d).Single(b=>(b.Content as string)=="Select all eligible"));
+ static void Submit(Window d)=>Click(Desc<Button>(d).Single(b=>(b.Content as string)=="Unlock / retry selected"));
+ public static void Main(string[] args)
+ {
+  if(args.Contains("--queue-tools")){QueueToolTests.Run();return;}
+  if(args.Contains("--playtime")){PlaytimeTests.Run();return;}
+  if(args.Contains("--auto-token")){AutomaticTokenTests.Run();return;}
+  if(args.Contains("--export")){ExportTests.Run();return;}
+  if(args.Contains("--mapping")){MappingTests.Run();return;}
+  if(args.Contains("--editions")){EditionMappingTests.Run();return;}
+  if(args.Contains("--port")){PortTests.Run();return;}
+  if(args.Contains("--integration") || args.Contains("--scroll"))
+  {
+   AppContext.SetSwitch("AchievementLabs.OfflineChecks", true);
+   string testRoot=Environment.GetEnvironmentVariable("AL_TEST_ROOT")??AppContext.BaseDirectory;
+   string root=System.IO.Path.GetFullPath(testRoot);
+   System.Runtime.Loader.AssemblyLoadContext.Default.Resolving+=(_,name)=>
+   {
+    string path=System.IO.Path.Combine(root,name.Name+".dll");
+    return System.IO.File.Exists(path)?System.Reflection.Assembly.LoadFrom(path):null;
+   };
+   System.Reflection.Assembly.LoadFrom(System.IO.Path.GetFullPath(testRoot+"/AchievementLabs.Core.dll"));
+   var assembly=System.Reflection.Assembly.LoadFrom(System.IO.Path.GetFullPath(testRoot+"/AchievementLabs.dll"));
+   var appType=assembly.GetTypes().Single(t=>t.Name=="App" && typeof(Application).IsAssignableFrom(t));
+   AppBuilder.Configure(()=> (Application)Activator.CreateInstance(appType)!).UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
+   var window=(Window)Activator.CreateInstance(assembly.GetTypes().Single(t=>t.Name=="MainWindow"))!;
+   Assert(Desc<ComboBox>(window).Any(c=>c.Name=="AchievementNameSort"),"Sort in real window");
+   Assert(Desc<ComboBox>(window).Any(c=>c.Name=="AchievementPackFilter"),"Pack filter in real window");
+   Assert(Desc<ListBox>(window).Any(l=>l.Name=="AchievementLabsAchievementList"),"Named real achievement list");
+   Assert(Desc<Button>(window).Any(b=>(b.Content as string)=="Select multiple…"),"Batch button in real window");
+   Assert(Desc<Button>(window).Count(b=>b.Name=="ExportAllAchievements")==2,"Export all buttons in achievement and profile views");
+   Assert(Desc<StackPanel>(window).Count(b=>b.Name=="XboxRecordedPlaytime")==1,"Xbox-recorded playtime panel attached to spoofer");
+   Assert(Desc<Button>(window).Single(b=>b.Name=="RefreshXboxPlaytime").IsEnabled==false,"Playtime disabled without connected account");
+   Assert(Desc<StackPanel>(window).Count(b=>b.Name=="AutomaticEventToken")==1,"Automatic token controls attached to Settings");
+   Assert(Desc<Button>(window).Single(b=>b.Name=="GetEventTokenNow").IsEnabled==false,"Token retrieval disabled without connected account");
+   Assert(Desc<Button>(window).Single(b=>b.Name=="CheckPresenceLogin").IsEnabled==false,"Read-only login check disabled disconnected");
+   Assert(Desc<CheckBox>(window).Single(b=>b.Name=="ShowEventToken").IsChecked==false,"Token hidden by default");
+   Assert(Desc<Button>(window).Count(b=>b.Name=="OpenGameAutoSpoofer")==1,"Game queue shortcut attached");
+   Assert(Equals(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Content,"Open Auto Unlock"),"Game shortcut label matches destination");
+   Assert(Desc<Button>(window).Count(b=>b.Name=="RemoveQueueAchievements")==1,"Queue removal attached");
+   Assert(Desc<Button>(window).Any(b=>Equals(b.Content,"Load saved queue")),"Saved queue load button relabelled");
+   {
+    var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic;
+    var model=window.GetType().GetField("model",flags)!.GetValue(window)!;
+    var gameProperty=model.GetType().GetProperty("SelectedGame",flags)!;
+    var syntheticGame=System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(gameProperty.PropertyType);
+    var gameId=gameProperty.PropertyType.GetProperty("TitleId")??gameProperty.PropertyType.GetProperty("Id");
+    Assert(gameId!=null,"Actual game exposes title identifier");
+    gameId!.SetValue(syntheticGame,"572802557");gameProperty.SetValue(model,syntheticGame);
+    QueueTools.OpenForGame(model);
+    var actualQueue=model.GetType().GetProperty("XboxQueue",flags)!.GetValue(model)!;
+    Assert(Equals(actualQueue.GetType().GetProperty("TitleId")!.GetValue(actualQueue),"572802557"),"Actual game ID reaches automatic queue");
+    Assert(Equals(model.GetType().GetProperty("IsQueues")!.GetValue(model),true),"Shortcut navigates to queue page");
+    Assert(Equals(actualQueue.GetType().GetProperty("IsRunning")!.GetValue(actualQueue),false),"Shortcut does not start queue");
+    var clientType=model.GetType().GetField("client",flags)!.FieldType;
+    Assert(clientType.GetField("_xauth",flags)?.FieldType==typeof(string),"Existing client authentication integration");
+    Assert(model.GetType().GetField("session",flags)!.FieldType.GetProperty("Xuid")!=null,"Existing session account integration");
+    var input=Desc<TextBox>(window).Single(t=>t.PlaceholderText=="Paste event token");
+    var tokenSession=System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(model.GetType().GetField("session",flags)!.FieldType);
+    TokenPresentation.Install(model,tokenSession,new AutomaticEventToken.Grant("synthetic-display-token",DateTimeOffset.UtcNow.AddHours(1)),"",true);
+    Dispatcher.UIThread.RunJobs();Assert(input.Text=="synthetic-display-token","Automatic token reaches actual bound paste box");
+    var reveal=Desc<CheckBox>(window).Single(t=>t.Name=="ShowEventToken");
+    Assert(input.PasswordChar!='\0',"Actual token box masked initially");reveal.IsChecked=true;Assert(input.PasswordChar=='\0',"Reveal works");reveal.IsChecked=false;
+    TokenPresentation.ClearOwnInput(model,"synthetic-display-token");Dispatcher.UIThread.RunJobs();Assert(input.Text=="","Clearing removes token from actual box");
+    window.Show();var export=ExportAllView.Show(window,model);Dispatcher.UIThread.RunJobs();
+    var dialog=window.OwnedWindows.Single();
+    Assert(Desc<ProgressBar>(dialog).Any(b=>b.Name=="AllAchievementsProgress"),"Export progress bar present");
+    Assert(Desc<CheckBox>(dialog).Single().IsChecked==false,"Skip completed titles by default");
+    Assert(Desc<Button>(dialog).Single(b=>Equals(b.Content,"Pause")).IsEnabled==false,"Pause idle state");
+    dialog.Close();Dispatcher.UIThread.RunJobs();Assert(export.IsCompleted,"Export dialog closes without scan");
+   }
+   Console.WriteLine("PASS: actual patched application initializes headlessly; main sorting, pack filter, named list and multi-select button attached.");
+   if(args.Contains("--scroll"))
+   {
+    var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic;
+    object realModel=window.GetType().GetField("model",flags)!.GetValue(window)!;
+    var gameType=assembly.GetTypes().Single(t=>t.Name=="Game");
+    object game=System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(gameType);
+    foreach(var property in gameType.GetProperties().Where(p=>p.CanWrite && p.PropertyType==typeof(string)))property.SetValue(game,"");
+    gameType.GetProperty("Name")!.SetValue(game,"Call of Duty: Ghosts");
+    gameType.GetProperty("Id")!.SetValue(game,"572802557");
+    realModel.GetType().GetField("selectedGame",flags)!.SetValue(realModel,game);
+    var rowType=assembly.GetTypes().Single(t=>t.Name=="Achievement");
+    var rowCtor=rowType.GetConstructors().Single(c=>c.GetParameters().Length==8);
+    Array data=Array.CreateInstance(rowType,91);var names=AchievementView.Ghosts.Keys.ToArray();
+    for(int i=0;i<91;i++)data.SetValue(rowCtor.Invoke(new object[]{(i+1).ToString(),names[i],"Scrolling regression test",20,false,true,true,""}),i);
+    var actualList=Desc<ListBox>(window).Single(l=>l.Name=="AchievementLabsAchievementList");
+    ((Panel)actualList.Parent!).Children.Remove(actualList);
+    var host=new Window{Width=800,Height=360,Content=actualList};actualList.ItemsSource=data;host.Show();host.UpdateLayout();
+    int headingCount=0;
+    foreach(object row in data)
+    {
+      var built=actualList.ItemTemplate!.Build(row)!;
+      headingCount+=built.GetLogicalDescendants().OfType<Border>().Count(b=>b.Name=="AchievementPackDivider" && b.IsVisible);
+    }
+    Assert(headingCount==5,"Actual row template emits exactly five visible pack headings");
+    for(int round=0;round<3;round++)
+    {
+      for(int i=0;i<91;i++){actualList.ScrollIntoView(i);host.UpdateLayout();Dispatcher.UIThread.RunJobs();}
+      for(int i=90;i>=0;i--){actualList.ScrollIntoView(i);host.UpdateLayout();Dispatcher.UIThread.RunJobs();}
+      actualList.ItemsSource=null;host.UpdateLayout();actualList.ItemsSource=data;host.UpdateLayout();
+    }
+    host.Close();Console.WriteLine("PASS: actual achievement template, 546 scroll targets plus clearing and repopulating the virtualized list.");
+   }
+   window.Close();return;
+  }
+
+  AppBuilder.Configure<Application>().UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
+  Application.Current!.Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
+  var m=new Model();int n=0;
+  foreach(bool events in new[]{false,true})foreach(bool unlocked in new[]{false,true})foreach(bool mapping in new[]{false,true})foreach(bool supported in new[]{false,true})foreach(bool definition in new[]{false,true})
+  {
+   m.eventBased=events;m.eventTitleSupported=supported;m.mappedIds=mapping?new(){"1"}:new();m.definitions=definition?new(){{"1",new object()}}:new();
+   bool expected=definition && (events ? mapping && supported : !unlocked);
+   Assert((BatchPicker.IneligibleReason(m,new Row("1","Row",unlocked))==null)==expected,"Eligibility matrix");n++;
+   m.SelectedAchievement=new Row("1","Row",unlocked);
+   Assert(BatchPicker.CanUnlockSelected(m)==expected,"Single retry eligibility matrix");
+  }
+  m=new Model();m.VisibleAchievements=new[]{new Row("1","Locked",false),new Row("2","Retry",true),new Row("3","Unmapped",false)};
+  Assert(BatchPicker.EligibleIds(m,new[]{m.VisibleAchievements[0],m.VisibleAchievements[0],m.VisibleAchievements[1],m.VisibleAchievements[2]}).SequenceEqual(new[]{"1","2"}),"Filtering and duplicate removal");
+  var w=new FakeWindow(m);w.Show();BatchPicker.Attach(w);
+  Window d=Open(w);var checks=Desc<CheckBox>(d).ToArray();Assert(checks.Length==3 && !checks[2].IsEnabled,"Disabled mapping checkbox");
+  Assert(!Desc<Button>(d).Single(b=>(b.Content as string)=="Unlock / retry selected").IsEnabled,"Empty selection disabled");
+  SelectAll(d);Assert(checks.Count(c=>c.IsChecked==true)==2,"Select all eligible");
+  Click(Desc<Button>(d).Single(b=>(b.Content as string)=="Clear"));Assert(checks.All(c=>c.IsChecked!=true),"Clear all");
+  checks[1].IsChecked=true;Submit(d);Dispatcher.UIThread.RunJobs();Assert(m.Sent.SequenceEqual(new[]{"2"}),"Only chosen retry submitted");
+  d=Open(w);SelectAll(d);Submit(d);Dispatcher.UIThread.RunJobs();Assert(m.Sent.SequenceEqual(new[]{"1","2"}) && m.Calls==2,"One batch call for multiple checked achievements");
+  d=Open(w);SelectAll(d);Click(Desc<Button>(d).Single(b=>(b.Content as string)=="Cancel"));Assert(m.Calls==2,"Cancel sends nothing");
+  d=Open(w);SelectAll(d);m.SelectedGame=new Game();Submit(d);Assert(m.Calls==2 && d.IsVisible,"Stale game rejected");d.Close();Dispatcher.UIThread.RunJobs();
+  m.CanQuery=false;m.Notify();Assert(!Desc<Button>(w).Single(b=>(b.Content as string)=="Select multiple…").IsEnabled,"Busy disables batch button");w.Close();
+  Assert(AchievementView.Ghosts.Count==91,"All 91 mapped");
+  Assert(AchievementView.Packs.Skip(1).Take(5).Select(p=>AchievementView.Ghosts.Values.Count(v=>v==p)).SequenceEqual(new[]{50,11,10,10,10}),"Pack counts 50/11/10/10/10");
+  Assert(!AchievementView.Supports(new Game {Id="wrong",Name="Call of Duty: Ghosts"}),"Wrong version never matched by name");
+  Assert(AchievementView.Supports(new Game {Id="572802557",Name="Localized title"}),"Exact Title ID matches independently of name");
+  object[] boundaries={new Row("1","Ghost Stories",false),new Row("2","Spatial Awareness",false),new Row("52","Undiscovered Truths",false),new Row("53","Pushing Ahead",false),new Row("92","Hat Trick",false)};
+  Assert(boundaries.Count(r=>AchievementView.StartsGroup(boundaries,r))==3,"One divider per visible pack");
+  var filtered=boundaries.Skip(3).ToArray();Assert(AchievementView.StartsGroup(filtered,filtered[0]),"Filtered pack starts with a divider");
+  Assert(!AchievementView.StartsGroup(null,boundaries[0]),"Cleared virtual list safe");
+  Assert(AchievementView.Group(new Row("92","Hat Trick",true))=="Nemesis","Hat Trick is Nemesis");
+  Assert(AchievementView.Group(new Row("x","UNKNOWN",false))=="Unclassified","Unknown not guessed as base");
+  Assert(AchievementView.Group(new Row("x","YOU’VE EARNED IT",false))=="Base game","Punctuation and case matching");
+  var sortRows=new[]{new Row("z","zebra",false),new Row("a","Apple",false),new Row("b","banana",false)};
+  Assert(AchievementView.Arrange(sortRows,false,1,"All packs").Cast<Row>().Select(r=>r.Id).SequenceEqual(new[]{"a","b","z"}),"A-Z sorting");
+  Assert(AchievementView.Arrange(sortRows,false,2,"All packs").Cast<Row>().Select(r=>r.Id).SequenceEqual(new[]{"z","b","a"}),"Z-A sorting");
+  m=new Model {SelectedGame=new Game {Id="572802557",Name="Call of Duty®: Ghosts"},VisibleAchievements=new[]{new Row("1","Hat Trick",true),new Row("2","Always Hard",false),new Row("3","Ghost Stories",false)}};
+  m.mappedIds.Add("3");
+  var state=AchievementView.For(m);state.Sort=1;state.Pack="Nemesis";
+  var transformed=AchievementView.Transform(m.VisibleAchievements,m);
+  Assert(transformed is Row[] && transformed.Cast<Row>().Select(r=>r.Id).SequenceEqual(new[]{"2","1"}),"Typed pack filter and alphabetical sort");
+  state.Pack="All packs";
+  w=new FakeWindow(m);w.Show();BatchPicker.Attach(w);
+  var mainSort=Desc<ComboBox>(w).Single(c=>c.Name=="AchievementNameSort");mainSort.SelectedIndex=2;
+  Assert(AchievementView.For(m).Sort==2,"Main sort control updates state");
+  var mainPack=Desc<ComboBox>(w).Single(c=>c.Name=="AchievementPackFilter");mainPack.SelectedItem="Nemesis";
+  Assert(AchievementView.For(m).Pack=="Nemesis","Main pack control updates state");
+  mainPack.SelectedItem="All packs";
+  d=Open(w);
+  var pickerPack=Desc<ComboBox>(d).Single(c=>c.Name=="PickerPackFilter");pickerPack.SelectedItem="Nemesis";
+  SelectAll(d);
+  Assert(Desc<CheckBox>(d).Count()==2 && Desc<CheckBox>(d).All(c=>c.IsChecked==true),"Pick only displayed DLC");
+  var pickerSort=Desc<ComboBox>(d).Single(c=>c.Name=="PickerNameSort");pickerSort.SelectedIndex=1;
+  Assert(Desc<CheckBox>(d).All(c=>c.IsChecked==true),"Selections retained during sorting");
+  pickerPack.SelectedItem="Base game";
+  Assert(Desc<CheckBox>(d).Count()==1 && Desc<CheckBox>(d).Single().IsChecked!=true,"Other pack starts unchecked");
+  Assert(Desc<TextBlock>(d).Any(t=>t.Text?.StartsWith("2 selected")==true),"Hidden selections counted");
+  Click(Desc<Button>(d).Single(b=>(b.Content as string)=="Clear"));
+  Assert(Desc<TextBlock>(d).Any(t=>t.Text?.StartsWith("0 selected")==true),"Clear includes hidden selections");
+  SelectAll(d);Submit(d);Dispatcher.UIThread.RunJobs();Assert(m.Sent.SequenceEqual(new[]{"3"}),"Submit chosen pack only");
+  m.SelectedGame=new Game();Assert(AchievementView.For(m).Pack=="All packs","Pack reset when switching game");w.Close();
+  Console.WriteLine("PASS: 91-name mapping, pack counts, unknown handling, normalization, sorting, typed arrays, both sets of controls, selection preservation and pack-only submission.");
+  Console.WriteLine($"PASS: {n} eligibility combinations, duplicates, checkbox selection, select all, clear, cancel, single batch submission, stale-game guard and busy state.");
+ }
+}
+public record Row(string Id,string Name,bool Unlocked){ public int Score=>20; }
+public class Game {public string Id{get;set;}="";public string Name{get;set;}="Test game";}
+public class Model:INotifyPropertyChanged
+{
+ public Row? SelectedAchievement{get;set;}
+ public bool CanQuery{get;set;}=true;public bool liveAchievements=true,eventBased=true,eventTitleSupported=true;
+ public Dictionary<string,object> definitions=new(){{"1",new()},{"2",new()},{"3",new()}};
+ public HashSet<string> mappedIds=new(){"1","2"};public Game SelectedGame{get;set;}=new();public Row[] VisibleAchievements{get;set;}=Array.Empty<Row>();
+ public string ActionSummary{get;set;}="";public string[] Sent=Array.Empty<string>();public int Calls;
+ public static bool UsesLegacyEndpoint(Game game)=>false;
+ public Task SubmitAchievementsAsync(string[] ids){Sent=ids;Calls++;return Task.CompletedTask;}
+ public event PropertyChangedEventHandler? PropertyChanged;
+ protected void Changed(string name)=>PropertyChanged?.Invoke(this,new PropertyChangedEventArgs(name));
+ public void Notify()=>PropertyChanged?.Invoke(this,new PropertyChangedEventArgs("CanQuery"));
+}
+public class FakeWindow:Window
+{
+ public object model;
+ public FakeWindow(Model m){model=m;Content=new StackPanel {Children={new Button{Content="Unlock / retry "}}};}
+}
