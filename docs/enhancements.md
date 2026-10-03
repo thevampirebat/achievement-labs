@@ -82,10 +82,35 @@ heartbeat and unlock operations have not been tested.
 
 ## Remaining limitations
 
-Cached-user-token retrieval is not XAU's preferred WAM user-plus-device flow.
-A token's format and matching account do not prove achievement-credit
-capability. Disable automatic retrieval when using a working manual token.
+The Get event token now button offers a Windows account picker and uses the broker's
+MSA token with a signed RPS device exchange, user authentication, identity
+verification and a user-plus-device events XSTS request. This follows the
+Windows account route observed in the supplied XAU executable. It requires
+Windows 10 build 19041 or newer and an account available to the Windows broker.
+Silent broker failures leave the previous token intact; the app does not
+silently substitute a cached-user token. No XAU binary or decompiled source is
+bundled. The legacy cache option remains explicitly experimental. Background
+cache retrieval cannot replace a token obtained through the Windows picker.
+Account/hash and expiry checks do not prove achievement-credit capability;
+live authentication and credit still need validation on the user's PC.
 Heartbeat HTTP 401 is diagnosed, not repaired by this port.
+
+Queue updates (4 October 2026): unlocked rows are green, the list remains
+scrollable during execution, and delay inputs are disabled while running.
+Spoofing and the Xbox queue can run concurrently. Their presence requests share
+a gate: the spoofer takes precedence while active; stopping a queue preserves
+the spoofer, and stopping the spoofer restores an active queue's title presence.
+Saving an event token updates the queue account too and no longer clears the
+input when the immutable session is replaced for the same account. Turning off
+background retrieval preserves the current token.
+
+The Xbox library has A-Z, Z-A and Last Played sorting using Xbox title-history
+timestamps. Missing timestamps sort last; name ties are deterministic and all
+existing search/platform filters remain effective.
+
+The nine regression groups pass with synthetic credentials, including the
+actual-window running-list and Save-session regression, both presence gates,
+library ordering and signed device exchange with account/hash/expiry rejection.
 
 General automatic DLC classification is not implemented. No guessed event
 data for 7 Days to Die (60633334) is supplied. Ten unverified/missing Escapists

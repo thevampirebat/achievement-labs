@@ -5,7 +5,7 @@ public sealed partial class DesktopModel
     private readonly NativeAccountContext queueAccount = new();
     private AutoUnlockerViewModel? xboxQueue;
     private SteamAutoUnlockerViewModel? steamQueue;
-    public AutoUnlockerViewModel XboxQueue => xboxQueue ??= new(new NativeNotices(message => Notice = message), queueAccount) { EventCatalog = eventCatalog };
+    public AutoUnlockerViewModel XboxQueue => xboxQueue ??= new(new NativeNotices(message => Notice = message), queueAccount) { EventCatalog = eventCatalog, ExternalPresenceActive = () => PresenceRunning, PresenceGate = requests };
     public SteamAutoUnlockerViewModel SteamQueue => steamQueue ??= ObserveWorkflow(new SteamAutoUnlockerViewModel(steam, new NativeNotices(message => Notice = message)));
     public bool IsQueues => page == "Queues";
     private bool queueActive;
@@ -20,7 +20,7 @@ public sealed partial class DesktopModel
         if (QueueActive && !XboxQueue.IsRunning) return;
         if (session == null && !XboxQueue.IsRunning) return;
         if (XboxQueue.IsRunning) { await XboxQueue.StartStopAutoUnlock(); return; }
-        if (busy || PresenceRunning) { Notice = "Wait for the current operation and stop presence before starting a queue."; return; }
+        if (busy) { Notice = "Wait for the current operation before starting a queue."; return; }
         QueueActive = true;
         try { await XboxQueue.StartStopAutoUnlock(); } finally { QueueActive = false; }
     }

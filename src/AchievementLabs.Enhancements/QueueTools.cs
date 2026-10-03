@@ -24,7 +24,7 @@ public static class QueueTools
  }
  public static void OpenForGame(object model)
  {
-  if(P(model,"QueueActive") is true || P(model,"PresenceRunning") is true)return;
+  if(P(model,"QueueActive") is true)return;
   var game=P(model,"SelectedGame");string id=P(game,"TitleId")?.ToString()??P(game,"Id")?.ToString()??"";
   if(!ulong.TryParse(id,out _))return;
   var queue=P(model,"XboxQueue");if(P(queue,"IsRunning") is true)return;
