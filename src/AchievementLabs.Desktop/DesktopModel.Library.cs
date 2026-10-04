@@ -6,7 +6,18 @@ public sealed partial class DesktopModel
     public string[] PlatformFilters { get; } = ["All", "Xbox One/Series", "PC", "Xbox 360", "Win32", "Windows 8/Legacy", "Incomplete Games"];
     private string librarySort = "A-Z";
     public string[] LibrarySortOptions { get; } = ["A-Z", "Z-A", "Last Played"];
-    public string LibrarySort { get => librarySort; set { librarySort = LibrarySortOptions.Contains(value) ? value : "A-Z"; Changed(); Changed(nameof(VisibleGames)); } }
+    public string LibrarySort
+    {
+        get => librarySort;
+        set
+        {
+            var next = LibrarySortOptions.Contains(value) ? value : "A-Z";
+            if (librarySort == next) return;
+            librarySort = next;
+            Changed(); Changed(nameof(VisibleGames));
+            if (next == "Last Played") _ = RefreshLibraryAsync();
+        }
+    }
     public string PlatformFilter { get => platformFilter; set { platformFilter = value ?? "All"; Changed(); Changed(nameof(VisibleGames)); } }
     public string TitleLookup { get => titleLookup; set { titleLookup = value ?? ""; Changed(); } }
     public bool CanQuery => !QueueActive && !busy && session != null;
