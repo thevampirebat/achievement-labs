@@ -73,7 +73,7 @@ namespace AchievementLabs.Desktop.Workflows
 
         #endregion
 
-        public class AutoUnlockQueueDisplay
+        public class AutoUnlockQueueDisplay : ObservableObject
         {
             private decimal _delayMinutes;
 
@@ -81,7 +81,8 @@ namespace AchievementLabs.Desktop.Workflows
             public string AchievementName { get; set; } = "";
             public string AchievementId { get; set; } = "";
             public int Gamerscore { get; set; }
-            public bool CanEditDelay { get; set; }
+            private bool canEditDelay;
+            public bool CanEditDelay { get => canEditDelay; set => SetProperty(ref canEditDelay, value); }
             internal Action<int, decimal>? DelayChanged { get; set; }
             public decimal DelayMinutes
             {
@@ -95,6 +96,32 @@ namespace AchievementLabs.Desktop.Workflows
                 }
             }
             public string Status { get; set; } = "Pending";
+            public string RowBackground => Status == "Unlocked" ? "#245C38" : "Transparent";
+        }
+
+        public Func<bool> ExternalPresenceActive { get; set; } = () => false;
+        partial void OnIsRunningChanged(bool value)
+        {
+            foreach (var item in QueueItems) item.CanEditDelay = !value;
+        }
+        public SemaphoreSlim PresenceGate { get; set; } = new(1, 1);
+        public string ActiveTitleId => _state?.TitleId ?? TitleId;
+
+        private async Task UpdatePresenceAsync(bool stop = false)
+        {
+            await PresenceGate.WaitAsync();
+            try
+            {
+                if (ExternalPresenceActive()) return;
+                if (stop) await GetRestAPI().StopHeartbeatAsync(account.XUIDOnly);
+                else
+                {
+                    var response = await GetRestAPI().SendHeartbeatAsync(account.XUIDOnly, ActiveTitleId);
+                    if (response.StatusCode < 200 || response.StatusCode >= 300)
+                        StatusText = $"Queue presence heartbeat: HTTP {response.StatusCode}";
+                }
+            }
+            finally { PresenceGate.Release(); }
         }
 
         public void OnNavigatedTo()
@@ -429,17 +456,12 @@ namespace AchievementLabs.Desktop.Workflows
             // Start spoofing - send initial heartbeat so it shows as playing the game
             account.SpoofedTitleID = _state.TitleId;
             account.SpoofingStatus = 1;
-            var hbResult = await GetRestAPI().SendHeartbeatAsync(account.XUIDOnly, _state.TitleId);
-            if (hbResult.StatusCode < 200 || hbResult.StatusCode >= 300)
-            {
-                StatusText = $"Heartbeat failed: HTTP {hbResult.StatusCode} - {(hbResult.Body.Length > 150 ? hbResult.Body.Substring(0, 150) : hbResult.Body)}";
-            }
-
             _cancellationTokenSource = new CancellationTokenSource();
             var token = _cancellationTokenSource.Token;
 
             try
             {
+                await UpdatePresenceAsync();
                 await Task.Run(async () => await RunAutoUnlockLoop(token), token);
             }
             catch (OperationCanceledException)
@@ -455,7 +477,9 @@ namespace AchievementLabs.Desktop.Workflows
             finally
             {
                 // Stop spoofing
-                await GetRestAPI().StopHeartbeatAsync(account.XUIDOnly);
+                IsRunning = false;
+                try { await UpdatePresenceAsync(stop: true); }
+                catch { StatusText = "Queue stopped; presence cleanup failed."; }
                 account.SpoofingStatus = 0;
                 account.SpoofedTitleID = "0";
 
@@ -524,7 +548,7 @@ namespace AchievementLabs.Desktop.Workflows
                         heartbeatCounter++;
                         if (heartbeatCounter >= 300)
                         {
-                            await GetRestAPI().SendHeartbeatAsync(account.XUIDOnly, _state.TitleId);
+                            await UpdatePresenceAsync();
                             heartbeatCounter = 0;
                         }
 
@@ -636,7 +660,7 @@ namespace AchievementLabs.Desktop.Workflows
                     AchievementName = entry.AchievementName,
                     AchievementId = entry.AchievementId,
                     Gamerscore = entry.Gamerscore,
-                    CanEditDelay = true,
+                    CanEditDelay = !IsRunning,
                     DelayMinutes = (decimal)(entry.DelaySeconds / 60.0),
                     Status = entry.Completed ? "Unlocked" : (i < _state.CurrentIndex ? "Skipped" : "Pending")
                 };

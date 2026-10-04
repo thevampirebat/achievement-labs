@@ -19,6 +19,7 @@ public static class PortTests
  }
  public static void Run()
  {
+  QueuePresenceTokenTests.Run();
   var model=new Model();var session=new Session();
   var grant=new AutomaticEventToken.Grant("synthetic-event-token",DateTimeOffset.UtcNow.AddHours(1));
   TokenPresentation.Install(model,session,grant,"",false);

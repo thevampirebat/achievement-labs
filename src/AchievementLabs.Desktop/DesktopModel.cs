@@ -20,7 +20,7 @@ public record Achievement(string Id, string Name, string Description, int Score,
     public string BadgeForeground => Unlocked ? "#8BCBB0" : "#B9BEC8";
     public string BadgeBackground => Unlocked ? "#253B34" : "#2A303B";
 }
-public record Game(string Id, string Name, string Platform, int Completed, int Total, int Score, bool ProgressKnown = true, string? ImageUrl = null)
+public record Game(string Id, string Name, string Platform, int Completed, int Total, int Score, bool ProgressKnown = true, string? ImageUrl = null, DateTime? LastPlayed = null)
 {
     public string ShortName => Name;
     public string Monogram => string.Concat(Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0]));
@@ -49,7 +49,19 @@ public sealed partial class DesktopModel : Observable, IDisposable
     private int selectionVersion;
     private readonly Stack<string> pageHistory = [];
     public Game[] Games { get => games; private set { games = value; SelectedLibraryGame = value.FirstOrDefault(); Changed(); Changed(nameof(VisibleGames)); Changed(nameof(GameCount)); Changed(nameof(HomeXboxSummary)); } }
-    public IEnumerable<Game> VisibleGames => Games.Where(g => MatchesPlatform(g, PlatformFilter) && (g.Name.Contains(LibrarySearch, StringComparison.OrdinalIgnoreCase) || g.Id == LibrarySearch.Trim()));
+    public IEnumerable<Game> VisibleGames
+    {
+        get
+        {
+            var filtered = Games.Where(g => MatchesPlatform(g, PlatformFilter) && (g.Name.Contains(LibrarySearch, StringComparison.OrdinalIgnoreCase) || g.Id == LibrarySearch.Trim()));
+            return LibrarySort switch
+            {
+                "Z-A" => filtered.OrderByDescending(g => g.Name, StringComparer.OrdinalIgnoreCase).ThenBy(g => g.Id),
+                "Last Played" => filtered.OrderByDescending(g => g.LastPlayed).ThenBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ThenBy(g => g.Id),
+                _ => filtered.OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ThenBy(g => g.Id)
+            };
+        }
+    }
     public string LibrarySearch { get => librarySearch; set { librarySearch = value ?? ""; Changed(); Changed(nameof(VisibleGames)); } }
     public string GameCount => Games.Length.ToString();
     public Achievement[] VisibleAchievements => (Achievement[])AchievementLabs.MultiSelect.AchievementView.Transform(
@@ -103,7 +115,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         SelectedAchievement = matches.Contains(SelectedAchievement) ? SelectedAchievement : matches.FirstOrDefault();
         Changed(nameof(VisibleAchievements)); Changed(nameof(NoResults)); Changed(nameof(ResultLabel)); Changed(nameof(CanExport));
     }
-    private void Busy(bool value) { busy = value; Changed(nameof(CanConnect)); Changed(nameof(CanInteract)); Changed(nameof(CanDisconnect)); Changed(nameof(CanQuery)); NotifyActions(); }
+    private void Busy(bool value) { busy = value; Changed(nameof(CanConnect)); Changed(nameof(CanInteract)); Changed(nameof(CanDisconnect)); Changed(nameof(CanQuery)); Changed(nameof(CanStartPresence)); NotifyActions(); }
     public Task ConnectAsync() => AttachXboxPcAppAsync();
 
     private async Task ActivateXboxSessionAsync(ConnectedXboxSession connected, XboxApiClient candidate, string method)

@@ -18,6 +18,7 @@ public sealed partial class DesktopModel
     public string StatsOutput { get => statsOutput; private set { statsOutput = value; Changed(); } }
     public string PresenceTitleId { get => presenceTitleId; set { presenceTitleId = value ?? ""; Changed(); } }
     public bool PresenceRunning => presenceCancellation != null;
+    public bool CanStartPresence => !busy && session != null && !PresenceRunning;
     public string SpoofTitleName { get => spoofTitleName; private set { spoofTitleName = value; Changed(); } }
     public string SpoofTitleDetails { get => spoofTitleDetails; private set { spoofTitleDetails = value; Changed(); } }
     public string? SpoofTitleImageUrl { get => spoofTitleImageUrl; private set { spoofTitleImageUrl = value; Changed(); } }
@@ -51,7 +52,7 @@ public sealed partial class DesktopModel
     });
     public async Task StartPresenceAsync()
     {
-        if (!CanQuery || PresenceRunning || client == null || session == null || !uint.TryParse(PresenceTitleId, out var id) || id == 0) return;
+        if (!CanStartPresence || client == null || session == null || !uint.TryParse(PresenceTitleId, out var id) || id == 0) return;
         var presenceAuthorization = await AchievementLabs.Core.XboxPcAppAuthorizationReader.TryReadAsync(lifetime.Token);
         if (string.IsNullOrWhiteSpace(presenceAuthorization))
         {
@@ -61,7 +62,7 @@ public sealed partial class DesktopModel
         using var api = new XboxApiClient(presenceAuthorization, RegionOverride);
         var xuid = session.Xuid; var titleId = id.ToString();
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
-        presenceCancellation = cancellation; Changed(nameof(PresenceRunning)); Changed(nameof(CanDisconnect));
+        presenceCancellation = cancellation; Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect));
         var stopwatch = Stopwatch.StartNew();
         var lastHeartbeat = TimeSpan.Zero;
         try
@@ -89,9 +90,17 @@ public sealed partial class DesktopModel
         finally
         {
             await requests.WaitAsync();
-            try { if (!lifetime.IsCancellationRequested) await api.StopHeartbeatAsync(xuid); }
+            try
+            {
+                if (!lifetime.IsCancellationRequested)
+                {
+                    // Give presence back to an active queue without sending a stop for its title.
+                    if (xboxQueue?.IsRunning == true) await api.SendHeartbeatAsync(xuid, xboxQueue.ActiveTitleId);
+                    else await api.StopHeartbeatAsync(xuid);
+                }
+            }
             catch { StatsOutput = "Presence stop request failed; the service may retain presence until it expires."; }
-            finally { requests.Release(); presenceCancellation = null; cancellation.Dispose(); SpoofingStatus = "Spoofing not started"; Changed(nameof(PresenceRunning)); Changed(nameof(CanDisconnect)); }
+            finally { presenceCancellation = null; requests.Release(); cancellation.Dispose(); SpoofingStatus = "Spoofing not started"; Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect)); }
         }
     }
     public void StopPresence() => presenceCancellation?.Cancel();

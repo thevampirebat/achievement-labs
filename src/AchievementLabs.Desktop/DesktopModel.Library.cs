@@ -4,6 +4,9 @@ public sealed partial class DesktopModel
 {
     private string platformFilter = "All", titleLookup = "";
     public string[] PlatformFilters { get; } = ["All", "Xbox One/Series", "PC", "Xbox 360", "Win32", "Windows 8/Legacy", "Incomplete Games"];
+    private string librarySort = "A-Z";
+    public string[] LibrarySortOptions { get; } = ["A-Z", "Z-A", "Last Played"];
+    public string LibrarySort { get => librarySort; set { librarySort = LibrarySortOptions.Contains(value) ? value : "A-Z"; Changed(); Changed(nameof(VisibleGames)); } }
     public string PlatformFilter { get => platformFilter; set { platformFilter = value ?? "All"; Changed(); Changed(nameof(VisibleGames)); } }
     public string TitleLookup { get => titleLookup; set { titleLookup = value ?? ""; Changed(); } }
     public bool CanQuery => !QueueActive && !busy && session != null;
@@ -40,7 +43,7 @@ public sealed partial class DesktopModel
                 var api = client; var xuid = session.Xuid;
                 var result = await Task.Run(() => api.GetGamesListAsync(xuid), lifetime.Token) ?? throw new InvalidDataException();
                 lifetime.Token.ThrowIfCancellationRequested();
-                Games = result.Titles.Where(t => t.TitleId != null).Select(t => new Game(t.TitleId!, t.Name ?? t.TitleId!, string.Join(" / ", t.Devices), t.Achievement?.CurrentAchievements ?? 0, t.Achievement?.TotalAchievements ?? 0, t.Achievement?.CurrentGamerscore ?? 0, t.Achievement != null, ResolveTitleImage(t.DisplayImage, t.Images))).OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ToArray();
+                Games = result.Titles.Where(t => t.TitleId != null).Select(t => new Game(t.TitleId!, t.Name ?? t.TitleId!, string.Join(" / ", t.Devices), t.Achievement?.CurrentAchievements ?? 0, t.Achievement?.TotalAchievements ?? 0, t.Achievement?.CurrentGamerscore ?? 0, t.Achievement != null, ResolveTitleImage(t.DisplayImage, t.Images), t.TitleHistory?.LastTimePlayed)).OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ToArray();
                 Notice = $"Refreshed {Games.Length} titles.";
             }
             finally { requests.Release(); }

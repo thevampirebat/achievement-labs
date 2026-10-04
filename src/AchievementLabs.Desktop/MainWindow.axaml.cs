@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent(); DataContext = model; model.EventTokenRequired = ShowEventTokenRequiredAsync;
+        AchievementLabs.MultiSelect.EventTokenView.PreferredAcquireAsync = WamEventTokens.AcquireAsync;
         AchievementLabs.MultiSelect.BatchPicker.Attach(this);
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
         xboxPresenceTimer.Tick += (_, _) => model.RefreshXboxPcAppPresence();

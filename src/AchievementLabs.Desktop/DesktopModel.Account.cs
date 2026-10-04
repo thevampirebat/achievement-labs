@@ -146,6 +146,7 @@ public sealed partial class DesktopModel
             await EventTokenStore.SaveAsync(value, lifetime.Token);
             savedEventsToken = value;
             if (session != null) session = session with { EventsToken = value };
+            queueAccount.EventsToken = value;
             // Keep the masked value visible so Save does not look like it failed.
             EventTokenInput = value;
             EventTokenValidator.TryValidate(value, out _, out message);
