@@ -677,12 +677,14 @@ public class XboxApiClient : IDisposable
     }
 
     public async Task<int> GetAchievementTotalAsync(string xuid, string titleId, CancellationToken ct, bool legacy = false)
+        => (await GetAchievementCountsAsync(xuid, titleId, ct, legacy)).Total;
+    public async Task<AchievementLabs.Core.AchievementTotals.Counts> GetAchievementCountsAsync(string xuid, string titleId, CancellationToken ct, bool legacy = false)
     {
         if (!ulong.TryParse(xuid, out _) || !uint.TryParse(titleId, out _)) throw new ArgumentException("Invalid Xbox identifiers.");
         using var http = new HttpClient();
         http.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", _xauth);
         http.DefaultRequestHeaders.TryAddWithoutValidation("x-xbl-contract-version", legacy ? "3" : "4");
-        return await AchievementLabs.Core.AchievementTotals.CountAsync(async continuation =>
+        return await AchievementLabs.Core.AchievementTotals.MeasureAsync(async continuation =>
         {
             var url = string.Format(legacy ? InterpolatedXboxAPIUrls.QueryAchievements360Url : InterpolatedXboxAPIUrls.QueryAchievementsUrl, xuid, titleId);
             if (!string.IsNullOrEmpty(continuation)) url += "&continuationToken=" + Uri.EscapeDataString(continuation);

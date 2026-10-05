@@ -143,3 +143,7 @@ Title spoofer Look up title is available during Auto Unlock. This read-only requ
 
 - Optional event token recovery uses Windows broker identity matching for missing tokens or HTTP 401/403 and retries the same achievement once. It is off by default; exhausted recovery follows the notification/stop controls. The refreshed token appears in Settings and is active for the queue; Save event token persists it securely.
 - Missing totals try the other modern/legacy endpoint on an empty list or HTTP 404. Export totals report includes title ID/name/platform, endpoint, count and sanitized result, plus a summary by failure reason. Scan caches remain local and profile-specific.
+
+- Totals scans count permanent unlocked achievements from definition responses, excluding challenges from both counts. Cached totals can be displayed as definitions when title-history progress conflicts; the scan revisits these conflicts. Achievement pages also exclude challenge entries. Reports include history and persistent unlocked counts.
+
+- Zero-progress titles with empty lists from both endpoints display No Xbox achievements returned, rather than claiming a verified zero achievement total.

@@ -77,10 +77,14 @@ public static class QueuePresenceTokenTests
         Assert(total == 3 && tokens.SequenceEqual(new string?[] { null, "next" }), "Totals count all pages, deduplicate IDs and exclude challenges");
         try { AchievementTotals.CountAsync(_ => Task.FromResult("{\"achievements\":[],\"pagingInfo\":{\"continuationToken\":\"repeat\"}}"), CancellationToken.None).GetAwaiter().GetResult(); throw new Exception("Repeated paging should fail"); }
         catch (InvalidDataException) { }
+        var persistent = AchievementTotals.MeasureAsync(_ => Task.FromResult("{\"achievements\":[{\"id\":\"1\",\"progressState\":\"Achieved\"},{\"id\":\"2\",\"progressState\":\"NotStarted\"},{\"id\":\"3\",\"achievementType\":\"Challenge\",\"progressState\":\"Achieved\"}]}"), CancellationToken.None).GetAwaiter().GetResult();
+        Assert(persistent.Total == 2 && persistent.Unlocked == 1, "Persistent progress excludes earned challenges from numerator and denominator");
         var missing = new LibraryGame("1", "Title", "XboxOne", 5, 0, 0);
         Assert(DesktopModel.WithKnownTotal(missing, new Dictionary<string, int> { ["1"] = 20 }).Total == 20, "Known totals repair omitted title-history counts");
-        Assert(DesktopModel.WithKnownTotal(missing, new Dictionary<string, int> { ["1"] = 4 }).Total == 0, "Stale totals below earned count rejected");
+        var conflicting = DesktopModel.WithKnownTotal(missing, new Dictionary<string, int> { ["1"] = 4 });
+        Assert(conflicting.Total == 4 && !conflicting.ProgressKnown, "Conflicting history counts never display impossible completion progress");
         Assert(DesktopModel.WithKnownTotal(missing with { Total = 30 }, new Dictionary<string, int> { ["1"] = 20 }).Total == 30, "Fresh Xbox count takes priority");
+        Assert((missing with { Completed = 0, NoDefinitionsReturned = true }).ProgressLabel == "No Xbox achievements returned", "Empty service lists have an honest distinct label");
         var notices = 0;
         var failureVm = new AutoUnlockerViewModel(new NativeNotices(_ => { }), new NativeAccountContext()) { FailureNotification = _ => notices++ };
         var failedEntry = new AutoUnlockQueueEntry { AchievementName = "Synthetic achievement" };

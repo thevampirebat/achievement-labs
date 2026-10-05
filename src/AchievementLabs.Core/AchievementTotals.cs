@@ -23,9 +23,14 @@ public static class AchievementTotals
         }
     }
 
+    public sealed record Counts(int Total, int? Unlocked);
     public static async Task<int> CountAsync(Func<string?, Task<string>> getPage, CancellationToken ct)
+        => (await MeasureAsync(getPage, ct)).Total;
+    public static async Task<Counts> MeasureAsync(Func<string?, Task<string>> getPage, CancellationToken ct)
     {
         var ids = new HashSet<string>(StringComparer.Ordinal);
+        var unlocked = new HashSet<string>(StringComparer.Ordinal);
+        var progressKnown = true;
         var tokens = new HashSet<string>(StringComparer.Ordinal);
         string? continuation = null;
         do
@@ -39,10 +44,13 @@ public static class AchievementTotals
                 var id = (string?)row["id"];
                 if (string.IsNullOrWhiteSpace(id)) throw new InvalidDataException("Achievement ID missing.");
                 ids.Add(id);
+                var state = (string?)row["progressState"];
+                if (state == "Achieved") unlocked.Add(id);
+                else if (state is not ("NotStarted" or "InProgress")) progressKnown = false;
             }
             continuation = (string?)page["pagingInfo"]?["continuationToken"];
             if (!string.IsNullOrEmpty(continuation) && !tokens.Add(continuation)) throw new InvalidDataException("Repeated achievement page.");
         } while (!string.IsNullOrEmpty(continuation));
-        return ids.Count;
+        return new(ids.Count, ids.Count > 0 && progressKnown ? unlocked.Count : null);
     }
 }

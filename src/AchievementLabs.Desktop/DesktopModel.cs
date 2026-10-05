@@ -20,7 +20,7 @@ public record Achievement(string Id, string Name, string Description, int Score,
     public string BadgeForeground => Unlocked ? "#8BCBB0" : "#B9BEC8";
     public string BadgeBackground => Unlocked ? "#253B34" : "#2A303B";
 }
-public record Game(string Id, string Name, string Platform, int Completed, int Total, int Score, bool ProgressKnown = true, string? ImageUrl = null, DateTime? LastPlayed = null)
+public record Game(string Id, string Name, string Platform, int Completed, int Total, int Score, bool ProgressKnown = true, string? ImageUrl = null, DateTime? LastPlayed = null, bool NoDefinitionsReturned = false)
 {
     public string ShortName => Name;
     public string Monogram => string.Concat(Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0]));
@@ -28,7 +28,7 @@ public record Game(string Id, string Name, string Platform, int Completed, int T
     public string Cover => "#171A1C";
     public string Description => $"Title ID {Id}";
     public double Percent => Total == 0 ? 0 : 100.0 * Completed / Total;
-    public string ProgressLabel => !ProgressKnown ? $"{Total} achievement definitions" : Total > 0 ? $"{Completed} / {Total} achievements" : Completed > 0 ? $"{Completed} unlocked · total unavailable" : "Achievement total unavailable";
+    public string ProgressLabel => NoDefinitionsReturned ? "No Xbox achievements returned" : !ProgressKnown ? $"{Total} achievement definitions" : Total > 0 ? $"{Completed} / {Total} achievements" : Completed > 0 ? $"{Completed} unlocked · total unavailable" : "Achievement total unavailable";
     public string ScoreLabel => ProgressKnown ? $"{Score:N0} G earned" : "Account progress not included";
 }
 public sealed partial class DesktopModel : Observable, IDisposable
@@ -200,7 +200,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         SelectedGame = new Game(title?.id ?? Path.GetFileNameWithoutExtension(path), title?.name ?? Path.GetFileNameWithoutExtension(path), "LOCAL ACHIEVEMENT EXPORT", achievements.Count(a => a.Unlocked), achievements.Length, achievements.Where(a => a.Unlocked).Sum(a => a.Score), achievements.All(a => a.ProgressKnown));
         Search = ""; Filter("All"); Navigate("Achievements"); Notice = $"Opened {achievements.Length} achievements from a local export.";
     }
-    private static Achievement[] Map(AchievementsResponse response) => response.achievements.Select(a => new Achievement(a.id, a.name, (a.progressState == "Achieved" ? a.description : a.lockedDescription) ?? a.description ?? "", int.TryParse(a.rewards.FirstOrDefault(r => r.type == "Gamerscore")?.value, out var score) ? score : 0, a.progressState == "Achieved", a.progressState != "Null", a.rewards.Any(r => r.type == "Gamerscore"), a.mediaAssets.FirstOrDefault(m => m.type == "Icon")?.url ?? a.mediaAssets.FirstOrDefault()?.url)).ToArray();
+    private static Achievement[] Map(AchievementsResponse response) => response.achievements.Where(a => !string.Equals(a.achievementType, "Challenge", StringComparison.OrdinalIgnoreCase)).Select(a => new Achievement(a.id, a.name, (a.progressState == "Achieved" ? a.description : a.lockedDescription) ?? a.description ?? "", int.TryParse(a.rewards.FirstOrDefault(r => r.type == "Gamerscore")?.value, out var score) ? score : 0, a.progressState == "Achieved", a.progressState != "Null", a.rewards.Any(r => r.type == "Gamerscore"), a.mediaAssets.FirstOrDefault(m => m.type == "Icon")?.url ?? a.mediaAssets.FirstOrDefault()?.url)).ToArray();
     private static string? ResolveTitleImage(string? displayImage, object? images)
     {
         if (!string.IsNullOrWhiteSpace(displayImage)) return displayImage;

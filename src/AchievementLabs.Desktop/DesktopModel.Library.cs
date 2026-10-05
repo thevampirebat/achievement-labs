@@ -100,15 +100,15 @@ public sealed partial class DesktopModel
         catch { TotalsStatus = "Totals updated; cache could not be saved."; }
     }
     public static Game WithKnownTotal(Game game, IReadOnlyDictionary<string, int> totals)
-        => game.Total <= 0 && totals.TryGetValue(game.Id, out var total) && total >= game.Completed ? game with { Total = total } : game;
-    public sealed record TotalsReportRow(string TitleId, string Name, string Platform, string Endpoint, int Total, string Result);
+        => game.Total <= 0 && totals.TryGetValue(game.Id, out var total) && total > 0 ? game with { Total = total, ProgressKnown = game.ProgressKnown && game.Completed <= total } : game;
+    public sealed record TotalsReportRow(string TitleId, string Name, string Platform, string Endpoint, int Total, string Result, int? PersistentUnlocked = null, int? HistoryUnlocked = null);
     private readonly List<TotalsReportRow> totalsReport = new();
     public bool CanExportTotalsReport => totalsReport.Count > 0 && !TotalsRunning;
     public async Task ExportTotalsReportAsync(string path)
     {
         static string Q(string value) => "\"" + value.Replace("\"", "\"\"") + "\"";
-        var rows = new[] { "Title ID,Title,Platform,Endpoint,Total,Result" }.Concat(totalsReport.Select(r =>
-            string.Join(",", new[] { r.TitleId, r.Name, r.Platform, r.Endpoint, r.Total.ToString(), r.Result }.Select(Q))));
+        var rows = new[] { "Title ID,Title,Platform,Endpoint,Total,Result,Persistent unlocked,History unlocked" }.Concat(totalsReport.Select(r =>
+            string.Join(",", new[] { r.TitleId, r.Name, r.Platform, r.Endpoint, r.Total.ToString(), r.Result, r.PersistentUnlocked?.ToString() ?? "", r.HistoryUnlocked?.ToString() ?? "" }.Select(Q))));
         await File.WriteAllLinesAsync(path, rows, new UTF8Encoding(true), lifetime.Token);
         Notice = "Totals scan report exported. No account tokens or response bodies are included.";
     }
@@ -125,7 +125,7 @@ public sealed partial class DesktopModel
     public async Task FillMissingTotalsAsync()
     {
         if (!CanFillTotals || client == null || session == null) return;
-        var pending = Games.Where(g => g.Total <= 0).ToArray();
+        var pending = Games.Where(g => g.Total <= 0 || g.Completed > g.Total).ToArray();
         using var cancel = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         totalsCancellation = cancel; Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect));
         totalsReport.Clear(); Changed(nameof(CanExportTotalsReport));
@@ -139,9 +139,10 @@ public sealed partial class DesktopModel
             {
                 try
                 {
-                    var total = await api.GetAchievementTotalAsync(xuid, game.Id, cancel.Token, legacy);
+                    var counts = await api.GetAchievementCountsAsync(xuid, game.Id, cancel.Token, legacy);
+                    var total = counts.Total;
                     if (total > 0)
-                        return new(game.Id, game.Name, game.Platform, endpoint, total, total >= game.Completed ? "Updated" : "Count below earned achievements");
+                        return new(game.Id, game.Name, game.Platform, endpoint, total, counts.Unlocked.HasValue || total >= game.Completed ? "Updated" : "Count below earned achievements", counts.Unlocked, game.Completed);
                     previous = "Empty achievement list";
                 }
                 catch (OperationCanceledException) when (cancel.IsCancellationRequested) { throw; }
@@ -161,16 +162,16 @@ public sealed partial class DesktopModel
                 TotalsStatus = $"Checking totals {checkedCount}/{pending.Length} (1 at a time)…";
                 // Dedicated read-only HTTP clients avoid the auto unlock/presence request gate.
                 var results = new[] { await CheckAsync(game) };
-                var updates = new Dictionary<string, int>();
+                var updates = new Dictionary<string, TotalsReportRow>();
                 foreach (var result in results)
                 {
                     totalsReport.Add(result);
-                    if (result.Result != "Updated") { failed++; continue; }
+                    if (result.Result != "Updated") { failed++; if (result.Result == "Empty achievement list") updates[result.TitleId] = result; continue; }
                     RememberLibraryTotal(result.TitleId, result.Total);
-                    updates[result.TitleId] = result.Total; filled++;
+                    updates[result.TitleId] = result; filled++;
                 }
                 if (updates.Count > 0)
-                    Games = Games.Select(g => updates.TryGetValue(g.Id, out var total) ? g with { Total = total } : g).ToArray();
+                    Games = Games.Select(g => updates.TryGetValue(g.Id, out var result) ? result.Result == "Updated" ? g with { Total = result.Total, Completed = result.PersistentUnlocked ?? g.Completed, ProgressKnown = result.PersistentUnlocked.HasValue || g.ProgressKnown, NoDefinitionsReturned = false } : g with { NoDefinitionsReturned = g.Completed == 0 && g.Score == 0 } : g).ToArray();
                 checkedCount++;
             }
             var reasons = string.Join("; ", totalsReport.Where(r => r.Result != "Updated").GroupBy(r => r.Result).Select(g => $"{g.Key}: {g.Count()}"));
