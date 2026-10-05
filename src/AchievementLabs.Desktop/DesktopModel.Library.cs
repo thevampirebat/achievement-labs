@@ -155,12 +155,12 @@ public sealed partial class DesktopModel
         }
         try
         {
-            foreach (var batch in pending.Chunk(3))
+            foreach (var game in pending)
             {
                 cancel.Token.ThrowIfCancellationRequested();
-                TotalsStatus = $"Checking totals {checkedCount}/{pending.Length} (3 at a time)…";
+                TotalsStatus = $"Checking totals {checkedCount}/{pending.Length} (1 at a time)…";
                 // Dedicated read-only HTTP clients avoid the auto unlock/presence request gate.
-                var results = await Task.WhenAll(batch.Select(CheckAsync));
+                var results = new[] { await CheckAsync(game) };
                 var updates = new Dictionary<string, int>();
                 foreach (var result in results)
                 {
@@ -171,7 +171,7 @@ public sealed partial class DesktopModel
                 }
                 if (updates.Count > 0)
                     Games = Games.Select(g => updates.TryGetValue(g.Id, out var total) ? g with { Total = total } : g).ToArray();
-                checkedCount += batch.Length;
+                checkedCount++;
             }
             var reasons = string.Join("; ", totalsReport.Where(r => r.Result != "Updated").GroupBy(r => r.Result).Select(g => $"{g.Key}: {g.Count()}"));
             TotalsStatus = $"Totals updated: {filled}; unavailable: {failed}. {reasons} Export the totals report for per-title details.";
