@@ -140,3 +140,6 @@ Title spoofer Look up title is available during Auto Unlock. This read-only requ
 - Xbox Auto Unlock offers failure toasts (on by default), stop on failure (off by default), and Save queue delays. Saved queues retain both options and custom delays. Stop on failure preserves the failed entry for retry; continuing reports failures in the final status.
 
 - Missing-total scans check three titles concurrently, retry HTTP 429 responses, and use separate read-only clients so Auto Unlock can run alongside the scan.
+
+- Optional event token recovery uses Windows broker identity matching for missing tokens or HTTP 401/403 and retries the same achievement once. It is off by default; exhausted recovery follows the notification/stop controls. The refreshed token appears in Settings and is active for the queue; Save event token persists it securely.
+- Missing totals try the other modern/legacy endpoint on an empty list or HTTP 404. Export totals report includes title ID/name/platform, endpoint, count and sanitized result, plus a summary by failure reason. Scan caches remain local and profile-specific.

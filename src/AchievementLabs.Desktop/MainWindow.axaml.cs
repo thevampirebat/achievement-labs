@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent(); DataContext = model; model.EventTokenRequired = ShowEventTokenRequiredAsync;
         var notifications = new WindowNotificationManager(this) { Position = NotificationPosition.TopRight, MaxItems = 3 };
+        model.QueueTokenRefresh = ct => model.RefreshQueueEventTokenAsync(this, ct);
         model.AutoUnlockFailure = message => notifications.Show(new Notification("Unlock failed", message, NotificationType.Error, TimeSpan.FromSeconds(10)));
         AchievementLabs.MultiSelect.EventTokenView.PreferredAcquireAsync = WamEventTokens.AcquireAsync;
         AchievementLabs.MultiSelect.BatchPicker.Attach(this);
@@ -235,6 +236,14 @@ public partial class MainWindow : Window
     private async void CompleteBrowserLogin(object? s, RoutedEventArgs e) => await model.CompleteBrowserLoginAsync();
     private async void UnlockSelected(object? s, RoutedEventArgs e) => await model.UnlockSelectedAsync();
     private async void UnlockAll(object? s, RoutedEventArgs e) => await model.UnlockAllAsync();
+    private async void ExportTotalsReport(object? sender, RoutedEventArgs e)
+    {
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title = "Export totals scan report", SuggestedFileName = "achievement-totals-report.csv", DefaultExtension = "csv" });
+        var path = file?.TryGetLocalPath();
+        if (path == null) return;
+        try { await model.ExportTotalsReportAsync(path); }
+        catch { model.Notice = "Could not export the totals report."; }
+    }
     private async void FillMissingTotals(object? sender, RoutedEventArgs e) => await model.FillMissingTotalsAsync();
     private void StopTotalsScan(object? sender, RoutedEventArgs e) => model.CancelFillTotals();
     private async void RefreshLibrary(object? s, RoutedEventArgs e) => await model.RefreshLibraryAsync();

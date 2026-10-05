@@ -49,6 +49,14 @@ public static class QueuePresenceTokenTests
     }
     public static void Run()
     {
+        var sends = 0; var refreshes = 0;
+        bool RetrySend() { sends++; if (sends == 1) throw new HttpRequestException("synthetic", null, HttpStatusCode.Unauthorized); return true; }
+        Assert(EventUnlockRecovery.RunAsync(true, () => Task.FromResult(RetrySend()), _ => { refreshes++; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult() && sends == 2 && refreshes == 1, "Token auth failure refreshes once and retries the same operation");
+        sends = 0; refreshes = 0;
+        try { EventUnlockRecovery.RunAsync(true, () => { sends++; throw new HttpRequestException("synthetic", null, HttpStatusCode.Forbidden); }, _ => { refreshes++; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult(); throw new Exception("Retry should fail"); }
+        catch (HttpRequestException) { Assert(sends == 2 && refreshes == 1, "Repeated auth failure never loops"); }
+        Assert(!EventUnlockRecovery.IsTokenFailure(new InvalidDataException("missing mapping")) && !EventUnlockRecovery.IsTokenFailure(new HttpRequestException("server", null, HttpStatusCode.InternalServerError)), "Unrelated failures do not refresh account tokens");
+        Assert(DesktopModel.TotalsFailureReason(new HttpRequestException("private content", null, HttpStatusCode.NotFound)) == "HTTP 404", "Report retains status and excludes private error content");
         var rateHandler = new TotalsRateHandler();
         using (var totalsHttp = new HttpClient(rateHandler))
             Assert(AchievementTotals.ReadPageAsync(totalsHttp, "https://synthetic.invalid/achievements", CancellationToken.None).GetAwaiter().GetResult() == "synthetic page" && rateHandler.Calls == 2, "Totals retry rate limits without live HTTP");
@@ -78,7 +86,7 @@ public static class QueuePresenceTokenTests
             typeof(AutoUnlockerViewModel).GetField("_state", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(failureVm, saveState);
             failureVm.SaveQueue();
             var saved = AutoUnlockState.Load()!;
-            Assert(saved.Queue.Single().DelaySeconds == 123 && saved.StopOnFailure && !saved.NotifyOnFailure && !saved.IsRunning, "Manual save preserves delays and failure options");
+            Assert(saved.Queue.Single().DelaySeconds == 123 && saved.StopOnFailure && !saved.NotifyOnFailure && !saved.RefreshTokenOnFailure && !saved.IsRunning, "Manual save preserves delays and failure options");
             failureVm.IsRunning = true;
             saveState.Queue[0].DelaySeconds = 456;
             failureVm.SaveQueue();

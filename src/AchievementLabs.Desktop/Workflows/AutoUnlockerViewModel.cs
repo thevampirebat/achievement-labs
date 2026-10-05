@@ -53,6 +53,8 @@ namespace AchievementLabs.Desktop.Workflows
 
         #region Observable Properties
 
+        public Func<CancellationToken, Task<bool>> RefreshEventTokenAsync { get; set; } = _ => Task.FromResult(false);
+        [ObservableProperty] private bool _refreshTokenOnFailure = false;
         public Action<string>? FailureNotification { get; set; }
         [ObservableProperty] private bool _notifyOnFailure = true;
         [ObservableProperty] private bool _stopOnFailure = false;
@@ -175,6 +177,7 @@ namespace AchievementLabs.Desktop.Workflows
             }
 
             _state = state;
+            RefreshTokenOnFailure = state.RefreshTokenOnFailure;
             NotifyOnFailure = state.NotifyOnFailure;
             StopOnFailure = state.StopOnFailure;
             ReferenceGamertag = state.ReferenceGamertag;
@@ -396,6 +399,7 @@ namespace AchievementLabs.Desktop.Workflows
                     CurrentIndex = 0,
                     RemainingDelaySeconds = queue[0].DelaySeconds,
                     IsRunning = false,
+                    RefreshTokenOnFailure = RefreshTokenOnFailure,
                     NotifyOnFailure = NotifyOnFailure,
                     StopOnFailure = StopOnFailure,
                     SpeedMultiplier = SpeedMultiplier,
@@ -458,6 +462,7 @@ namespace AchievementLabs.Desktop.Workflows
         {
             if (_state == null) return;
 
+            _state.RefreshTokenOnFailure = RefreshTokenOnFailure;
             _state.NotifyOnFailure = NotifyOnFailure;
             _state.StopOnFailure = StopOnFailure;
             _state.SpeedMultiplier = SpeedMultiplier;
@@ -587,7 +592,16 @@ namespace AchievementLabs.Desktop.Workflows
                 {
                     if (_state.IsEventBased)
                     {
-                        unlockSuccess = await UnlockEventBasedAchievementAsync(entry.AchievementId);
+                        unlockSuccess = await AchievementLabs.Core.EventUnlockRecovery.RunAsync(RefreshTokenOnFailure,
+                            () => UnlockEventBasedAchievementAsync(entry.AchievementId), async ct =>
+                            {
+                                var refreshing = await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+                                {
+                                    StatusText = "Refreshing event token for the connected account…";
+                                    return await RefreshEventTokenAsync(ct);
+                                });
+                                return await refreshing;
+                            }, token);
                         if (!unlockSuccess)
                             unlockError = "Event-based unlock failed (see snackbar for details)";
                     }
@@ -602,6 +616,7 @@ namespace AchievementLabs.Desktop.Workflows
                         unlockSuccess = true;
                     }
                 }
+                catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
                 catch (Exception ex)
                 {
                     unlockError = ex.Message;
@@ -681,7 +696,8 @@ namespace AchievementLabs.Desktop.Workflows
             try
             {
                 _state.SpeedMultiplier = SpeedMultiplier;
-                _state.NotifyOnFailure = NotifyOnFailure;
+                _state.RefreshTokenOnFailure = RefreshTokenOnFailure;
+            _state.NotifyOnFailure = NotifyOnFailure;
                 _state.StopOnFailure = StopOnFailure;
                 _state.IsRunning = false;
                 _state.Save();
@@ -831,7 +847,7 @@ namespace AchievementLabs.Desktop.Workflows
 
             var eventsToken = account.EventsToken;
             if (string.IsNullOrWhiteSpace(eventsToken))
-                throw new InvalidOperationException("No events token is configured.");
+                throw new AchievementLabs.Core.MissingEventTokenException();
             if (EventCatalog == null) throw new InvalidOperationException("Event catalog is unavailable.");
             var requestBodies = (await EventCatalog.GetPayloadsAsync(_state.TitleId, achievementId, account.XUIDOnly, CancellationToken.None)).Payloads.ToList();
             if (requestBodies.Count == 0) throw new InvalidOperationException("No mapped event data is available.");
@@ -844,7 +860,7 @@ namespace AchievementLabs.Desktop.Workflows
 
                 if (statusCode < 200 || statusCode >= 300)
                 {
-                    throw new HttpRequestException($"Event request {reqIdx + 1}/{requestBodies.Count} failed: HTTP {statusCode}.");
+                    throw new HttpRequestException($"Event request {reqIdx + 1}/{requestBodies.Count} failed: HTTP {statusCode}.", null, (System.Net.HttpStatusCode)statusCode);
                 }
             }
 

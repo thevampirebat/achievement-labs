@@ -54,7 +54,8 @@ public sealed partial class DesktopModel
             try
             {
                 if (client == null || session == null) return;
-                var api = client; var xuid = session.Xuid;
+                totalsReport.Clear(); Changed(nameof(CanExportTotalsReport));
+        var api = client; var xuid = session.Xuid;
                 var result = await Task.Run(() => api.GetGamesListAsync(xuid), lifetime.Token) ?? throw new InvalidDataException();
                 lifetime.Token.ThrowIfCancellationRequested();
                 Games = result.Titles.Where(t => t.TitleId != null).Select(t => new Game(t.TitleId!, t.Name ?? t.TitleId!, string.Join(" / ", t.Devices), t.Achievement?.CurrentAchievements ?? 0, t.Achievement?.TotalAchievements ?? 0, t.Achievement?.CurrentGamerscore ?? 0, t.Achievement != null, ResolveTitleImage(t.DisplayImage, t.Images), t.TitleHistory?.LastTimePlayed)).OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ToArray();
@@ -100,6 +101,26 @@ public sealed partial class DesktopModel
     }
     public static Game WithKnownTotal(Game game, IReadOnlyDictionary<string, int> totals)
         => game.Total <= 0 && totals.TryGetValue(game.Id, out var total) && total >= game.Completed ? game with { Total = total } : game;
+    public sealed record TotalsReportRow(string TitleId, string Name, string Platform, string Endpoint, int Total, string Result);
+    private readonly List<TotalsReportRow> totalsReport = new();
+    public bool CanExportTotalsReport => totalsReport.Count > 0 && !TotalsRunning;
+    public async Task ExportTotalsReportAsync(string path)
+    {
+        static string Q(string value) => "\"" + value.Replace("\"", "\"\"") + "\"";
+        var rows = new[] { "Title ID,Title,Platform,Endpoint,Total,Result" }.Concat(totalsReport.Select(r =>
+            string.Join(",", new[] { r.TitleId, r.Name, r.Platform, r.Endpoint, r.Total.ToString(), r.Result }.Select(Q))));
+        await File.WriteAllLinesAsync(path, rows, new UTF8Encoding(true), lifetime.Token);
+        Notice = "Totals scan report exported. No account tokens or response bodies are included.";
+    }
+    public static string TotalsFailureReason(Exception error) => error switch
+    {
+        HttpRequestException { StatusCode: { } status } => $"HTTP {(int)status}",
+        HttpRequestException => "Network request failed",
+        OperationCanceledException => "Request timed out",
+        Newtonsoft.Json.JsonException => "Unexpected JSON response",
+        InvalidDataException => "Incomplete or invalid achievement definitions",
+        _ => "Unexpected scan error"
+    };
     public void CancelFillTotals() => totalsCancellation?.Cancel();
     public async Task FillMissingTotalsAsync()
     {
@@ -107,12 +128,30 @@ public sealed partial class DesktopModel
         var pending = Games.Where(g => g.Total <= 0).ToArray();
         using var cancel = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         totalsCancellation = cancel; Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect));
+        totalsReport.Clear(); Changed(nameof(CanExportTotalsReport));
         var api = client; var xuid = session.Xuid; var filled = 0; var failed = 0; var checkedCount = 0;
-        async Task<(Game Game, int Total)> CheckAsync(Game game)
+        async Task<TotalsReportRow> CheckAsync(Game game)
         {
-            try { return (game, await api.GetAchievementTotalAsync(xuid, game.Id, cancel.Token, UsesLegacyEndpoint(game))); }
-            catch (OperationCanceledException) when (cancel.IsCancellationRequested) { throw; }
-            catch { return (game, 0); }
+            var legacy = UsesLegacyEndpoint(game);
+            var endpoint = legacy ? "Legacy" : "Modern";
+            var previous = "";
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                try
+                {
+                    var total = await api.GetAchievementTotalAsync(xuid, game.Id, cancel.Token, legacy);
+                    if (total > 0)
+                        return new(game.Id, game.Name, game.Platform, endpoint, total, total >= game.Completed ? "Updated" : "Count below earned achievements");
+                    previous = "Empty achievement list";
+                }
+                catch (OperationCanceledException) when (cancel.IsCancellationRequested) { throw; }
+                catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound && attempt == 0)
+                { previous = TotalsFailureReason(ex); }
+                catch (Exception ex)
+                { return new(game.Id, game.Name, game.Platform, endpoint, 0, previous.Length > 0 ? previous + "; " + TotalsFailureReason(ex) : TotalsFailureReason(ex)); }
+                if (attempt == 0) { legacy = !legacy; endpoint += legacy ? " → Legacy" : " → Modern"; }
+            }
+            return new(game.Id, game.Name, game.Platform, endpoint, 0, previous);
         }
         try
         {
@@ -125,18 +164,20 @@ public sealed partial class DesktopModel
                 var updates = new Dictionary<string, int>();
                 foreach (var result in results)
                 {
-                    if (result.Total <= 0 || result.Total < result.Game.Completed) { failed++; continue; }
-                    RememberLibraryTotal(result.Game.Id, result.Total);
-                    updates[result.Game.Id] = result.Total; filled++;
+                    totalsReport.Add(result);
+                    if (result.Result != "Updated") { failed++; continue; }
+                    RememberLibraryTotal(result.TitleId, result.Total);
+                    updates[result.TitleId] = result.Total; filled++;
                 }
                 if (updates.Count > 0)
                     Games = Games.Select(g => updates.TryGetValue(g.Id, out var total) ? g with { Total = total } : g).ToArray();
                 checkedCount += batch.Length;
             }
-            TotalsStatus = $"Totals updated: {filled}; unavailable: {failed}.";
+            var reasons = string.Join("; ", totalsReport.Where(r => r.Result != "Updated").GroupBy(r => r.Result).Select(g => $"{g.Key}: {g.Count()}"));
+            TotalsStatus = $"Totals updated: {filled}; unavailable: {failed}. {reasons} Export the totals report for per-title details.";
         }
         catch (OperationCanceledException) { TotalsStatus = $"Totals scan stopped; {filled} results saved."; }
-        finally { totalsCancellation = null; Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect)); }
+        finally { totalsCancellation = null; Changed(nameof(CanExportTotalsReport)); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect)); }
     }
     public async Task ExportCsvAsync(string path)
     {
