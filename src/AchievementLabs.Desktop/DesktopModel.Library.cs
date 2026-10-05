@@ -66,6 +66,75 @@ public sealed partial class DesktopModel
         catch { Notice = "Could not refresh the library. Your previous list is still available."; }
         finally { Busy(false); }
     }
+    private readonly Dictionary<string, int> knownLibraryTotals = new();
+    private CancellationTokenSource? totalsCancellation;
+    private string totalsStatus = "";
+    public bool TotalsRunning => totalsCancellation != null;
+    public string TotalsStatus { get => totalsStatus; private set { totalsStatus = value; Changed(); } }
+    public bool CanFillTotals => session != null && !busy && !QueueActive && !TotalsRunning;
+    private string? TotalsPath => ulong.TryParse(session?.Xuid, out _) ? AchievementLabs.Core.AchievementLabsPaths.LocalFile($"library-totals-{session!.Xuid}.json") : null;
+    private void LoadLibraryTotals()
+    {
+        knownLibraryTotals.Clear();
+        try
+        {
+            if (TotalsPath is string path && File.Exists(path))
+                foreach (var entry in System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(File.ReadAllText(path)) ?? new())
+                    if (entry.Value > 0) knownLibraryTotals[entry.Key] = entry.Value;
+        }
+        catch { } // A damaged cache must not prevent sign-in.
+    }
+    private void RememberLibraryTotal(string id, int total)
+    {
+        if (total <= 0) return;
+        knownLibraryTotals[id] = total;
+        try
+        {
+            if (TotalsPath is not string path) return;
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            var temporary = path + ".tmp";
+            File.WriteAllText(temporary, System.Text.Json.JsonSerializer.Serialize(knownLibraryTotals));
+            File.Move(temporary, path, true);
+        }
+        catch { TotalsStatus = "Totals updated; cache could not be saved."; }
+    }
+    public static Game WithKnownTotal(Game game, IReadOnlyDictionary<string, int> totals)
+        => game.Total <= 0 && totals.TryGetValue(game.Id, out var total) && total >= game.Completed ? game with { Total = total } : game;
+    public void CancelFillTotals() => totalsCancellation?.Cancel();
+    public async Task FillMissingTotalsAsync()
+    {
+        if (!CanFillTotals || client == null || session == null) return;
+        var pending = Games.Where(g => g.Total <= 0).ToArray();
+        using var cancel = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        totalsCancellation = cancel; Busy(true); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals));
+        var api = client; var xuid = session.Xuid; var filled = 0; var failed = 0;
+        try
+        {
+            for (var index = 0; index < pending.Length; index++)
+            {
+                cancel.Token.ThrowIfCancellationRequested();
+                var game = pending[index];
+                TotalsStatus = $"Checking totals {index + 1}/{pending.Length}: {game.Name}";
+                await requests.WaitAsync(cancel.Token);
+                try
+                {
+                    var total = UsesLegacyEndpoint(game)
+                        ? (await api.GetAchievementsFor360TitleAsync(xuid, game.Id))?.achievements.Count ?? 0
+                        : await api.GetAchievementTotalAsync(xuid, game.Id, cancel.Token);
+                    if (total <= 0 || total < game.Completed) { failed++; continue; }
+                    RememberLibraryTotal(game.Id, total);
+                    Games = Games.Select(g => g.Id == game.Id ? g with { Total = total } : g).ToArray();
+                    filled++;
+                }
+                catch (OperationCanceledException) { throw; }
+                catch { failed++; }
+                finally { requests.Release(); }
+            }
+            TotalsStatus = $"Totals updated: {filled}; unavailable: {failed}.";
+        }
+        catch (OperationCanceledException) { TotalsStatus = $"Totals scan stopped; {filled} results saved."; }
+        finally { totalsCancellation = null; Busy(false); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); }
+    }
     public async Task ExportCsvAsync(string path)
     {
         static string Quote(string text) => "\"" + text.Replace("\"", "\"\"") + "\"";

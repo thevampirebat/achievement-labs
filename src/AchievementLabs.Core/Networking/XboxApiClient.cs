@@ -676,6 +676,20 @@ public class XboxApiClient : IDisposable
         }
     }
 
+    public async Task<int> GetAchievementTotalAsync(string xuid, string titleId, CancellationToken ct)
+    {
+        if (!ulong.TryParse(xuid, out _) || !uint.TryParse(titleId, out _)) throw new ArgumentException("Invalid Xbox identifiers.");
+        using var http = new HttpClient();
+        http.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", _xauth);
+        http.DefaultRequestHeaders.TryAddWithoutValidation("x-xbl-contract-version", "4");
+        return await AchievementLabs.Core.AchievementTotals.CountAsync(async continuation =>
+        {
+            var url = string.Format(InterpolatedXboxAPIUrls.QueryAchievementsUrl, xuid, titleId);
+            if (!string.IsNullOrEmpty(continuation)) url += "&continuationToken=" + Uri.EscapeDataString(continuation);
+            return await http.GetStringAsync(url, ct);
+        }, ct);
+    }
+
     public async Task<AchievementsResponse?> GetAchievementsForTitleAsync(string xuid, string titleId)
     {
         if (string.IsNullOrWhiteSpace(xuid) || string.IsNullOrWhiteSpace(titleId))

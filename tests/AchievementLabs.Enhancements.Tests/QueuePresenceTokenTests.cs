@@ -38,6 +38,26 @@ public static class QueuePresenceTokenTests
     }
     public static void Run()
     {
+        var pages = new Queue<string>(new[] {
+            "{\"achievements\":[{\"id\":\"1\"},{\"id\":\"2\"}],\"pagingInfo\":{\"continuationToken\":\"next\"}}",
+            "{\"achievements\":[{\"id\":\"2\"},{\"id\":\"3\"},{\"id\":\"4\",\"achievementType\":\"Challenge\"}]}" });
+        var tokens = new List<string?>();
+        var total = AchievementTotals.CountAsync(token => { tokens.Add(token); return Task.FromResult(pages.Dequeue()); }, CancellationToken.None).GetAwaiter().GetResult();
+        Assert(total == 3 && tokens.SequenceEqual(new string?[] { null, "next" }), "Totals count all pages, deduplicate IDs and exclude challenges");
+        try { AchievementTotals.CountAsync(_ => Task.FromResult("{\"achievements\":[],\"pagingInfo\":{\"continuationToken\":\"repeat\"}}"), CancellationToken.None).GetAwaiter().GetResult(); throw new Exception("Repeated paging should fail"); }
+        catch (InvalidDataException) { }
+        var missing = new LibraryGame("1", "Title", "XboxOne", 5, 0, 0);
+        Assert(DesktopModel.WithKnownTotal(missing, new Dictionary<string, int> { ["1"] = 20 }).Total == 20, "Known totals repair omitted title-history counts");
+        Assert(DesktopModel.WithKnownTotal(missing, new Dictionary<string, int> { ["1"] = 4 }).Total == 0, "Stale totals below earned count rejected");
+        Assert(DesktopModel.WithKnownTotal(missing with { Total = 30 }, new Dictionary<string, int> { ["1"] = 20 }).Total == 30, "Fresh Xbox count takes priority");
+        var notices = 0;
+        var failureVm = new AutoUnlockerViewModel(new NativeNotices(_ => { }), new NativeAccountContext()) { FailureNotification = _ => notices++ };
+        var failedEntry = new AutoUnlockQueueEntry { AchievementName = "Synthetic achievement" };
+        Assert(!failureVm.HandleUnlockFailure(failedEntry, "synthetic failure") && notices == 1, "Default notifies and continues");
+        failureVm.NotifyOnFailure = false; failureVm.StopOnFailure = true;
+        Assert(failureVm.HandleUnlockFailure(failedEntry, "synthetic failure") && notices == 1 && failureVm.StatusText.Contains("Click Start to retry"), "Stopping is independent of notification toggle");
+        var settings = Newtonsoft.Json.JsonConvert.DeserializeObject<AutoUnlockState>("{}")!;
+        Assert(settings.NotifyOnFailure && !settings.StopOnFailure, "Old saved queues keep safe compatible failure defaults");
         var sortPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "sort.txt");
         try
         {

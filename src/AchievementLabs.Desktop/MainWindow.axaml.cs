@@ -1,3 +1,4 @@
+using Avalonia.Controls.Notifications;
 using Avalonia.Input.Platform;
 using Avalonia;
 using Avalonia.Controls;
@@ -16,6 +17,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent(); DataContext = model; model.EventTokenRequired = ShowEventTokenRequiredAsync;
+        var notifications = new WindowNotificationManager(this) { Position = NotificationPosition.TopRight, MaxItems = 3 };
+        model.AutoUnlockFailure = message => notifications.Show(new Notification("Unlock failed", message, NotificationType.Error, TimeSpan.FromSeconds(10)));
         AchievementLabs.MultiSelect.EventTokenView.PreferredAcquireAsync = WamEventTokens.AcquireAsync;
         AchievementLabs.MultiSelect.BatchPicker.Attach(this);
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
@@ -232,6 +235,8 @@ public partial class MainWindow : Window
     private async void CompleteBrowserLogin(object? s, RoutedEventArgs e) => await model.CompleteBrowserLoginAsync();
     private async void UnlockSelected(object? s, RoutedEventArgs e) => await model.UnlockSelectedAsync();
     private async void UnlockAll(object? s, RoutedEventArgs e) => await model.UnlockAllAsync();
+    private async void FillMissingTotals(object? sender, RoutedEventArgs e) => await model.FillMissingTotalsAsync();
+    private void StopTotalsScan(object? sender, RoutedEventArgs e) => model.CancelFillTotals();
     private async void RefreshLibrary(object? s, RoutedEventArgs e) => await model.RefreshLibraryAsync();
     private async void LookupTitle(object? s, RoutedEventArgs e) { try { await model.LookupTitleAsync(); } catch (OperationCanceledException) { } }
     private async void RefreshAchievements(object? s, RoutedEventArgs e) { try { await model.RefreshAchievementsAsync(); } catch (OperationCanceledException) { } }

@@ -130,3 +130,11 @@ Auto Unlock has its own status tile with progress, next achievement, time until 
 Get event token checks Windows broker accounts silently and accepts only the identity whose Xbox XUID matches the current connected account. An account mismatch is rejected before requesting an events token. Unavailable broker accounts are skipped; failure preserves the existing token. This requires the matching account to be signed in and available to the Windows broker; actual achievement credit still requires PC testing. No credentials are logged.
 
 Title spoofer Look up title is available during Auto Unlock. This read-only request uses the existing shared request gate while write and disconnect guards remain protected.
+
+
+### Game toolbar, library totals and queue failure controls
+- Open Auto Unlock is one game-level shortcut beside achievement filters/search.
+- Game titles are selectable text in Xbox library, achievement header and title search.
+- Fill missing totals reads complete achievement definition pages, excludes challenges and saves counts by Xbox account/title ID. Stop scan keeps results already collected. Titles the service cannot return stay unavailable.
+- Library progress text wraps inside its column.
+- Xbox Auto Unlock offers failure toasts (on by default), stop on failure (off by default), and Save queue delays. Saved queues retain both options and custom delays. Stop on failure preserves the failed entry for retry; continuing reports failures in the final status.

@@ -53,6 +53,10 @@ namespace AchievementLabs.Desktop.Workflows
 
         #region Observable Properties
 
+        public Action<string>? FailureNotification { get; set; }
+        [ObservableProperty] private bool _notifyOnFailure = true;
+        [ObservableProperty] private bool _stopOnFailure = false;
+
         [ObservableProperty] private bool _isInitialized = false;
         [ObservableProperty] private string _referenceGamertag = "";
         [ObservableProperty] private string _titleId = "";
@@ -171,6 +175,8 @@ namespace AchievementLabs.Desktop.Workflows
             }
 
             _state = state;
+            NotifyOnFailure = state.NotifyOnFailure;
+            StopOnFailure = state.StopOnFailure;
             ReferenceGamertag = state.ReferenceGamertag;
             TitleId = state.TitleId;
             GameName = $"Game: {state.GameName}";
@@ -390,6 +396,8 @@ namespace AchievementLabs.Desktop.Workflows
                     CurrentIndex = 0,
                     RemainingDelaySeconds = queue[0].DelaySeconds,
                     IsRunning = false,
+                    NotifyOnFailure = NotifyOnFailure,
+                    StopOnFailure = StopOnFailure,
                     SpeedMultiplier = SpeedMultiplier,
                     UseFakeSignature = account.Settings.FakeSignatureEnabled,
                     IsEventBased = isEventBased
@@ -450,6 +458,8 @@ namespace AchievementLabs.Desktop.Workflows
         {
             if (_state == null) return;
 
+            _state.NotifyOnFailure = NotifyOnFailure;
+            _state.StopOnFailure = StopOnFailure;
             _state.SpeedMultiplier = SpeedMultiplier;
             IsRunning = true;
             IsConfigEnabled = false;
@@ -621,14 +631,9 @@ namespace AchievementLabs.Desktop.Workflows
                 }
                 else
                 {
-                    Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
-                    {
-                        StatusText = $"Failed to unlock {entry.AchievementName}: {unlockError}";
-                        UpdateQueueItemStatus(_state.CurrentIndex, "Failed");
-                        _snackbarService.Show("Unlock Failed",
-                            $"Failed to unlock {entry.AchievementName}: {unlockError}",
-                            NoticeAppearance.Danger, new NoticeIcon(NoticeSymbol.ErrorCircle24), _snackbarDuration);
-                    });
+                    bool stop = false;
+                    Avalonia.Threading.Dispatcher.UIThread.Invoke(() => stop = HandleUnlockFailure(entry, unlockError));
+                    if (stop) { _state.IsRunning = false; _state.Save(); return; }
 
                     // Skip failed achievement and continue
                     _state.CurrentIndex++;
@@ -643,7 +648,8 @@ namespace AchievementLabs.Desktop.Workflows
             // All done
             Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
             {
-                StatusText = "Auto unlock complete!";
+                var failures = _state?.Queue.Count(e => !e.Completed) ?? 0;
+                StatusText = failures == 0 ? "Auto unlock complete!" : $"Queue finished with {failures} failed achievement(s).";
                 NextUnlockText = "Next Unlock: N/A";
                 TimeRemainingText = "Time Until Next: N/A";
                 UpdateProgressText();
@@ -651,6 +657,37 @@ namespace AchievementLabs.Desktop.Workflows
                     "All queued achievements have been processed.",
                     NoticeAppearance.Success, new NoticeIcon(NoticeSymbol.Checkmark24), _snackbarDuration);
             });
+        }
+
+        public bool HandleUnlockFailure(AutoUnlockQueueEntry entry, string error)
+        {
+            var message = $"Failed to unlock {entry.AchievementName}: {error}";
+            StatusText = StopOnFailure ? message + " Queue stopped. Click Start to retry this achievement." : message;
+            if (_state != null) UpdateQueueItemStatus(_state.CurrentIndex, "Failed");
+            if (NotifyOnFailure)
+            {
+                _snackbarService.Show("Unlock Failed", message, NoticeAppearance.Danger,
+                    new NoticeIcon(NoticeSymbol.ErrorCircle24), _snackbarDuration);
+                FailureNotification?.Invoke(message);
+            }
+            return StopOnFailure;
+        }
+
+        [RelayCommand]
+        public void SaveQueue()
+        {
+            if (IsRunning || !IsConfigEnabled) return;
+            if (_state == null) { StatusText = "Build or load a queue before saving."; return; }
+            try
+            {
+                _state.SpeedMultiplier = SpeedMultiplier;
+                _state.NotifyOnFailure = NotifyOnFailure;
+                _state.StopOnFailure = StopOnFailure;
+                _state.IsRunning = false;
+                _state.Save();
+                StatusText = $"Queue saved for {_state.GameName}, including custom delays and failure settings.";
+            }
+            catch { StatusText = "Could not save the queue. Your edits are still available here."; }
         }
 
         private void PopulateQueueDisplay()

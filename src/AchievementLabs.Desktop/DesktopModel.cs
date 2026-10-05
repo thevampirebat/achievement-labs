@@ -54,7 +54,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         private set
         {
             var selectedId = SelectedLibraryGame?.Id;
-            games = value;
+            games = value.Select(g => WithKnownTotal(g, knownLibraryTotals)).ToArray();
             var visible = VisibleGames.ToArray();
             Changed(); Changed(nameof(VisibleGames)); Changed(nameof(GameCount)); Changed(nameof(HomeXboxSummary));
             SelectedLibraryGame = visible.FirstOrDefault(g => g.Id == selectedId) ?? visible.FirstOrDefault();
@@ -126,7 +126,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         SelectedAchievement = matches.Contains(SelectedAchievement) ? SelectedAchievement : matches.FirstOrDefault();
         Changed(nameof(VisibleAchievements)); Changed(nameof(NoResults)); Changed(nameof(ResultLabel)); Changed(nameof(CanExport));
     }
-    private void Busy(bool value) { busy = value; Changed(nameof(CanConnect)); Changed(nameof(CanInteract)); Changed(nameof(CanDisconnect)); Changed(nameof(CanQuery)); Changed(nameof(CanLookupSpoofTitle)); Changed(nameof(CanStartPresence)); NotifyActions(); }
+    private void Busy(bool value) { busy = value; Changed(nameof(CanConnect)); Changed(nameof(CanInteract)); Changed(nameof(CanDisconnect)); Changed(nameof(CanQuery)); Changed(nameof(CanLookupSpoofTitle)); Changed(nameof(CanFillTotals)); Changed(nameof(CanStartPresence)); NotifyActions(); }
     public Task ConnectAsync() => AttachXboxPcAppAsync();
 
     private async Task ActivateXboxSessionAsync(ConnectedXboxSession connected, XboxApiClient candidate, string method)
@@ -136,6 +136,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         if (result.Titles == null) throw new InvalidDataException("Xbox title history was not returned.");
         client = candidate;
         session = connected;
+        LoadLibraryTotals();
         connectionMethod = method;
         ApplyXboxProfile(result.Profile?.ProfileUsers.FirstOrDefault());
         Games = result.Titles.Titles.Where(t => t.TitleId != null).Select(t => new Game(t.TitleId!, t.Name ?? t.TitleId!, string.Join(" / ", t.Devices), t.Achievement?.CurrentAchievements ?? 0, t.Achievement?.TotalAchievements ?? 0, t.Achievement?.CurrentGamerscore ?? 0, true, ResolveTitleImage(t.DisplayImage, t.Images), t.TitleHistory?.LastTimePlayed)).OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ToArray();
@@ -176,6 +177,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
             if (version != selectionVersion || lifetime.IsCancellationRequested) return;
             achievements = loaded;
             var updated = game with { Completed = loaded.Count(a => a.Unlocked), Total = loaded.Length, Score = loaded.Where(a => a.Unlocked).Sum(a => a.Score), ProgressKnown = loaded.All(a => a.ProgressKnown) };
+            RememberLibraryTotal(updated.Id, updated.Total);
             SelectedGame = updated;
             Games = Games.Select(g => g.Id == updated.Id ? updated : g).ToArray();
             Refresh(); Notice = $"Loaded {loaded.Length} achievements for {game.Name}.";

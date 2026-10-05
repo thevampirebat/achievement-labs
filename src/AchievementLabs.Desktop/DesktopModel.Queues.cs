@@ -2,10 +2,11 @@ using AchievementLabs.Desktop.Workflows;
 namespace AchievementLabs.Desktop;
 public sealed partial class DesktopModel
 {
+    public Action<string>? AutoUnlockFailure { get; set; }
     private readonly NativeAccountContext queueAccount = new();
     private AutoUnlockerViewModel? xboxQueue;
     private SteamAutoUnlockerViewModel? steamQueue;
-    public AutoUnlockerViewModel XboxQueue => xboxQueue ??= new(new NativeNotices(message => Notice = message), queueAccount) { EventCatalog = eventCatalog, ExternalPresenceActive = () => PresenceRunning, PresenceGate = requests };
+    public AutoUnlockerViewModel XboxQueue => xboxQueue ??= new(new NativeNotices(message => Notice = message), queueAccount) { EventCatalog = eventCatalog, ExternalPresenceActive = () => PresenceRunning, PresenceGate = requests, FailureNotification = message => AutoUnlockFailure?.Invoke(message) };
     public SteamAutoUnlockerViewModel SteamQueue => steamQueue ??= ObserveWorkflow(new SteamAutoUnlockerViewModel(steam, new NativeNotices(message => Notice = message)));
     public bool IsQueues => page == "Queues";
     private bool queueActive;

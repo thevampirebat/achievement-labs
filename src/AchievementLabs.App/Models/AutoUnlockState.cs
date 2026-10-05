@@ -77,6 +77,8 @@ namespace AchievementLabs.Models
         /// Whether the auto unlock process is actively running
         /// </summary>
         public bool IsRunning { get; set; }
+        public bool NotifyOnFailure { get; set; } = true;
+        public bool StopOnFailure { get; set; }
 
         /// <summary>
         /// Timestamp when the state was last saved
