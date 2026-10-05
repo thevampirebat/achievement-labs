@@ -71,6 +71,14 @@ namespace AchievementLabs.Desktop.Workflows
             if (scid != null) _state.ServiceConfigId = scid;
         }
 
+        public async Task PrepareEventMappingsAsync(CancellationToken ct)
+        {
+            if (_state?.IsEventBased != true) return;
+            if (EventCatalog == null) throw new InvalidOperationException("Event catalog is unavailable.");
+            // Mapping shape is process-local, not part of the saved queue. Load it after every restart.
+            await EventCatalog.GetTitleAsync(_state.TitleId, ct);
+        }
+
         public Func<CancellationToken, Task<bool>> RefreshEventTokenAsync { get; set; } = _ => Task.FromResult(false);
         [ObservableProperty] private bool _refreshTokenOnFailure = false;
         public Action<string>? FailureNotification { get; set; }
@@ -497,6 +505,7 @@ namespace AchievementLabs.Desktop.Workflows
                     : await GetRestAPI().GetAchievementsForTitleAsync(account.XUIDOnly, _state.TitleId);
                 if (metadata == null) throw new InvalidOperationException("Unable to verify queue achievement metadata.");
                 ValidateQueueMetadata(metadata);
+                await PrepareEventMappingsAsync(token);
                 _state.Save();
                 await UpdatePresenceAsync();
                 await Task.Run(async () => await RunAutoUnlockLoop(token), token);

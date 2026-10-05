@@ -68,6 +68,15 @@ public static class EditionMappingTests
             var consoleRows=rows.Where(r=>r.GetProperty("Title ID").GetString()==console).ToArray();
             var pcRows=rows.Where(r=>r.GetProperty("Title ID").GetString()==pc).ToDictionary(r=>r.GetProperty("Achievement").GetString()!);
             handler.Catalog=Catalog(console);
+            var queue = new AchievementLabs.Desktop.Workflows.AutoUnlockerViewModel(
+                new AchievementLabs.Desktop.Workflows.NativeNotices(_ => { }),
+                new AchievementLabs.Desktop.Workflows.NativeAccountContext())
+                { EventCatalog = (AchievementLabs.Core.EventCatalogClient)client };
+            typeof(AchievementLabs.Desktop.Workflows.AutoUnlockerViewModel)
+                .GetField("_state", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .SetValue(queue, new AchievementLabs.Models.AutoUnlockState { TitleId = console, IsEventBased = true });
+            queue.PrepareEventMappingsAsync(CancellationToken.None).GetAwaiter().GetResult();
+            Payload(console, "2"); // Restored queue works without opening the manual achievement tab.
             var normalized=Ids(Load(console));
             Assert(normalized.ToHashSet().SetEquals(consoleRows.Select(r=>r.GetProperty("Achievement ID").GetString()!)),"Every Xbox achievement exposed");
             foreach(var row in consoleRows)
