@@ -55,6 +55,15 @@ public static class QueuePresenceTokenTests
         sends = 0; refreshes = 0;
         try { EventUnlockRecovery.RunAsync(true, () => { sends++; throw new HttpRequestException("synthetic", null, HttpStatusCode.Forbidden); }, _ => { refreshes++; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult(); throw new Exception("Retry should fail"); }
         catch (HttpRequestException) { Assert(sends == 2 && refreshes == 1, "Repeated auth failure never loops"); }
+        sends = 0; refreshes = 0;
+        try { EventUnlockRecovery.RunAsync(false, () => { sends++; throw new MissingEventTokenException(); }, _ => { refreshes++; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult(); throw new Exception("Disabled recovery should fail"); }
+        catch (MissingEventTokenException) { Assert(sends == 1 && refreshes == 0, "Disabled recovery preserves existing failure behavior"); }
+        sends = 0;
+        using (var stopRetry = new CancellationTokenSource())
+        {
+            try { EventUnlockRecovery.RunAsync(true, () => { sends++; throw new MissingEventTokenException(); }, _ => { stopRetry.Cancel(); return Task.FromResult(true); }, stopRetry.Token).GetAwaiter().GetResult(); throw new Exception("Stop should cancel retry"); }
+            catch (OperationCanceledException) { Assert(sends == 1, "Stopping during refresh prevents a retry unlock"); }
+        }
         Assert(!EventUnlockRecovery.IsTokenFailure(new InvalidDataException("missing mapping")) && !EventUnlockRecovery.IsTokenFailure(new HttpRequestException("server", null, HttpStatusCode.InternalServerError)), "Unrelated failures do not refresh account tokens");
         Assert(DesktopModel.TotalsFailureReason(new HttpRequestException("private content", null, HttpStatusCode.NotFound)) == "HTTP 404", "Report retains status and excludes private error content");
         var rateHandler = new TotalsRateHandler();

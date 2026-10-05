@@ -600,7 +600,7 @@ namespace AchievementLabs.Desktop.Workflows
                                     StatusText = "Refreshing event token for the connected account…";
                                     return await RefreshEventTokenAsync(ct);
                                 });
-                                return await refreshing;
+                                return refreshing;
                             }, token);
                         if (!unlockSuccess)
                             unlockError = "Event-based unlock failed (see snackbar for details)";
@@ -697,7 +697,7 @@ namespace AchievementLabs.Desktop.Workflows
             {
                 _state.SpeedMultiplier = SpeedMultiplier;
                 _state.RefreshTokenOnFailure = RefreshTokenOnFailure;
-            _state.NotifyOnFailure = NotifyOnFailure;
+                _state.NotifyOnFailure = NotifyOnFailure;
                 _state.StopOnFailure = StopOnFailure;
                 _state.IsRunning = false;
                 _state.Save();
