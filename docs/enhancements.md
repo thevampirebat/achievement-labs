@@ -119,3 +119,14 @@ evidence, not live unlock verification, and cannot undo previous unlocks.
 
 This branch prepares source changes and offline tests; it does not publish a
 release, change the licensing service, deploy the website or send announcements.
+
+
+## Queue status, remembered sort and Windows account matching
+
+The Xbox library remembers A-Z, Z-A or Last Played automatically in a separate small preference file. Initial loading still retains title-history dates, and choosing Last Played refreshes Xbox activity.
+
+Auto Unlock has its own status tile with progress, next achievement, time until next, estimated total remaining duration and estimated finish day/date/local time. Estimates exclude network request time. Loaded and stopped queues show an estimate if started now; delay edits and speed changes recalculate it. Speed editing is disabled during a run.
+
+Get event token checks Windows broker accounts silently and accepts only the identity whose Xbox XUID matches the current connected account. An account mismatch is rejected before requesting an events token. Unavailable broker accounts are skipped; failure preserves the existing token. This requires the matching account to be signed in and available to the Windows broker; actual achievement credit still requires PC testing. No credentials are logged.
+
+Title spoofer Look up title is available during Auto Unlock. This read-only request uses the existing shared request gate while write and disconnect guards remain protected.

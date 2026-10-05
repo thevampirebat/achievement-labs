@@ -65,6 +65,8 @@ namespace AchievementLabs.Desktop.Workflows
         [ObservableProperty] private string _progressText = "Progress: 0/0";
         [ObservableProperty] private string _nextUnlockText = "Next Unlock: N/A";
         [ObservableProperty] private string _timeRemainingText = "Time Until Next: N/A";
+        [ObservableProperty] private string _completionRemainingText = "Time to completion: N/A";
+        [ObservableProperty] private string _estimatedCompletionText = "Estimated finish: N/A";
         [ObservableProperty] private double _speedMultiplier = 1.0;
         [ObservableProperty] private string _speedDisplay = "Speed: 1.0x (Real Time)";
         [ObservableProperty] private ObservableCollection<AutoUnlockQueueDisplay> _queueItems = new();
@@ -103,6 +105,7 @@ namespace AchievementLabs.Desktop.Workflows
         partial void OnIsRunningChanged(bool value)
         {
             foreach (var item in QueueItems) item.CanEditDelay = !value;
+            UpdateCompletionEstimate();
         }
         public SemaphoreSlim PresenceGate { get; set; } = new(1, 1);
         public string ActiveTitleId => _state?.TitleId ?? TitleId;
@@ -197,6 +200,7 @@ namespace AchievementLabs.Desktop.Workflows
             ProgressText = "Progress: 0/0";
             NextUnlockText = "Next Unlock: N/A";
             TimeRemainingText = "Time Until Next: N/A";
+            UpdateCompletionEstimate();
 
             _snackbarService.Show("Session Cleared", "Saved auto unlock session has been deleted.",
                 NoticeAppearance.Success, new NoticeIcon(NoticeSymbol.Checkmark24), _snackbarDuration);
@@ -531,14 +535,15 @@ namespace AchievementLabs.Desktop.Workflows
                         token.ThrowIfCancellationRequested();
 
                         var remaining = delayEnd - DateTime.UtcNow;
+                        _state.RemainingDelaySeconds = Math.Max(0, remaining.TotalSeconds) * (_state.SpeedMultiplier > 0 ? _state.SpeedMultiplier : 1.0);
                         Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
                         {
+                            UpdateCompletionEstimate();
                             TimeRemainingText = $"Time Until Next: {remaining:hh\\:mm\\:ss}";
                             StatusText = $"Waiting to unlock: {entry.AchievementName}...";
                         });
 
                         // Save remaining delay periodically (every 10s) for resume capability
-                        _state.RemainingDelaySeconds = remaining.TotalSeconds * (_state.SpeedMultiplier > 0 ? _state.SpeedMultiplier : 1.0);
                         if ((int)remaining.TotalSeconds % 10 == 0)
                         {
                             _state.Save();
@@ -556,9 +561,11 @@ namespace AchievementLabs.Desktop.Workflows
                     }
                 }
 
+                _state.RemainingDelaySeconds = 0;
                 // Unlock the achievement
                 Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
                 {
+                    UpdateCompletionEstimate();
                     StatusText = $"Unlocking: {entry.AchievementName}...";
                     TimeRemainingText = "Time Until Next: Unlocking...";
                 });
@@ -672,6 +679,7 @@ namespace AchievementLabs.Desktop.Workflows
 
         private void UpdateProgressText()
         {
+            UpdateCompletionEstimate();
             if (_state == null)
             {
                 ProgressText = "Progress: 0/0";
@@ -680,6 +688,25 @@ namespace AchievementLabs.Desktop.Workflows
 
             var completed = _state.Queue.Count(q => q.Completed);
             ProgressText = $"Progress: {completed}/{_state.Queue.Count}";
+        }
+
+        public static TimeSpan EstimateRemaining(AutoUnlockState state, double speed)
+        {
+            var seconds = 0.0;
+            for (var i = state.CurrentIndex; i < state.Queue.Count; i++)
+                if (!state.Queue[i].Completed)
+                    seconds += Math.Max(0, i == state.CurrentIndex ? state.RemainingDelaySeconds : state.Queue[i].DelaySeconds);
+            return TimeSpan.FromSeconds(seconds / (double.IsFinite(speed) && speed > 0 ? speed : 1));
+        }
+
+        private void UpdateCompletionEstimate()
+        {
+            if (_state == null) { CompletionRemainingText = "Time to completion: N/A"; EstimatedCompletionText = "Estimated finish: N/A"; return; }
+            var remaining = EstimateRemaining(_state, IsRunning ? _state.SpeedMultiplier : SpeedMultiplier);
+            CompletionRemainingText = $"Time to completion: {remaining.Days}d {remaining:hh\\:mm\\:ss}";
+            EstimatedCompletionText = _state.CurrentIndex >= _state.Queue.Count
+                ? "Queue finished"
+                : $"Estimated finish{(IsRunning ? "" : " if started now")}: {DateTimeOffset.UtcNow.Add(remaining).ToLocalTime():dddd, dd MMM yyyy HH:mm:ss zzz} (local time; request time may add delay)";
         }
 
         private void UpdateQueueItemStatus(int index, string status)
@@ -722,6 +749,7 @@ namespace AchievementLabs.Desktop.Workflows
             if (_state.CurrentIndex == queueIndex)
                 _state.RemainingDelaySeconds = delaySeconds;
             _state.Save();
+            UpdateCompletionEstimate();
         }
 
         public void UpdateSpeed(double newSpeed)
@@ -733,6 +761,14 @@ namespace AchievementLabs.Desktop.Workflows
                 _state.Save();
             }
             UpdateSpeedDisplay();
+            UpdateCompletionEstimate();
+        }
+
+        partial void OnSpeedMultiplierChanged(double value)
+        {
+            if (!IsRunning && _state != null) { _state.SpeedMultiplier = value; _state.Save(); }
+            UpdateSpeedDisplay();
+            UpdateCompletionEstimate();
         }
 
         private void UpdateSpeedDisplay()
