@@ -1,3 +1,4 @@
+using AchievementLabs.Core;
 using AchievementLabs.Desktop.Workflows;
 namespace AchievementLabs.Desktop;
 public sealed partial class DesktopModel
@@ -86,3 +87,4 @@ public sealed partial class DesktopModel
         if (xboxQueue?.IsRunning == true) _ = xboxQueue.StartStopAutoUnlock();
     }
 }
+
