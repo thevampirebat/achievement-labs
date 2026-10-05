@@ -33,7 +33,8 @@ public sealed partial class DesktopModel
         // Read the live session on every attempt, including after manual save or automatic refresh.
         var active = session ?? throw new InvalidOperationException("Connect an Xbox account first.");
         var api = client ?? throw new InvalidOperationException("Xbox client is unavailable.");
-        if (!EventTokenValidator.TryValidate(active.EventsToken, out var token, out _))
+        if (!EventTokenValidator.TryNormalize(active.EventsToken, out var token) ||
+            !EventTokenValidator.TryValidate(token, out _, out _))
             throw new AchievementLabs.Core.MissingEventTokenException();
         var payloads = await eventCatalog.GetPayloadsAsync(titleId, achievementId, active.Xuid, ct);
         if (payloads.Payloads.Length == 0) throw new InvalidOperationException("No mapped event data is available.");
