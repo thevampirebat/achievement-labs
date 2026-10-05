@@ -53,6 +53,24 @@ namespace AchievementLabs.Desktop.Workflows
 
         #region Observable Properties
 
+        // Desktop supplies the same connected-session sender used by the achievement tab.
+        public Func<string, string, CancellationToken, Task<bool>>? SendEventAchievementAsync { get; set; }
+        public Func<string, CancellationToken, Task<AchievementsResponse?>>? ReadQueueAchievementsAsync { get; set; }
+        public static bool UsesEvents(IEnumerable<OneCoreAchievementResponse> achievements) =>
+            achievements.Any(a => a.progression?.requirements?.Any(r =>
+                !string.IsNullOrWhiteSpace(r.id) && r.id != Guid.Empty.ToString()) == true);
+
+        public void ValidateQueueMetadata(AchievementsResponse response)
+        {
+            if (_state == null) return;
+            if (response.achievements.Count == 0)
+                throw new InvalidOperationException("Could not verify the saved queue's achievement metadata. Refresh the game and try again.");
+            _state.IsEventBased = UsesEvents(response.achievements);
+            var scid = response.achievements.Select(a => a.serviceConfigId)
+                .FirstOrDefault(id => !string.IsNullOrWhiteSpace(id) && id != Guid.Empty.ToString());
+            if (scid != null) _state.ServiceConfigId = scid;
+        }
+
         public Func<CancellationToken, Task<bool>> RefreshEventTokenAsync { get; set; } = _ => Task.FromResult(false);
         [ObservableProperty] private bool _refreshTokenOnFailure = false;
         public Action<string>? FailureNotification { get; set; }
@@ -272,14 +290,7 @@ namespace AchievementLabs.Desktop.Workflows
                 // Get service config ID from achievements
                 var serviceConfigId = refAchievements.achievements[0].serviceConfigId;
 
-                // Detect event-based game: if the first achievement's requirement ID is not the zero GUID, it's event-based
-                bool isEventBased = false;
-                var firstAch = refAchievements.achievements[0];
-                if (firstAch.progression?.requirements?.Count > 0 &&
-                    firstAch.progression.requirements[0].id != Guid.Empty.ToString())
-                {
-                    isEventBased = true;
-                }
+                bool isEventBased = UsesEvents(refAchievements.achievements);
 
                 HashSet<string> licensedIds = [];
                 if (isEventBased)
@@ -480,6 +491,13 @@ namespace AchievementLabs.Desktop.Workflows
 
             try
             {
+                // Recheck old saved queues before sending; older versions checked only the first requirement.
+                var metadata = ReadQueueAchievementsAsync != null
+                    ? await ReadQueueAchievementsAsync(_state.TitleId, token)
+                    : await GetRestAPI().GetAchievementsForTitleAsync(account.XUIDOnly, _state.TitleId);
+                if (metadata == null) throw new InvalidOperationException("Unable to verify queue achievement metadata.");
+                ValidateQueueMetadata(metadata);
+                _state.Save();
                 await UpdatePresenceAsync();
                 await Task.Run(async () => await RunAutoUnlockLoop(token), token);
             }
@@ -845,6 +863,9 @@ namespace AchievementLabs.Desktop.Workflows
         {
             if (_state == null) return false;
 
+            if (SendEventAchievementAsync != null)
+                return await SendEventAchievementAsync(_state.TitleId, achievementId,
+                    _cancellationTokenSource?.Token ?? CancellationToken.None);
             var eventsToken = account.EventsToken;
             if (string.IsNullOrWhiteSpace(eventsToken))
                 throw new AchievementLabs.Core.MissingEventTokenException();

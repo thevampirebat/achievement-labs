@@ -7,7 +7,7 @@ public sealed partial class DesktopModel
     private readonly NativeAccountContext queueAccount = new();
     private AutoUnlockerViewModel? xboxQueue;
     private SteamAutoUnlockerViewModel? steamQueue;
-    public AutoUnlockerViewModel XboxQueue => xboxQueue ??= new(new NativeNotices(message => Notice = message), queueAccount) { EventCatalog = eventCatalog, ExternalPresenceActive = () => PresenceRunning, PresenceGate = requests, RefreshEventTokenAsync = ct => QueueTokenRefresh?.Invoke(ct) ?? Task.FromResult(false), FailureNotification = message => AutoUnlockFailure?.Invoke(message) };
+    public AutoUnlockerViewModel XboxQueue => xboxQueue ??= new(new NativeNotices(message => Notice = message), queueAccount) { EventCatalog = eventCatalog, SendEventAchievementAsync = SendQueueEventAchievementAsync, ReadQueueAchievementsAsync = ReadQueueAchievementsAsync, ExternalPresenceActive = () => PresenceRunning, PresenceGate = requests, RefreshEventTokenAsync = ct => QueueTokenRefresh?.Invoke(ct) ?? Task.FromResult(false), FailureNotification = message => AutoUnlockFailure?.Invoke(message) };
     public SteamAutoUnlockerViewModel SteamQueue => steamQueue ??= ObserveWorkflow(new SteamAutoUnlockerViewModel(steam, new NativeNotices(message => Notice = message)));
     public bool IsQueues => page == "Queues";
     private bool queueActive;
@@ -16,6 +16,41 @@ public sealed partial class DesktopModel
     {
         queueAccount.LastOAuthResponse = session?.OAuthResponse; queueAccount.XAUTH = session?.Authorization ?? ""; queueAccount.XUIDOnly = session?.Xuid ?? ""; queueAccount.EventsToken = session?.EventsToken ?? ""; queueAccount.EventsDirectory = EventsDirectory;
         XboxQueue.OnNavigatedTo(); Navigate("Queues");
+    }
+    private async Task<AchievementsResponse?> ReadQueueAchievementsAsync(string titleId, CancellationToken ct)
+    {
+        var active = session ?? throw new InvalidOperationException("Connect an Xbox account first.");
+        var api = client ?? throw new InvalidOperationException("Xbox client is unavailable.");
+        ct.ThrowIfCancellationRequested();
+        var response = await api.GetAchievementsForTitleAsync(active.Xuid, titleId);
+        ct.ThrowIfCancellationRequested();
+        if (session?.Xuid != active.Xuid) throw new InvalidOperationException("The connected Xbox account changed.");
+        return response;
+    }
+    private async Task<bool> SendQueueEventAchievementAsync(string titleId, string achievementId, CancellationToken ct)
+    {
+        // Read the live session on every attempt, including after manual save or automatic refresh.
+        var active = session ?? throw new InvalidOperationException("Connect an Xbox account first.");
+        var api = client ?? throw new InvalidOperationException("Xbox client is unavailable.");
+        if (!EventTokenValidator.TryValidate(active.EventsToken, out var token, out _))
+            throw new AchievementLabs.Core.MissingEventTokenException();
+        var payloads = await eventCatalog.GetPayloadsAsync(titleId, achievementId, active.Xuid, ct);
+        if (payloads.Payloads.Length == 0) throw new InvalidOperationException("No mapped event data is available.");
+        await requests.WaitAsync(ct);
+        try
+        {
+            foreach (var payload in payloads.Payloads)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (session?.Xuid != active.Xuid) throw new InvalidOperationException("The connected Xbox account changed.");
+                var result = await api.UnlockEventBasedAchievementWithDiagnostics(token, payload);
+                if (result.StatusCode < 200 || result.StatusCode >= 300)
+                    throw new HttpRequestException($"Event request failed: HTTP {result.StatusCode} {result.ReasonPhrase}.", null,
+                        (System.Net.HttpStatusCode)result.StatusCode);
+            }
+        }
+        finally { requests.Release(); }
+        return true;
     }
     public async Task<bool> RefreshQueueEventTokenAsync(Avalonia.Controls.Window owner, CancellationToken ct)
     {

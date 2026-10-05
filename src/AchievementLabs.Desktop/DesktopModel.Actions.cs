@@ -35,7 +35,7 @@ public sealed partial class DesktopModel
     private async Task LoadActionMetadataAsync(AchievementsResponse response, string titleId, int version)
     {
         var nextDefinitions = response.achievements.ToDictionary(a => a.id);
-        var nextEventBased = response.achievements.Any(a => a.progression?.requirements.Any(r => r.id != Guid.Empty.ToString()) == true);
+        var nextEventBased = Workflows.AutoUnlockerViewModel.UsesEvents(response.achievements);
         var nextMappedIds = new HashSet<string>();
         string? error = null;
         var nextSupported = false;

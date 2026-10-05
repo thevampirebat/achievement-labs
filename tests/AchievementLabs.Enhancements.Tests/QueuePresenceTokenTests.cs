@@ -49,6 +49,25 @@ public static class QueuePresenceTokenTests
     }
     public static void Run()
     {
+        var definitions = Newtonsoft.Json.JsonConvert.DeserializeObject<AchievementsResponse>(
+            "{\"achievements\":[{\"id\":\"1\",\"name\":\"First\"},{\"id\":\"2\",\"name\":\"Event\",\"progression\":{\"requirements\":[{\"id\":\"00000000-0000-0000-0000-000000000000\"},{\"id\":\"11111111-1111-1111-1111-111111111111\"}]}}]}")!;
+        Assert(AutoUnlockerViewModel.UsesEvents(definitions.achievements), "Later achievements and later requirements determine event routing");
+        var routeVm = new AutoUnlockerViewModel(new NativeNotices(_ => { }), new NativeAccountContext { EventsToken = "stale-copy" });
+        var routeState = new AutoUnlockState { TitleId = "123", IsEventBased = false, Queue = new() { new() { AchievementId = "2", DelaySeconds = 45 } } };
+        typeof(AutoUnlockerViewModel).GetField("_state", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(routeVm, routeState);
+        routeVm.ValidateQueueMetadata(definitions);
+        Assert(routeState.IsEventBased && routeState.Queue.Single().DelaySeconds == 45, "Saved queue routing repairs without changing custom delays");
+        var activeToken = "manual-current";
+        var seenTokens = new List<string>();
+        routeVm.SendEventAchievementAsync = (title, id, ct) => {
+            Assert(title == "123" && id == "2", "Queue forwards saved title and achievement IDs");
+            seenTokens.Add(activeToken);
+            if (seenTokens.Count == 1) throw new HttpRequestException("synthetic", null, HttpStatusCode.Unauthorized);
+            return Task.FromResult(true);
+        };
+        Task<bool> SendQueue() => (Task<bool>)typeof(AutoUnlockerViewModel).GetMethod("UnlockEventBasedAchievementAsync", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(routeVm, new object[] { "2" })!;
+        Assert(EventUnlockRecovery.RunAsync(true, SendQueue, _ => { activeToken = "refreshed-current"; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult(), "Queue uses connected-session sender for retry");
+        Assert(seenTokens.SequenceEqual(new[] { "manual-current", "refreshed-current" }), "Retry re-reads the current token instead of stale queue copy");
         var sends = 0; var refreshes = 0;
         bool RetrySend() { sends++; if (sends == 1) throw new HttpRequestException("synthetic", null, HttpStatusCode.Unauthorized); return true; }
         Assert(EventUnlockRecovery.RunAsync(true, () => Task.FromResult(RetrySend()), _ => { refreshes++; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult() && sends == 2 && refreshes == 1, "Token auth failure refreshes once and retries the same operation");
