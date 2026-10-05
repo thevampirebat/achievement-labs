@@ -75,6 +75,13 @@ public static class QueuePresenceTokenTests
         Assert(model.VisibleGames.First().Id == "1", "Z-A");
         model.LibrarySort = "Last Played";
         Assert(model.VisibleGames.Select(g => g.Id).SequenceEqual(new[] { "1", "3", "2" }), "Last Played puts missing dates last");
+        var refreshed = model.Games.Select(g => g with { Name = g.Name + " refreshed" }).ToArray();
+        model.SelectedLibraryGame = model.Games.Single(g => g.Id == "3");
+        typeof(DesktopModel).GetProperty("Games")!.SetValue(model, refreshed);
+        Assert(model.SelectedLibraryGame?.Id == "3" && model.SelectedLibraryGame.Name.EndsWith("refreshed"), "Refresh preserves selected title using the new record");
+        model.SelectedLibraryGame = null;
+        typeof(DesktopModel).GetProperty("Games")!.SetValue(model, refreshed);
+        Assert(model.SelectedLibraryGame?.Id == "1", "No selection chooses first game in active sort, not A-Z backing array");
         model.PlatformFilter = "Xbox One/Series";
         Assert(model.VisibleGames.Count() == 2, "Sort retains platform filter");
         typeof(DesktopModel).GetField("session", flags)!.SetValue(model, new ConnectedXboxSession("synthetic", "123", ""));

@@ -78,6 +78,7 @@ static class Test
     Assert(input.PasswordChar!='\0',"Actual token box masked initially");reveal.IsChecked=true;Assert(input.PasswordChar=='\0',"Reveal works");reveal.IsChecked=false;
     TokenPresentation.ClearOwnInput(model,"synthetic-display-token");Dispatcher.UIThread.RunJobs();Assert(input.Text=="","Clearing removes token from actual box");
     var typedModel=(AchievementLabs.Desktop.DesktopModel)model;
+    Assert(!Desc<ListBox>(window).Single(l=>l.Name=="XboxLibraryList").AutoScrollToSelectedItem,"Library selection does not force scrolling after sort or refresh");
     var queueList=Desc<ListBox>(window).Single(l=>l.Name=="XboxAutoUnlockList");
     typedModel.XboxQueue.QueueItems.Add(new AchievementLabs.Desktop.Workflows.AutoUnlockerViewModel.AutoUnlockQueueDisplay { Status="Unlocked", CanEditDelay=true });
     typedModel.XboxQueue.IsRunning=true;typedModel.XboxQueue.IsConfigEnabled=false;Dispatcher.UIThread.RunJobs();

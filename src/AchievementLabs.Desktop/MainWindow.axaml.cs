@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 namespace AchievementLabs.Desktop;
 public partial class MainWindow : Window
 {
@@ -22,7 +23,18 @@ public partial class MainWindow : Window
         var offlineChecks = AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var offline) && offline;
         if (!offlineChecks) xboxPresenceTimer.Start();
         Closed += (_, _) => { xboxPresenceTimer.Stop(); model.Dispose(); };
-        model.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(model.MintAccent)) ApplyAccent(); };
+        model.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(model.MintAccent)) ApplyAccent();
+            if (e.PropertyName == nameof(model.LibrarySort) ||
+                e.PropertyName == nameof(model.Games) && model.LibrarySort == "Last Played")
+                Dispatcher.UIThread.Post(() =>
+                {
+                    var list = this.FindControl<ListBox>("XboxLibraryList");
+                    var scroll = list?.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+                    if (scroll != null) scroll.Offset = new Vector(0, 0);
+                }, DispatcherPriority.Background);
+        };
         Opened += async (_, _) =>
         {
             // Headless regression tests must never attach to a real account.
