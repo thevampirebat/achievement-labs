@@ -1,0 +1,65 @@
+name: Publish fork release
+
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publish-fork-release.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-v1.0.3-fork.2
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: v1.0.3-fork.2
+      SOURCE_SHA: f8bbfc3cd0646ce3bd568782df369febc8138b08
+      BUILD_SHA: df445bfe804d91f4638a7eaf1af8570a3adb0fdd
+      BUILD_RUN: '37310738033'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify tested source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN" --jq .conclusion)" = success
+          test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN" --jq .head_sha)" = "$BUILD_SHA"
+          test "$(git rev-parse "$SOURCE_SHA^{tree}")" = "$(git rev-parse "$BUILD_SHA^{tree}")"
+      - uses: actions/download-artifact@v4
+        with:
+          name: AchievementLabs-Windows-x64
+          path: release-download
+          run-id: ${{ env.BUILD_RUN }}
+          github-token: ${{ github.token }}
+      - name: Verify download and publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          folder = Path('release-download')
+          expected = (folder / 'SHA256.txt').read_text(encoding='utf-8-sig').split()[0].lower()
+          assert hashlib.sha256((folder / 'AchievementLabs.exe').read_bytes()).hexdigest() == expected, 'Executable checksum mismatch'
+          PY
+          printf '\nRelease source: %s\nTested build source: %s (identical source tree)\n' "$SOURCE_SHA" "$BUILD_SHA" >> release-download/BUILD-INFO.txt
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft > release-state.txt 2>/dev/null; then
+            test "$(cat release-state.txt)" = true
+          else
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs — All Fork Upgrades (fork.2)' --notes-file docs/releases/v1.0.3-fork.2.md --draft
+          fi
+          gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" release-download/AchievementLabs.exe release-download/SHA256.txt release-download/BUILD-INFO.txt --clobber
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
