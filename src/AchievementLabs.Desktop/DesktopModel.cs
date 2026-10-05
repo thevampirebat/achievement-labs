@@ -48,7 +48,18 @@ public sealed partial class DesktopModel : Observable, IDisposable
     private bool busy;
     private int selectionVersion;
     private readonly Stack<string> pageHistory = [];
-    public Game[] Games { get => games; private set { games = value; SelectedLibraryGame = value.FirstOrDefault(); Changed(); Changed(nameof(VisibleGames)); Changed(nameof(GameCount)); Changed(nameof(HomeXboxSummary)); } }
+    public Game[] Games
+    {
+        get => games;
+        private set
+        {
+            var selectedId = SelectedLibraryGame?.Id;
+            games = value;
+            var visible = VisibleGames.ToArray();
+            Changed(); Changed(nameof(VisibleGames)); Changed(nameof(GameCount)); Changed(nameof(HomeXboxSummary));
+            SelectedLibraryGame = visible.FirstOrDefault(g => g.Id == selectedId) ?? visible.FirstOrDefault();
+        }
+    }
     public IEnumerable<Game> VisibleGames
     {
         get
