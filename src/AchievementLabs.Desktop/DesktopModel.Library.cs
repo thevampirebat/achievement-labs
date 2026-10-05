@@ -5,6 +5,7 @@ public sealed partial class DesktopModel
     private string platformFilter = "All", titleLookup = "";
     public string[] PlatformFilters { get; } = ["All", "Xbox One/Series", "PC", "Xbox 360", "Win32", "Windows 8/Legacy", "Incomplete Games"];
     private string librarySort = "A-Z";
+    private readonly string librarySortPath = AchievementLabs.Core.AchievementLabsPaths.LocalFile("library-sort.txt");
     public string[] LibrarySortOptions { get; } = ["A-Z", "Z-A", "Last Played"];
     public string LibrarySort
     {
@@ -14,6 +15,8 @@ public sealed partial class DesktopModel
             var next = LibrarySortOptions.Contains(value) ? value : "A-Z";
             if (librarySort == next) return;
             librarySort = next;
+            try { AchievementLabs.Core.LibrarySortPreferences.Save(librarySortPath, next); }
+            catch { Notice = "Sort changed, but could not be remembered for next launch."; }
             Changed(); Changed(nameof(VisibleGames));
             if (next == "Last Played") _ = RefreshLibraryAsync();
         }

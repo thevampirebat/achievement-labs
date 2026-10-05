@@ -24,6 +24,8 @@ public sealed partial class DesktopModel
     public string CatalogSummary { get => catalogSummary; private set { catalogSummary = value; Changed(); } }
     public async Task LoadPreferencesAsync()
     {
+        try { librarySort = AchievementLabs.Core.LibrarySortPreferences.Load(librarySortPath); Changed(nameof(LibrarySort)); Changed(nameof(VisibleGames)); }
+        catch { Notice = "Saved library sort could not be read."; }
         try { var value = await preferencesStore.LoadAsync(lifetime.Token); EventsDirectory = value.EventsDirectory; SessionPath = value.SessionPath; RegionOverride = value.RegionOverride; MintAccent = value.MintAccent; UnlockAllEnabled = value.UnlockAllEnabled; OAuthProfile = value.OAuthProfile; FakeSignature = value.FakeSignature; PrivacyMode = value.PrivacyMode; AutoSpoof = value.AutoSpoof; AutoLaunchXboxApp = value.AutoLaunchXboxApp; LaunchXboxAppHidden = value.LaunchXboxAppHidden; await LoadSavedEventTokenAsync();
             if (AutoLaunchXboxApp) System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(@"shell:appsFolder\Microsoft.GamingApp_8wekyb3d8bbwe!Microsoft.Xbox.App") { UseShellExecute = true, WindowStyle = LaunchXboxAppHidden ? System.Diagnostics.ProcessWindowStyle.Hidden : System.Diagnostics.ProcessWindowStyle.Normal }); }
         catch (OperationCanceledException) { }

@@ -4,6 +4,8 @@ using System.Text.Json;
 using AchievementLabs.Desktop;
 using AchievementLabs.Core;
 using AchievementLabs.Desktop.Workflows;
+using AchievementLabs.Models;
+using AchievementLabs.MultiSelect;
 using LibraryGame = AchievementLabs.Desktop.Game;
 
 public static class QueuePresenceTokenTests
@@ -36,6 +38,32 @@ public static class QueuePresenceTokenTests
     }
     public static void Run()
     {
+        var sortPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "sort.txt");
+        try
+        {
+            Assert(LibrarySortPreferences.Load(sortPath) == "A-Z", "Default library sort");
+            LibrarySortPreferences.Save(sortPath, "Last Played");
+            Assert(LibrarySortPreferences.Load(sortPath) == "Last Played", "Library sort survives reload");
+            File.WriteAllText(sortPath, "invalid");
+            Assert(LibrarySortPreferences.Load(sortPath) == "A-Z", "Unknown saved sort falls back safely");
+        }
+        finally { Directory.Delete(Path.GetDirectoryName(sortPath)!, true); }
+        var state = new AutoUnlockState { CurrentIndex = 1, RemainingDelaySeconds = 30, Queue = new() {
+            new() { Completed = true, DelaySeconds = 1000 }, new() { DelaySeconds = 60 },
+            new() { Completed = true, DelaySeconds = 999 }, new() { DelaySeconds = 90 } } };
+        Assert(AutoUnlockerViewModel.EstimateRemaining(state, 2) == TimeSpan.FromSeconds(60), "ETA uses saved remaining delay, speed and pending entries");
+        state.CurrentIndex = 4;
+        Assert(AutoUnlockerViewModel.EstimateRemaining(state, 1) == TimeSpan.Zero, "Finished queue has no remaining time");
+        var visited = new List<int>();
+        var matching = WamEventTokens.FindMatchingAccountAsync(new[] { 1, 2, 3, 4 }, id => {
+            visited.Add(id);
+            if (id == 1 || id == 3) throw new InvalidDataException("wrong Xbox account");
+            return Task.FromResult(id == 4 ? new AutomaticEventToken.Grant("synthetic", DateTimeOffset.UtcNow.AddHours(1)) : null);
+        }, CancellationToken.None).GetAwaiter().GetResult();
+        Assert(matching?.Value == "synthetic" && visited.SequenceEqual(new[] { 1, 2, 3, 4 }), "Four Windows accounts choose only the verified matching Xbox identity");
+        var cancelled = new CancellationToken(true);
+        try { WamEventTokens.FindMatchingAccountAsync(new[] { 1 }, _ => Task.FromResult<AutomaticEventToken.Grant?>(null), cancelled).GetAwaiter().GetResult(); throw new Exception("Cancellation expected"); }
+        catch (OperationCanceledException) { }
         using var model = new DesktopModel();
         var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
         typeof(DesktopModel).GetProperty("Games")!.SetValue(model, new[] {
@@ -51,7 +79,7 @@ public static class QueuePresenceTokenTests
         Assert(model.VisibleGames.Count() == 2, "Sort retains platform filter");
         typeof(DesktopModel).GetField("session", flags)!.SetValue(model, new ConnectedXboxSession("synthetic", "123", ""));
         typeof(DesktopModel).GetProperty("QueueActive")!.SetValue(model, true);
-        Assert(model.CanStartPresence && !model.CanDisconnect, "Queue allows spoofing but still protects disconnect");
+        Assert(model.CanStartPresence && model.CanLookupSpoofTitle && !model.CanQuery && !model.CanDisconnect, "Queue allows spoofing but still protects disconnect");
         var row = new AutoUnlockerViewModel.AutoUnlockQueueDisplay { Status = "Unlocked", CanEditDelay = true };
         model.XboxQueue.QueueItems.Add(row);
         model.XboxQueue.IsRunning = true;
@@ -71,7 +99,7 @@ public static class QueuePresenceTokenTests
                 var grant = WamEventTokens.ExchangeAsync(http, "fake-msa", "123", CancellationToken.None).GetAwaiter().GetResult();
                 Assert(scenario == "valid" ? grant?.Value == "x:XBL3.0 x=hash;fake-event" && handler.Calls == 4 : scenario == "expiry" && grant == null, "Reject invalid token claims and expiry");
             }
-            catch (InvalidDataException) { Assert(scenario is "account" or "hash", "Only mismatch scenarios throw"); }
+            catch (InvalidDataException) { Assert(scenario is "account" or "hash", "Only mismatch scenarios throw"); if (scenario == "account") Assert(handler.Calls == 3, "Wrong account rejected before requesting event token"); }
         }
         Console.WriteLine("PASS: library ordering, concurrent presence gates, queue row state and device-bound token exchange. Synthetic requests only.");
     }

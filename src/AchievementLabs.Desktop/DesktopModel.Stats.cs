@@ -18,6 +18,7 @@ public sealed partial class DesktopModel
     public string StatsOutput { get => statsOutput; private set { statsOutput = value; Changed(); } }
     public string PresenceTitleId { get => presenceTitleId; set { presenceTitleId = value ?? ""; Changed(); } }
     public bool PresenceRunning => presenceCancellation != null;
+    public bool CanLookupSpoofTitle => !busy && session != null;
     public bool CanStartPresence => !busy && session != null && !PresenceRunning;
     public string SpoofTitleName { get => spoofTitleName; private set { spoofTitleName = value; Changed(); } }
     public string SpoofTitleDetails { get => spoofTitleDetails; private set { spoofTitleDetails = value; Changed(); } }
@@ -32,7 +33,7 @@ public sealed partial class DesktopModel
         SpoofTitleName = title.Name;
         SpoofTitleImageUrl = ResolveTitleImage(title.DisplayImage, title.Images);
         SpoofTitleDetails = $"Title ID: {title.TitleId}\nPFN: {title.Pfn ?? "Unknown"}\nType: {title.Type ?? "Unknown"}\nDevices: {string.Join(", ", title.Devices)}\nGamerscore: {title.Achievement?.CurrentGamerscore ?? 0}/{title.Achievement?.TotalGamerscore ?? 0}";
-    });
+    }, allowQueue: true);
     public void UseSelectedTitleForStats() { StatsTitleId = SelectedGame?.Id ?? ""; ServiceConfigId = definitions.Values.FirstOrDefault()?.serviceConfigId ?? ""; OpenStats(); StatsEditor.TitleId = StatsTitleId; }
     public async Task ReadStatsAsync() => await WithAccountAsync(async (api, xuid) =>
     {
@@ -104,9 +105,9 @@ public sealed partial class DesktopModel
         }
     }
     public void StopPresence() => presenceCancellation?.Cancel();
-    private async Task WithAccountAsync(Func<XboxApiClient, string, Task> operation)
+    private async Task WithAccountAsync(Func<XboxApiClient, string, Task> operation, bool allowQueue = false)
     {
-        if (!CanQuery || client == null || session == null) return;
+        if (!(allowQueue ? CanLookupSpoofTitle : CanQuery) || client == null || session == null) return;
         Busy(true);
         try
         {

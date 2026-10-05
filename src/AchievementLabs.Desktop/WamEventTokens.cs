@@ -2,10 +2,8 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using AchievementLabs.MultiSelect;
 using Windows.Security.Authentication.Web.Core;
-using Windows.Security.Credentials;
 using XboxAuthNet.XboxLive.Crypto;
 
 namespace AchievementLabs.Desktop;
@@ -24,26 +22,37 @@ public static class WamEventTokens
         var accounts = found.Accounts.ToArray();
         if (accounts.Length == 0) return null;
         ct.ThrowIfCancellationRequested();
-        var dialog = new Window { Title = "Choose your Windows Xbox account", Width = 480, Height = 240, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-        var choices = new ComboBox { ItemsSource = accounts.Select(a => a.UserName).ToArray(), SelectedIndex = 0 };
-        var submit = new Button { Content = "Get event token" };
-        var cancel = new Button { Content = "Cancel" };
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-        buttons.Children.Add(submit); buttons.Children.Add(cancel);
-        var panel = new StackPanel { Margin = new Avalonia.Thickness(18), Spacing = 15 };
-        panel.Children.Add(new TextBlock { Text = "Choose the account connected to Achievement Labs.", TextWrapping = Avalonia.Media.TextWrapping.Wrap });
-        panel.Children.Add(choices); panel.Children.Add(buttons); dialog.Content = panel;
-        submit.Click += (_, _) => dialog.Close(choices.SelectedIndex);
-        cancel.Click += (_, _) => dialog.Close(-1);
-        int? selected = await dialog.ShowDialog<int?>(owner);
-        if (selected is not int index || index < 0 || index >= accounts.Length) throw new OperationCanceledException();
-        ct.ThrowIfCancellationRequested();
-        var result = await WebAuthenticationCoreManager.GetTokenSilentlyAsync(new WebTokenRequest(provider, "service::user.auth.xboxlive.com::MBI_SSL", ClientId), accounts[index]);
-        if (result.ResponseStatus != WebTokenRequestStatus.Success) return null;
-        var msa = result.ResponseData.FirstOrDefault()?.Token;
-        if (string.IsNullOrWhiteSpace(msa)) return null;
-        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(30) };
-        return await ExchangeAsync(http, msa, xuid, ct);
+        // Check broker identities against Xbox's connected XUID; never choose by list order.
+        return await FindMatchingAccountAsync(accounts, async account =>
+        {
+            var result = await WebAuthenticationCoreManager.GetTokenSilentlyAsync(new WebTokenRequest(provider, "service::user.auth.xboxlive.com::MBI_SSL", ClientId), account);
+            ct.ThrowIfCancellationRequested();
+            if (result.ResponseStatus != WebTokenRequestStatus.Success) return null;
+            var msa = result.ResponseData.FirstOrDefault()?.Token;
+            if (string.IsNullOrWhiteSpace(msa)) return null;
+            using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(30) };
+            return await ExchangeAsync(http, msa, xuid, ct);
+        }, ct);
+    }
+
+    public static async Task<AutomaticEventToken.Grant?> FindMatchingAccountAsync<T>(IEnumerable<T> accounts,
+        Func<T, Task<AutomaticEventToken.Grant?>> acquire, CancellationToken ct)
+    {
+        foreach (var account in accounts)
+        {
+            ct.ThrowIfCancellationRequested();
+            try
+            {
+                var grant = await acquire(account);
+                ct.ThrowIfCancellationRequested();
+                if (grant != null) return grant;
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested) { }
+            catch (InvalidDataException) { } // Xbox identity did not match: try the next account.
+            catch (HttpRequestException) { }
+            catch (System.Runtime.InteropServices.COMException) { }
+        }
+        return null;
     }
 
     public static async Task<AutomaticEventToken.Grant?> ExchangeAsync(HttpClient http, string msa, string xuid, CancellationToken ct)

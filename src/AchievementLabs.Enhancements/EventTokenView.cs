@@ -36,7 +36,7 @@ public static class EventTokenView
         else reveal.IsEnabled=false;
         var status=new TextBlock {Text="Connect the same account in Achievement Labs and the Xbox app.",TextWrapping=TextWrapping.Wrap};
         box.Children.Add(toggle);box.Children.Add(button);box.Children.Add(reveal);box.Children.Add(status);
-        box.Children.Add(new TextBlock {Text="Get event token now uses Windows account sign-in and a device-bound exchange. Choose the same account connected here. Achievement credit needs testing on your PC. The automatic cache option remains experimental and may not credit achievements. Retrieved tokens stay visible when saved; background cache retrieval preserves a Windows account token.",FontSize=12,Opacity=.75,TextWrapping=TextWrapping.Wrap});
+        box.Children.Add(new TextBlock {Text="Get event token now uses Windows account sign-in and a device-bound exchange. It automatically checks the Windows accounts and accepts only the connected Xbox account. Achievement credit needs testing on your PC. The automatic cache option remains experimental and may not credit achievements. Retrieved tokens stay visible when saved; background cache retrieval preserves a Windows account token.",FontSize=12,Opacity=.75,TextWrapping=TextWrapping.Wrap});
         panel.Children.Insert(panel.Children.IndexOf(actions),box);
         var http=new HttpClient(new HttpClientHandler {AllowAutoRedirect=false}){Timeout=TimeSpan.FromSeconds(30)};
         CancellationTokenSource? request=null;object? observed=null;DateTimeOffset next=DateTimeOffset.MinValue;bool closed=false;bool preferredInstalled=false;string installed="";
