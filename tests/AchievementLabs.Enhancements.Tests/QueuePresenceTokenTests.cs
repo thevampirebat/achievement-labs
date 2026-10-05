@@ -56,6 +56,24 @@ public static class QueuePresenceTokenTests
         Assert(!failureVm.HandleUnlockFailure(failedEntry, "synthetic failure") && notices == 1, "Default notifies and continues");
         failureVm.NotifyOnFailure = false; failureVm.StopOnFailure = true;
         Assert(failureVm.HandleUnlockFailure(failedEntry, "synthetic failure") && notices == 1 && failureVm.StatusText.Contains("Click Start to retry"), "Stopping is independent of notification toggle");
+        var statePath = AutoUnlockState.GetSavePath();
+        var backup = File.Exists(statePath) ? File.ReadAllBytes(statePath) : null;
+        try
+        {
+            var saveState = new AutoUnlockState { GameName = "Synthetic game", Queue = new() { new() { DelaySeconds = 123 } } };
+            typeof(AutoUnlockerViewModel).GetField("_state", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(failureVm, saveState);
+            failureVm.SaveQueue();
+            var saved = AutoUnlockState.Load()!;
+            Assert(saved.Queue.Single().DelaySeconds == 123 && saved.StopOnFailure && !saved.NotifyOnFailure && !saved.IsRunning, "Manual save preserves delays and failure options");
+            failureVm.IsRunning = true;
+            saveState.Queue[0].DelaySeconds = 456;
+            failureVm.SaveQueue();
+            Assert(AutoUnlockState.Load()!.Queue.Single().DelaySeconds == 123, "Manual save cannot overwrite a running queue");
+            failureVm.IsRunning = false;
+            var pendingIndex = saveState.CurrentIndex;
+            Assert(failureVm.HandleUnlockFailure(saveState.Queue[0], "synthetic failure") && saveState.CurrentIndex == pendingIndex && !saveState.Queue[0].Completed, "Stop failure preserves pending achievement for retry");
+        }
+        finally { if (backup == null) File.Delete(statePath); else File.WriteAllBytes(statePath, backup); }
         var settings = Newtonsoft.Json.JsonConvert.DeserializeObject<AutoUnlockState>("{}")!;
         Assert(settings.NotifyOnFailure && !settings.StopOnFailure, "Old saved queues keep safe compatible failure defaults");
         var sortPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "sort.txt");

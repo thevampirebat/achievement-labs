@@ -831,18 +831,10 @@ namespace AchievementLabs.Desktop.Workflows
 
             var eventsToken = account.EventsToken;
             if (string.IsNullOrWhiteSpace(eventsToken))
-            {
-                Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
-                {
-                    _snackbarService.Show("Error: No Events Token",
-                        "Event-based unlocking requires an events token. Use OAuth login or set it manually.",
-                        NoticeAppearance.Danger, new NoticeIcon(NoticeSymbol.ErrorCircle24), _snackbarDuration);
-                });
-                return false;
-            }
-
-            if (EventCatalog == null) return false;
+                throw new InvalidOperationException("No events token is configured.");
+            if (EventCatalog == null) throw new InvalidOperationException("Event catalog is unavailable.");
             var requestBodies = (await EventCatalog.GetPayloadsAsync(_state.TitleId, achievementId, account.XUIDOnly, CancellationToken.None)).Payloads.ToList();
+            if (requestBodies.Count == 0) throw new InvalidOperationException("No mapped event data is available.");
 
             // Send all request(s)
             for (int reqIdx = 0; reqIdx < requestBodies.Count; reqIdx++)
@@ -852,14 +844,7 @@ namespace AchievementLabs.Desktop.Workflows
 
                 if (statusCode < 200 || statusCode >= 300)
                 {
-                    var truncated = responseBody.Length > 200 ? responseBody.Substring(0, 200) + "..." : responseBody;
-                    Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
-                    {
-                        _snackbarService.Show($"Error: Request {reqIdx + 1}/{requestBodies.Count} HTTP {statusCode}",
-                            truncated, NoticeAppearance.Danger,
-                            new NoticeIcon(NoticeSymbol.ErrorCircle24), TimeSpan.FromSeconds(5));
-                    });
-                    return false;
+                    throw new HttpRequestException($"Event request {reqIdx + 1}/{requestBodies.Count} failed: HTTP {statusCode}.");
                 }
             }
 
