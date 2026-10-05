@@ -1,9 +1,28 @@
 using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace AchievementLabs.Core;
 
 public static class AchievementTotals
 {
+    public static async Task<string> ReadPageAsync(HttpClient http, string url, CancellationToken ct)
+    {
+        for (int attempt = 0; ; attempt++)
+        {
+            using var response = await http.GetAsync(url, ct);
+            if (response.StatusCode == HttpStatusCode.TooManyRequests && attempt < 2)
+            {
+                var wait = response.Headers.RetryAfter?.Delta
+                    ?? (response.Headers.RetryAfter?.Date - DateTimeOffset.UtcNow)
+                    ?? TimeSpan.FromSeconds(5 * (attempt + 1));
+                await Task.Delay(wait > TimeSpan.Zero ? wait : TimeSpan.FromSeconds(1), ct);
+                continue;
+            }
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync(ct);
+        }
+    }
+
     public static async Task<int> CountAsync(Func<string?, Task<string>> getPage, CancellationToken ct)
     {
         var ids = new HashSet<string>(StringComparer.Ordinal);

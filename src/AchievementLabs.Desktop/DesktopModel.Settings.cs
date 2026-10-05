@@ -15,7 +15,7 @@ public sealed partial class DesktopModel
     private string catalogSummary = "Choose an Events folder in Settings, then inspect its catalog.";
     public bool IsSettings => page == "Settings";
     public bool IsDiagnostics => page == "Diagnostics";
-    public bool CanDisconnect => !PresenceRunning && !QueueActive && !busy && !WorkflowBusy && session != null;
+    public bool CanDisconnect => !TotalsRunning && !PresenceRunning && !QueueActive && !busy && !WorkflowBusy && session != null;
     public string EventsDirectory { get => eventsDirectory; set { eventsDirectory = value; Changed(); } }
     public string SessionPath { get => sessionPath; set { sessionPath = value; Changed(); } }
     public bool RegionOverride { get => regionOverride; set { regionOverride = value; Changed(); } }

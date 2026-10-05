@@ -71,7 +71,7 @@ public sealed partial class DesktopModel
     private string totalsStatus = "";
     public bool TotalsRunning => totalsCancellation != null;
     public string TotalsStatus { get => totalsStatus; private set { totalsStatus = value; Changed(); } }
-    public bool CanFillTotals => session != null && !busy && !QueueActive && !TotalsRunning;
+    public bool CanFillTotals => session != null && !busy && !TotalsRunning;
     private string? TotalsPath => ulong.TryParse(session?.Xuid, out _) ? AchievementLabs.Core.AchievementLabsPaths.LocalFile($"library-totals-{session!.Xuid}.json") : null;
     private void LoadLibraryTotals()
     {
@@ -106,34 +106,37 @@ public sealed partial class DesktopModel
         if (!CanFillTotals || client == null || session == null) return;
         var pending = Games.Where(g => g.Total <= 0).ToArray();
         using var cancel = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
-        totalsCancellation = cancel; Busy(true); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals));
-        var api = client; var xuid = session.Xuid; var filled = 0; var failed = 0;
+        totalsCancellation = cancel; Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect));
+        var api = client; var xuid = session.Xuid; var filled = 0; var failed = 0; var checkedCount = 0;
+        async Task<(Game Game, int Total)> CheckAsync(Game game)
+        {
+            try { return (game, await api.GetAchievementTotalAsync(xuid, game.Id, cancel.Token, UsesLegacyEndpoint(game))); }
+            catch (OperationCanceledException) when (cancel.IsCancellationRequested) { throw; }
+            catch { return (game, 0); }
+        }
         try
         {
-            for (var index = 0; index < pending.Length; index++)
+            foreach (var batch in pending.Chunk(3))
             {
                 cancel.Token.ThrowIfCancellationRequested();
-                var game = pending[index];
-                TotalsStatus = $"Checking totals {index + 1}/{pending.Length}: {game.Name}";
-                await requests.WaitAsync(cancel.Token);
-                try
+                TotalsStatus = $"Checking totals {checkedCount}/{pending.Length} (3 at a time)…";
+                // Dedicated read-only HTTP clients avoid the auto unlock/presence request gate.
+                var results = await Task.WhenAll(batch.Select(CheckAsync));
+                var updates = new Dictionary<string, int>();
+                foreach (var result in results)
                 {
-                    var total = UsesLegacyEndpoint(game)
-                        ? (await api.GetAchievementsFor360TitleAsync(xuid, game.Id))?.achievements.Count ?? 0
-                        : await api.GetAchievementTotalAsync(xuid, game.Id, cancel.Token);
-                    if (total <= 0 || total < game.Completed) { failed++; continue; }
-                    RememberLibraryTotal(game.Id, total);
-                    Games = Games.Select(g => g.Id == game.Id ? g with { Total = total } : g).ToArray();
-                    filled++;
+                    if (result.Total <= 0 || result.Total < result.Game.Completed) { failed++; continue; }
+                    RememberLibraryTotal(result.Game.Id, result.Total);
+                    updates[result.Game.Id] = result.Total; filled++;
                 }
-                catch (OperationCanceledException) { throw; }
-                catch { failed++; }
-                finally { requests.Release(); }
+                if (updates.Count > 0)
+                    Games = Games.Select(g => updates.TryGetValue(g.Id, out var total) ? g with { Total = total } : g).ToArray();
+                checkedCount += batch.Length;
             }
             TotalsStatus = $"Totals updated: {filled}; unavailable: {failed}.";
         }
         catch (OperationCanceledException) { TotalsStatus = $"Totals scan stopped; {filled} results saved."; }
-        finally { totalsCancellation = null; Busy(false); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); }
+        finally { totalsCancellation = null; Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect)); }
     }
     public async Task ExportCsvAsync(string path)
     {

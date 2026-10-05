@@ -138,3 +138,5 @@ Title spoofer Look up title is available during Auto Unlock. This read-only requ
 - Fill missing totals reads complete achievement definition pages, excludes challenges and saves counts by Xbox account/title ID. Stop scan keeps results already collected. Titles the service cannot return stay unavailable.
 - Library progress text wraps inside its column.
 - Xbox Auto Unlock offers failure toasts (on by default), stop on failure (off by default), and Save queue delays. Saved queues retain both options and custom delays. Stop on failure preserves the failed entry for retry; continuing reports failures in the final status.
+
+- Missing-total scans check three titles concurrently, retry HTTP 429 responses, and use separate read-only clients so Auto Unlock can run alongside the scan.

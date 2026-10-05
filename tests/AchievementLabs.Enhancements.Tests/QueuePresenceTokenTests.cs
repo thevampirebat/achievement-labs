@@ -36,8 +36,22 @@ public static class QueuePresenceTokenTests
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json) };
         }
     }
+    sealed class TotalsRateHandler : HttpMessageHandler
+    {
+        public int Calls;
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            Calls++;
+            var response = new HttpResponseMessage(Calls == 1 ? HttpStatusCode.TooManyRequests : HttpStatusCode.OK) { Content = new StringContent("synthetic page") };
+            if (Calls == 1) response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.Zero);
+            return Task.FromResult(response);
+        }
+    }
     public static void Run()
     {
+        var rateHandler = new TotalsRateHandler();
+        using (var totalsHttp = new HttpClient(rateHandler))
+            Assert(AchievementTotals.ReadPageAsync(totalsHttp, "https://synthetic.invalid/achievements", CancellationToken.None).GetAwaiter().GetResult() == "synthetic page" && rateHandler.Calls == 2, "Totals retry rate limits without live HTTP");
         var pages = new Queue<string>(new[] {
             "{\"achievements\":[{\"id\":\"1\"},{\"id\":\"2\"}],\"pagingInfo\":{\"continuationToken\":\"next\"}}",
             "{\"achievements\":[{\"id\":\"2\"},{\"id\":\"3\"},{\"id\":\"4\",\"achievementType\":\"Challenge\"}]}" });
@@ -124,7 +138,7 @@ public static class QueuePresenceTokenTests
         Assert(model.VisibleGames.Count() == 2, "Sort retains platform filter");
         typeof(DesktopModel).GetField("session", flags)!.SetValue(model, new ConnectedXboxSession("synthetic", "123", ""));
         typeof(DesktopModel).GetProperty("QueueActive")!.SetValue(model, true);
-        Assert(model.CanStartPresence && model.CanLookupSpoofTitle && !model.CanQuery && !model.CanDisconnect, "Queue allows spoofing but still protects disconnect");
+        Assert(model.CanStartPresence && model.CanLookupSpoofTitle && model.CanFillTotals && !model.CanQuery && !model.CanDisconnect, "Queue allows spoofing but still protects disconnect");
         var row = new AutoUnlockerViewModel.AutoUnlockQueueDisplay { Status = "Unlocked", CanEditDelay = true };
         model.XboxQueue.QueueItems.Add(row);
         model.XboxQueue.IsRunning = true;

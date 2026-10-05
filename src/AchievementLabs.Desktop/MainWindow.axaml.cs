@@ -30,7 +30,7 @@ public partial class MainWindow : Window
         {
             if (e.PropertyName == nameof(model.MintAccent)) ApplyAccent();
             if (e.PropertyName == nameof(model.LibrarySort) ||
-                e.PropertyName == nameof(model.Games) && model.LibrarySort == "Last Played")
+                e.PropertyName == nameof(model.Games) && model.LibrarySort == "Last Played" && !model.TotalsRunning)
                 Dispatcher.UIThread.Post(() =>
                 {
                     var list = this.FindControl<ListBox>("XboxLibraryList");
