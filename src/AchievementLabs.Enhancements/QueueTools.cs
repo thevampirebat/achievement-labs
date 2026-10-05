@@ -67,7 +67,7 @@ public static class QueueTools
  public static void Attach(Window owner,object model)
  {
   var buttons=owner.GetLogicalDescendants().OfType<Button>().ToArray();
-  var open=owner.FindControl<Button>("OpenGameAutoSpoofer");
+  var open=buttons.FirstOrDefault(b=>b.Name=="OpenGameAutoSpoofer");
   if(open!=null)
   {
    ToolTip.SetTip(open,"Open the Xbox Auto Unlock page with this game's Title ID filled in.");
