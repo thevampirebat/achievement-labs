@@ -28,7 +28,7 @@ public record Game(string Id, string Name, string Platform, int Completed, int T
     public string Cover => "#171A1C";
     public string Description => $"Title ID {Id}";
     public double Percent => Total == 0 ? 0 : 100.0 * Completed / Total;
-    public string ProgressLabel => NoDefinitionsReturned ? "No Xbox achievements returned" : !ProgressKnown ? $"{Total} achievement definitions" : Total > 0 ? $"{Completed} / {Total} achievements" : Completed > 0 ? $"{Completed} unlocked · total unavailable" : "Achievement total unavailable";
+    public string ProgressLabel => NoDefinitionsReturned && Total == 0 ? "No Xbox achievements returned" : !ProgressKnown ? $"{Total} achievement definitions" : Total > 0 ? $"{Completed} / {Total} achievements" : Completed > 0 ? $"{Completed} unlocked · total unavailable" : "Achievement total unavailable";
     public string ScoreLabel => ProgressKnown ? $"{Score:N0} G earned" : "Account progress not included";
 }
 public sealed partial class DesktopModel : Observable, IDisposable
