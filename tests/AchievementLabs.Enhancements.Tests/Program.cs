@@ -82,6 +82,16 @@ static class Test
     Assert(input.PasswordChar!='\0',"Actual token box masked initially");reveal.IsChecked=true;Assert(input.PasswordChar=='\0',"Reveal works");reveal.IsChecked=false;
     TokenPresentation.ClearOwnInput(model,"synthetic-display-token");Dispatcher.UIThread.RunJobs();Assert(input.Text=="","Clearing removes token from actual box");
     var typedModel=(AchievementLabs.Desktop.DesktopModel)model;
+    var spooferPlaytime=Desc<TextBlock>(window).Single(t=>t.Name=="QueueRecordedPlaytime");
+    Assert(Desc<TextBlock>(window).Any(t=>t.Text=="TITLE SPOOFER"), "Separate spoofer status tile present in Auto Unlock");
+    typedModel.GetType().GetProperty("ActiveSpoofTitle")!.SetValue(typedModel,"Synthetic title · 42");
+    typedModel.GetType().GetProperty("PresenceElapsed")!.SetValue(typedModel,"Session: 26.50 hours");
+    Dispatcher.UIThread.RunJobs();
+    Assert(Desc<SelectableTextBlock>(window).Any(t=>t.Text=="Synthetic title · 42") && Desc<TextBlock>(window).Any(t=>t.Text=="Session: 26.50 hours"), "Active title and total hours propagate to queue tile");
+    var playtimeValue=Desc<StackPanel>(window).Single(t=>t.Name=="XboxRecordedPlaytime").Children.OfType<TextBlock>().ElementAt(1);
+    playtimeValue.Text="123.45 hours";Dispatcher.UIThread.RunJobs();
+    Assert(spooferPlaytime.Text=="Xbox-recorded playtime: 123.45 hours", "Queue mirrors existing playtime reader");
+    Assert(Desc<Button>(window).Any(b=>Equals(b.Content,"Test Windows notification")), "Windows notification test control present");
     Assert(!Desc<ListBox>(window).Single(l=>l.Name=="XboxLibraryList").AutoScrollToSelectedItem,"Library selection does not force scrolling after sort or refresh");
     var queueList=Desc<ListBox>(window).Single(l=>l.Name=="XboxAutoUnlockList");
     typedModel.XboxQueue.QueueItems.Add(new AchievementLabs.Desktop.Workflows.AutoUnlockerViewModel.AutoUnlockQueueDisplay { Status="Unlocked", CanEditDelay=true });
