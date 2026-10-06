@@ -147,3 +147,12 @@ Title spoofer Look up title is available during Auto Unlock. This read-only requ
 - Totals scans count permanent unlocked achievements from definition responses, excluding challenges from both counts. Cached totals can be displayed as definitions when title-history progress conflicts; the scan revisits these conflicts. Achievement pages also exclude challenge entries. Reports include history and persistent unlocked counts.
 
 - Zero-progress titles with empty lists from both endpoints display No Xbox achievements returned, rather than claiming a verified zero achievement total.
+
+
+## Spoofer status beside Auto Unlock and native Windows alerts
+
+The Xbox Auto Unlock page has separate queue and title spoofer status tiles. The spoofer tile shows the active title and ID, session duration in total hours, last heartbeat and Xbox-recorded playtime. Playtime mirrors the existing reader, without additional requests. Opening the title spoofer or stopping it is available from the tile. Queue controls retain their own independent status and actions.
+
+Windows notifications accompany enabled unlock-failure notices and unexpected spoofer stops (heartbeat HTTP errors, request failures or timeouts). Manual stops and app shutdown do not produce failure alerts. Settings has saved Windows notification and spoofer-stop toggles, plus a Test Windows notification button. Save settings persists these choices. The queue's Notify on unlock failure option still controls its failure alerts. Native alerts use Microsoft.Toolkit.Uwp.Notifications for the unpackaged Windows app; clicking a toast opens or activates the window. Windows notification settings govern delivery.
+
+Offline checks use injected notification sinks and synthetic state: they verify routing, manual-stop/shutdown suppression, preference persistence, and actual-window status/playtime bindings. Native Windows delivery must be checked with the test button on a Windows desktop.

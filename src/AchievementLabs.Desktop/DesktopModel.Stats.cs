@@ -24,6 +24,18 @@ public sealed partial class DesktopModel
     public string SpoofTitleDetails { get => spoofTitleDetails; private set { spoofTitleDetails = value; Changed(); } }
     public string? SpoofTitleImageUrl { get => spoofTitleImageUrl; private set { spoofTitleImageUrl = value; Changed(); } }
     public string SpoofingStatus { get => spoofingStatus; private set { spoofingStatus = value; Changed(); } }
+    private string activeSpoofTitle = "No active spoof", presenceHeartbeat = "No heartbeat sent", presenceElapsed = "Session: 0.00 hours";
+    public string ActiveSpoofTitle { get => activeSpoofTitle; private set { activeSpoofTitle = value; Changed(); } }
+    public string PresenceHeartbeat { get => presenceHeartbeat; private set { presenceHeartbeat = value; Changed(); } }
+    public string PresenceElapsed { get => presenceElapsed; private set { presenceElapsed = value; Changed(); } }
+    private void CompletePresence(string? failure, bool cancelled)
+    {
+        SpoofingStatus = failure != null && !cancelled ? "Spoofing stopped unexpectedly" : "Spoofing stopped";
+        if (failure == null || cancelled || lifetime.IsCancellationRequested || !NotifySpooferStops) return;
+        var message = $"{ActiveSpoofTitle}: {failure}";
+        SpooferFailure?.Invoke(message);
+        NotifyWindows("Spoofer stopped", message);
+    }
     public void OpenSpoofer() => Navigate("Spoofer");
     public async Task LookupSpoofTitleAsync() => await WithAccountAsync(async (api, xuid) =>
     {
@@ -63,6 +75,11 @@ public sealed partial class DesktopModel
         using var api = new XboxApiClient(presenceAuthorization, RegionOverride);
         var xuid = session.Xuid; var titleId = id.ToString();
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        ActiveSpoofTitle = $"{Games.FirstOrDefault(g => g.Id == titleId)?.Name ?? (SpoofTitleDetails.StartsWith("Title ID: " + titleId + "\n") ? SpoofTitleName : "Xbox title")} · {titleId}";
+        PresenceHeartbeat = "Waiting for first heartbeat";
+        PresenceElapsed = "Session: 0.00 hours";
+        SpoofingStatus = "Starting spoofing…";
+        string? failure = null;
         presenceCancellation = cancellation; Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect));
         var stopwatch = Stopwatch.StartNew();
         var lastHeartbeat = TimeSpan.Zero;
@@ -75,19 +92,21 @@ public sealed partial class DesktopModel
                 {
                     var result = await api.SendHeartbeatAsync(xuid, titleId);
                     StatsOutput = $"Presence heartbeat for {titleId}: HTTP {result.StatusCode}";
-                    if (result.StatusCode < 200 || result.StatusCode >= 300) break;
+                    if (result.StatusCode < 200 || result.StatusCode >= 300) { failure = $"Heartbeat HTTP {result.StatusCode}"; PresenceHeartbeat = failure; break; }
+                    PresenceHeartbeat = $"Last heartbeat: {DateTimeOffset.Now:HH:mm:ss} · HTTP {result.StatusCode}";
                     lastHeartbeat = stopwatch.Elapsed;
                 }
                 finally { requests.Release(); }
                 while (stopwatch.Elapsed - lastHeartbeat < TimeSpan.FromMinutes(5))
                 {
-                    SpoofingStatus = $"Spoofing {SpoofTitleName} for {stopwatch.Elapsed:hh\\:mm\\:ss}";
+                    SpoofingStatus = "Spoofing active";
+                    PresenceElapsed = $"Session: {stopwatch.Elapsed.TotalHours:F2} hours";
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellation.Token);
                 }
             }
         }
-        catch (OperationCanceledException) { }
-        catch { StatsOutput = "Presence heartbeat failed."; }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        catch { failure = "Presence heartbeat failed or timed out."; PresenceHeartbeat = StatsOutput = failure; }
         finally
         {
             await requests.WaitAsync();
@@ -101,7 +120,7 @@ public sealed partial class DesktopModel
                 }
             }
             catch { StatsOutput = "Presence stop request failed; the service may retain presence until it expires."; }
-            finally { presenceCancellation = null; requests.Release(); cancellation.Dispose(); SpoofingStatus = "Spoofing not started"; Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect)); }
+            finally { var cancelled = cancellation.IsCancellationRequested; presenceCancellation = null; requests.Release(); cancellation.Dispose(); PresenceElapsed = $"Session: {stopwatch.Elapsed.TotalHours:F2} hours"; CompletePresence(failure, cancelled); Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect)); }
         }
     }
     public void StopPresence() => presenceCancellation?.Cancel();

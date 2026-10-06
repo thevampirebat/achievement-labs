@@ -27,6 +27,9 @@ public static class PlaytimeView
         var refresh=new Button {Name="RefreshXboxPlaytime",Content="Refresh playtime",HorizontalAlignment=HorizontalAlignment.Stretch};
         box.Children.Add(heading);box.Children.Add(value);box.Children.Add(target);box.Children.Add(info);box.Children.Add(refresh);
         panel.Children.Insert(panel.Children.IndexOf(anchor),box);
+        // Mirror the existing reader; no extra Xbox requests for the queue tile.
+        if (owner.FindControl<TextBlock>("QueueRecordedPlaytime") is { } queueValue)
+            queueValue.Bind(TextBlock.TextProperty, new Avalonia.Data.Binding("Text") { Source = value, StringFormat = "Xbox-recorded playtime: {0}" });
         var http=new HttpClient(new HttpClientHandler {AutomaticDecompression=DecompressionMethods.GZip|DecompressionMethods.Deflate}){Timeout=TimeSpan.FromSeconds(25)};
         CancellationTokenSource? request=null;string key="",activeTitle="";bool wasRunning=false,closed=false;int generation=0;
         DateTimeOffset next=DateTimeOffset.MinValue,lastAttempt=DateTimeOffset.MinValue,cooldown=DateTimeOffset.MinValue;

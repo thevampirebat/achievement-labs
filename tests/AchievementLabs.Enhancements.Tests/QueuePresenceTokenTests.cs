@@ -47,9 +47,52 @@ public static class QueuePresenceTokenTests
             return Task.FromResult(response);
         }
     }
+    private static void SpooferNotificationChecks()
+    {
+        var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        var model = new DesktopModel();
+        var native = new List<string>(); int inApp = 0;
+        model.WindowsNotification = (title, message) => native.Add(title + ": " + message);
+        model.SpooferFailure = _ => inApp++;
+        var complete = typeof(DesktopModel).GetMethod("CompletePresence", flags)!;
+        typeof(DesktopModel).GetProperty("ActiveSpoofTitle")!.SetValue(model, "Synthetic game · 42");
+        complete.Invoke(model, new object?[] { "Heartbeat HTTP 401", false });
+        Assert(native.Count == 1 && native[0].Contains("Synthetic game · 42") && inApp == 1, "Unexpected stop sends one native and one in-app alert with active title");
+        Assert(model.SpoofingStatus.Contains("unexpectedly"), "Failure remains visible after stopping");
+        complete.Invoke(model, new object?[] { "Heartbeat HTTP 401", true });
+        complete.Invoke(model, new object?[] { null, false });
+        Assert(native.Count == 1 && inApp == 1, "Manual stop and normal completion never alert");
+        model.WindowsNotificationsEnabled = false;
+        complete.Invoke(model, new object?[] { "Heartbeat timed out", false });
+        Assert(native.Count == 1 && inApp == 2, "Windows toggle preserves in-app failure notice");
+        model.NotifySpooferStops = false;
+        complete.Invoke(model, new object?[] { "Heartbeat HTTP 500", false });
+        Assert(native.Count == 1 && inApp == 2, "Spoofer notification toggle suppresses both alerts");
+        model.WindowsNotificationsEnabled = true;
+        model.TestWindowsNotification();
+        Assert(native.Count == 2, "Test notification uses injectable native sink without sending Windows toast");
+        var path = Path.Combine(Path.GetTempPath(), "labs-notices-" + Guid.NewGuid() + ".json");
+        try
+        {
+            var store = new DesktopPreferencesStore(path);
+            store.SaveAsync(new() { WindowsNotificationsEnabled = false, NotifySpooferStops = false }).GetAwaiter().GetResult();
+            var loaded = store.LoadAsync().GetAwaiter().GetResult();
+            Assert(!loaded.WindowsNotificationsEnabled && !loaded.NotifySpooferStops, "Notification preferences persist");
+            File.WriteAllText(path, "{}");
+            loaded = store.LoadAsync().GetAwaiter().GetResult();
+            Assert(loaded.WindowsNotificationsEnabled && loaded.NotifySpooferStops, "Old settings receive notification defaults");
+        }
+        finally { File.Delete(path); }
+        model.NotifySpooferStops = true;
+        model.Dispose();
+        complete.Invoke(model, new object?[] { "Heartbeat failed", false });
+        Assert(native.Count == 2 && inApp == 2, "Closing the app suppresses stop alerts");
+        Console.WriteLine("PASS: spoofer stop classification, native notification routing, toggles and preference persistence. No live requests or Windows notifications.");
+    }
     public static void Run()
     {
         SharedTotalsTests.Run();
+        SpooferNotificationChecks();
         var definitions = Newtonsoft.Json.JsonConvert.DeserializeObject<AchievementsResponse>(
             "{\"achievements\":[{\"id\":\"1\",\"name\":\"First\"},{\"id\":\"2\",\"name\":\"Event\",\"progression\":{\"requirements\":[{\"id\":\"00000000-0000-0000-0000-000000000000\"},{\"id\":\"11111111-1111-1111-1111-111111111111\"}]}}]}")!;
         Assert(AutoUnlockerViewModel.UsesEvents(definitions.achievements), "Later achievements and later requirements determine event routing");
