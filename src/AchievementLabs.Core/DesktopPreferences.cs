@@ -13,6 +13,8 @@ public sealed record DesktopPreferences
     public bool AutoSpoof { get; init; }
     public bool AutoLaunchXboxApp { get; init; }
     public bool LaunchXboxAppHidden { get; init; }
+    public bool WindowsNotificationsEnabled { get; init; } = true;
+    public bool NotifySpooferStops { get; init; } = true;
     public bool MintAccent { get; init; }
 }
 public sealed class DesktopPreferencesStore(string path)

@@ -11,6 +11,13 @@ public sealed partial class DesktopModel
     public bool AutoSpoof { get => autoSpoof; set { autoSpoof = value; Changed(); } }
     public bool AutoLaunchXboxApp { get => autoLaunch; set { autoLaunch = value; Changed(); } }
     public bool LaunchXboxAppHidden { get => launchHidden; set { launchHidden = value; Changed(); } }
+    private bool windowsNotificationsEnabled = true, notifySpooferStops = true;
+    public bool WindowsNotificationsEnabled { get => windowsNotificationsEnabled; set { windowsNotificationsEnabled = value; Changed(); } }
+    public bool NotifySpooferStops { get => notifySpooferStops; set { notifySpooferStops = value; Changed(); } }
+    public Action<string, string>? WindowsNotification { get; set; }
+    public Action<string>? SpooferFailure { get; set; }
+    public void NotifyWindows(string title, string message) { if (WindowsNotificationsEnabled && !lifetime.IsCancellationRequested) WindowsNotification?.Invoke(title, message); }
+    public void TestWindowsNotification() => NotifyWindows("Achievement Labs", "Windows notifications are enabled.");
     private CatalogFinding[] findings = [];
     private string catalogSummary = "Choose an Events folder in Settings, then inspect its catalog.";
     public bool IsSettings => page == "Settings";
@@ -26,14 +33,14 @@ public sealed partial class DesktopModel
     {
         try { librarySort = AchievementLabs.Core.LibrarySortPreferences.Load(librarySortPath); Changed(nameof(LibrarySort)); Changed(nameof(VisibleGames)); }
         catch { Notice = "Saved library sort could not be read."; }
-        try { var value = await preferencesStore.LoadAsync(lifetime.Token); EventsDirectory = value.EventsDirectory; SessionPath = value.SessionPath; RegionOverride = value.RegionOverride; MintAccent = value.MintAccent; UnlockAllEnabled = value.UnlockAllEnabled; OAuthProfile = value.OAuthProfile; FakeSignature = value.FakeSignature; PrivacyMode = value.PrivacyMode; AutoSpoof = value.AutoSpoof; AutoLaunchXboxApp = value.AutoLaunchXboxApp; LaunchXboxAppHidden = value.LaunchXboxAppHidden; await LoadSavedEventTokenAsync();
+        try { var value = await preferencesStore.LoadAsync(lifetime.Token); EventsDirectory = value.EventsDirectory; SessionPath = value.SessionPath; RegionOverride = value.RegionOverride; MintAccent = value.MintAccent; UnlockAllEnabled = value.UnlockAllEnabled; OAuthProfile = value.OAuthProfile; FakeSignature = value.FakeSignature; PrivacyMode = value.PrivacyMode; AutoSpoof = value.AutoSpoof; AutoLaunchXboxApp = value.AutoLaunchXboxApp; LaunchXboxAppHidden = value.LaunchXboxAppHidden; WindowsNotificationsEnabled = value.WindowsNotificationsEnabled; NotifySpooferStops = value.NotifySpooferStops; await LoadSavedEventTokenAsync();
             if (AutoLaunchXboxApp) System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(@"shell:appsFolder\Microsoft.GamingApp_8wekyb3d8bbwe!Microsoft.Xbox.App") { UseShellExecute = true, WindowStyle = LaunchXboxAppHidden ? System.Diagnostics.ProcessWindowStyle.Hidden : System.Diagnostics.ProcessWindowStyle.Normal }); }
         catch (OperationCanceledException) { }
         catch { Notice = "Native settings could not be read. Defaults are in use; save only after reviewing them."; }
     }
     public async Task SavePreferencesAsync()
     {
-        try { await preferencesStore.SaveAsync(new() { EventsDirectory = EventsDirectory, SessionPath = SessionPath, RegionOverride = RegionOverride, MintAccent = MintAccent, UnlockAllEnabled = UnlockAllEnabled, OAuthProfile = OAuthProfile, FakeSignature = FakeSignature, PrivacyMode = PrivacyMode, AutoSpoof = AutoSpoof, AutoLaunchXboxApp = AutoLaunchXboxApp, LaunchXboxAppHidden = LaunchXboxAppHidden }, lifetime.Token); Notice = "Native settings saved. Connection changes apply on the next connection."; }
+        try { await preferencesStore.SaveAsync(new() { EventsDirectory = EventsDirectory, SessionPath = SessionPath, RegionOverride = RegionOverride, MintAccent = MintAccent, UnlockAllEnabled = UnlockAllEnabled, OAuthProfile = OAuthProfile, FakeSignature = FakeSignature, PrivacyMode = PrivacyMode, AutoSpoof = AutoSpoof, AutoLaunchXboxApp = AutoLaunchXboxApp, LaunchXboxAppHidden = LaunchXboxAppHidden, WindowsNotificationsEnabled = WindowsNotificationsEnabled, NotifySpooferStops = NotifySpooferStops }, lifetime.Token); Notice = "Native settings saved. Connection changes apply on the next connection."; }
         catch (OperationCanceledException) { }
         catch { Notice = "Could not save settings. Check that both paths are absolute and the settings folder is writable."; }
     }

@@ -19,7 +19,13 @@ public partial class MainWindow : Window
         InitializeComponent(); DataContext = model; model.EventTokenRequired = ShowEventTokenRequiredAsync;
         var notifications = new WindowNotificationManager(this) { Position = NotificationPosition.TopRight, MaxItems = 3 };
         model.QueueTokenRefresh = ct => model.RefreshQueueEventTokenAsync(this, ct);
-        model.AutoUnlockFailure = message => notifications.Show(new Notification("Unlock failed", message, NotificationType.Error, TimeSpan.FromSeconds(10)));
+        model.AutoUnlockFailure = message => { notifications.Show(new Notification("Unlock failed", message, NotificationType.Error, TimeSpan.FromSeconds(10))); model.NotifyWindows("Unlock failed", message); };
+        model.SpooferFailure = message => notifications.Show(new Notification("Spoofer stopped", message, NotificationType.Error, TimeSpan.FromSeconds(10)));
+        model.WindowsNotification = (title, message) =>
+        {
+            if (AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var checks) && checks) return;
+            if (!WindowsNotifications.TryShow(title, message)) model.Notice = "Windows notification could not be sent. Check Windows notification settings for Achievement Labs.";
+        };
         AchievementLabs.MultiSelect.EventTokenView.PreferredAcquireAsync = WamEventTokens.AcquireAsync;
         AchievementLabs.MultiSelect.BatchPicker.Attach(this);
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
@@ -258,6 +264,7 @@ public partial class MainWindow : Window
     private void ApplyAccent() => Application.Current!.Resources["Accent"] = new SolidColorBrush(Color.Parse(model.MintAccent ? "#8AD7A0" : "#70C98A"));
     private void ShowSettings(object? s, RoutedEventArgs e) => model.Navigate("Settings");
     private void ShowDiagnostics(object? s, RoutedEventArgs e) => model.Navigate("Diagnostics");
+    private void TestWindowsNotification(object? s, RoutedEventArgs e) => model.TestWindowsNotification();
     private async void SaveSettings(object? s, RoutedEventArgs e) => await model.SavePreferencesAsync();
     private async void SaveEventToken(object? s, RoutedEventArgs e) => await model.SaveEventTokenAsync();
     private void ClearEventToken(object? s, RoutedEventArgs e) => model.ClearEventToken();
