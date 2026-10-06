@@ -7,12 +7,12 @@ The app bundles this catalogue and checks the public copy on this fork's main br
 After merge, the online URL is:
 https://raw.githubusercontent.com/thevampirebat/achievement-labs/main/catalog/achievement-totals.json
 
-To gather every earlier successful scan without rescanning, use **Export verified totals** in the Xbox library. It joins the connected profile’s cached definition totals to the current library metadata, and exports only positive successful counts. The normal scan report covers only the titles checked during that scan. Neither export uploads anything automatically.
+To gather every earlier successful scan without rescanning, use **Export verified totals** in the Xbox library. It joins the connected profile’s cached definition totals to the current library metadata, and exports only positive successful counts. This export includes earlier cached successes, not only the titles checked during the latest scan. The export does not upload anything automatically.
 
-To add future scan results, export a totals report or verified totals and run:
+To add future scan results, export verified totals and run:
 
 ```sh
-python tools/Import-SharedTotals.py achievement-totals-report.csv --checked-at 2026-10-05T23:13:52Z
+python tools/Import-SharedTotals.py achievement-verified-totals.csv --checked-at 2026-10-05T23:13:52Z
 ```
 
-Use the actual scan timestamp. Review the catalogue diff and commit it to this fork's main branch through a pull request. Existing users receive the update on their next library refresh after the cache expires; new builds also include it. Nothing is automatically uploaded from users' accounts. Reports that only contain missing totals cover only those checked titles; additional successful scan reports can expand coverage.
+Use the actual scan timestamp. Review the catalogue diff and commit it to this fork's main branch through a pull request. Existing users receive the update on their next library refresh after the cache expires; new builds also include it. Nothing is automatically uploaded from users' accounts. Older scan reports can also be imported; those reports cover only their checked titles.

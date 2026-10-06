@@ -244,14 +244,6 @@ public partial class MainWindow : Window
         try { await model.ExportVerifiedTotalsAsync(path); }
         catch { model.Notice = "Could not export verified totals."; }
     }
-    private async void ExportTotalsReport(object? sender, RoutedEventArgs e)
-    {
-        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title = "Export totals scan report", SuggestedFileName = "achievement-totals-report.csv", DefaultExtension = "csv" });
-        var path = file?.TryGetLocalPath();
-        if (path == null) return;
-        try { await model.ExportTotalsReportAsync(path); }
-        catch { model.Notice = "Could not export the totals report."; }
-    }
     private async void FillMissingTotals(object? sender, RoutedEventArgs e) => await model.FillMissingTotalsAsync();
     private void StopTotalsScan(object? sender, RoutedEventArgs e) => model.CancelFillTotals();
     private async void RefreshLibrary(object? s, RoutedEventArgs e) => await model.RefreshLibraryAsync();

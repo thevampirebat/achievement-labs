@@ -56,7 +56,7 @@ public sealed partial class DesktopModel
             try
             {
                 if (client == null || session == null) return;
-                totalsReport.Clear(); Changed(nameof(CanExportTotalsReport));
+                totalsReport.Clear(); 
         var api = client; var xuid = session.Xuid;
                 var result = await Task.Run(() => api.GetGamesListAsync(xuid), lifetime.Token) ?? throw new InvalidDataException();
                 lifetime.Token.ThrowIfCancellationRequested();
@@ -128,15 +128,6 @@ public sealed partial class DesktopModel
     }
     public sealed record TotalsReportRow(string TitleId, string Name, string Platform, string Endpoint, int Total, string Result, int? PersistentUnlocked = null, int? HistoryUnlocked = null);
     private readonly List<TotalsReportRow> totalsReport = new();
-    public bool CanExportTotalsReport => totalsReport.Count > 0 && !TotalsRunning;
-    public async Task ExportTotalsReportAsync(string path)
-    {
-        static string Q(string value) => "\"" + value.Replace("\"", "\"\"") + "\"";
-        var rows = new[] { "Title ID,Title,Platform,Endpoint,Total,Result,Persistent unlocked,History unlocked" }.Concat(totalsReport.Select(r =>
-            string.Join(",", new[] { r.TitleId, r.Name, r.Platform, r.Endpoint, r.Total.ToString(), r.Result, r.PersistentUnlocked?.ToString() ?? "", r.HistoryUnlocked?.ToString() ?? "" }.Select(Q))));
-        await File.WriteAllLinesAsync(path, rows, new UTF8Encoding(true), lifetime.Token);
-        Notice = "Totals scan report exported. No account tokens or response bodies are included.";
-    }
     public static string TotalsFailureReason(Exception error) => error switch
     {
         HttpRequestException { StatusCode: { } status } => $"HTTP {(int)status}",
@@ -153,7 +144,7 @@ public sealed partial class DesktopModel
         var pending = Games.Where(g => g.Total <= 0 || g.Completed > g.Total).ToArray();
         using var cancel = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         totalsCancellation = cancel; Changed(nameof(CanExportVerifiedTotals)); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect));
-        totalsReport.Clear(); Changed(nameof(CanExportTotalsReport));
+        totalsReport.Clear(); 
         var api = client; var xuid = session.Xuid; var filled = 0; var failed = 0; var checkedCount = 0;
         async Task<TotalsReportRow> CheckAsync(Game game)
         {
@@ -200,10 +191,10 @@ public sealed partial class DesktopModel
                 checkedCount++;
             }
             var reasons = string.Join("; ", totalsReport.Where(r => r.Result != "Updated").GroupBy(r => r.Result).Select(g => $"{g.Key}: {g.Count()}"));
-            TotalsStatus = $"Totals updated: {filled}; unavailable: {failed}. {reasons} Export the totals report for per-title details.";
+            TotalsStatus = $"Totals updated: {filled}; unavailable: {failed}. {reasons}";
         }
         catch (OperationCanceledException) { TotalsStatus = $"Totals scan stopped; {filled} results saved."; }
-        finally { totalsCancellation = null; Changed(nameof(CanExportTotalsReport)); Changed(nameof(CanExportVerifiedTotals)); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect)); }
+        finally { totalsCancellation = null;  Changed(nameof(CanExportVerifiedTotals)); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect)); }
     }
     public async Task ExportCsvAsync(string path)
     {
