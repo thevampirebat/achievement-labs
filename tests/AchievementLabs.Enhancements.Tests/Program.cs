@@ -52,6 +52,10 @@ static class Test
    Assert(Desc<CheckBox>(window).Single(b=>b.Name=="ShowEventToken").IsChecked==false,"Token hidden by default");
    Assert(Desc<Button>(window).Count(b=>b.Name=="OpenGameAutoSpoofer")==1,"Game queue shortcut attached");
    Assert(Equals(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Content,"Open Auto Unlock"),"Game shortcut label matches destination");
+   Assert(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Parent is Grid, "Game shortcut sits in filter toolbar");
+   Assert(Desc<SelectableTextBlock>(window).Any(), "Game titles support text selection");
+   Assert(Desc<Button>(window).Any(b=>Equals(b.Content,"Save queue delays")), "Manual delay save present");
+   Assert(Desc<CheckBox>(window).Any(b=>Equals(b.Content,"Stop on unlock failure")), "Failure stop toggle present");
    Assert(Desc<Button>(window).Count(b=>b.Name=="RemoveQueueAchievements")==1,"Queue removal attached");
    Assert(Desc<Button>(window).Any(b=>Equals(b.Content,"Load saved queue")),"Saved queue load button relabelled");
    {

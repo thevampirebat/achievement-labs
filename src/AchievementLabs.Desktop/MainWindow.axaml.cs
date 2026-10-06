@@ -1,3 +1,4 @@
+using Avalonia.Controls.Notifications;
 using Avalonia.Input.Platform;
 using Avalonia;
 using Avalonia.Controls;
@@ -16,6 +17,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent(); DataContext = model; model.EventTokenRequired = ShowEventTokenRequiredAsync;
+        var notifications = new WindowNotificationManager(this) { Position = NotificationPosition.TopRight, MaxItems = 3 };
+        model.QueueTokenRefresh = ct => model.RefreshQueueEventTokenAsync(this, ct);
+        model.AutoUnlockFailure = message => notifications.Show(new Notification("Unlock failed", message, NotificationType.Error, TimeSpan.FromSeconds(10)));
         AchievementLabs.MultiSelect.EventTokenView.PreferredAcquireAsync = WamEventTokens.AcquireAsync;
         AchievementLabs.MultiSelect.BatchPicker.Attach(this);
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
@@ -27,7 +31,7 @@ public partial class MainWindow : Window
         {
             if (e.PropertyName == nameof(model.MintAccent)) ApplyAccent();
             if (e.PropertyName == nameof(model.LibrarySort) ||
-                e.PropertyName == nameof(model.Games) && model.LibrarySort == "Last Played")
+                e.PropertyName == nameof(model.Games) && model.LibrarySort == "Last Played" && !model.TotalsRunning)
                 Dispatcher.UIThread.Post(() =>
                 {
                     var list = this.FindControl<ListBox>("XboxLibraryList");
@@ -232,6 +236,16 @@ public partial class MainWindow : Window
     private async void CompleteBrowserLogin(object? s, RoutedEventArgs e) => await model.CompleteBrowserLoginAsync();
     private async void UnlockSelected(object? s, RoutedEventArgs e) => await model.UnlockSelectedAsync();
     private async void UnlockAll(object? s, RoutedEventArgs e) => await model.UnlockAllAsync();
+    private async void ExportVerifiedTotals(object? sender, RoutedEventArgs e)
+    {
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title = "Export all cached successful totals", SuggestedFileName = "achievement-verified-totals.csv", DefaultExtension = "csv" });
+        var path = file?.TryGetLocalPath();
+        if (path == null) return;
+        try { await model.ExportVerifiedTotalsAsync(path); }
+        catch { model.Notice = "Could not export verified totals."; }
+    }
+    private async void FillMissingTotals(object? sender, RoutedEventArgs e) => await model.FillMissingTotalsAsync();
+    private void StopTotalsScan(object? sender, RoutedEventArgs e) => model.CancelFillTotals();
     private async void RefreshLibrary(object? s, RoutedEventArgs e) => await model.RefreshLibraryAsync();
     private async void LookupTitle(object? s, RoutedEventArgs e) { try { await model.LookupTitleAsync(); } catch (OperationCanceledException) { } }
     private async void RefreshAchievements(object? s, RoutedEventArgs e) { try { await model.RefreshAchievementsAsync(); } catch (OperationCanceledException) { } }

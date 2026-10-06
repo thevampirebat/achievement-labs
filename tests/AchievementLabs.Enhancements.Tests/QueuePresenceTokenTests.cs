@@ -36,8 +36,101 @@ public static class QueuePresenceTokenTests
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json) };
         }
     }
+    sealed class TotalsRateHandler : HttpMessageHandler
+    {
+        public int Calls;
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            Calls++;
+            var response = new HttpResponseMessage(Calls == 1 ? HttpStatusCode.TooManyRequests : HttpStatusCode.OK) { Content = new StringContent("synthetic page") };
+            if (Calls == 1) response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.Zero);
+            return Task.FromResult(response);
+        }
+    }
     public static void Run()
     {
+        SharedTotalsTests.Run();
+        var definitions = Newtonsoft.Json.JsonConvert.DeserializeObject<AchievementsResponse>(
+            "{\"achievements\":[{\"id\":\"1\",\"name\":\"First\"},{\"id\":\"2\",\"name\":\"Event\",\"progression\":{\"requirements\":[{\"id\":\"00000000-0000-0000-0000-000000000000\"},{\"id\":\"11111111-1111-1111-1111-111111111111\"}]}}]}")!;
+        Assert(AutoUnlockerViewModel.UsesEvents(definitions.achievements), "Later achievements and later requirements determine event routing");
+        var routeVm = new AutoUnlockerViewModel(new NativeNotices(_ => { }), new NativeAccountContext { EventsToken = "stale-copy" });
+        var routeState = new AutoUnlockState { TitleId = "123", IsEventBased = false, Queue = new() { new() { AchievementId = "2", DelaySeconds = 45 } } };
+        typeof(AutoUnlockerViewModel).GetField("_state", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(routeVm, routeState);
+        routeVm.ValidateQueueMetadata(definitions);
+        Assert(routeState.IsEventBased && routeState.Queue.Single().DelaySeconds == 45, "Saved queue routing repairs without changing custom delays");
+        var activeToken = "manual-current";
+        var seenTokens = new List<string>();
+        routeVm.SendEventAchievementAsync = (title, id, ct) => {
+            Assert(title == "123" && id == "2", "Queue forwards saved title and achievement IDs");
+            seenTokens.Add(activeToken);
+            if (seenTokens.Count == 1) throw new HttpRequestException("synthetic", null, HttpStatusCode.Unauthorized);
+            return Task.FromResult(true);
+        };
+        Task<bool> SendQueue() => (Task<bool>)typeof(AutoUnlockerViewModel).GetMethod("UnlockEventBasedAchievementAsync", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(routeVm, new object[] { "2" })!;
+        Assert(EventUnlockRecovery.RunAsync(true, SendQueue, _ => { activeToken = "refreshed-current"; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult(), "Queue uses connected-session sender for retry");
+        Assert(seenTokens.SequenceEqual(new[] { "manual-current", "refreshed-current" }), "Retry re-reads the current token instead of stale queue copy");
+        var sends = 0; var refreshes = 0;
+        bool RetrySend() { sends++; if (sends == 1) throw new HttpRequestException("synthetic", null, HttpStatusCode.Unauthorized); return true; }
+        Assert(EventUnlockRecovery.RunAsync(true, () => Task.FromResult(RetrySend()), _ => { refreshes++; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult() && sends == 2 && refreshes == 1, "Token auth failure refreshes once and retries the same operation");
+        sends = 0; refreshes = 0;
+        try { EventUnlockRecovery.RunAsync(true, () => { sends++; throw new HttpRequestException("synthetic", null, HttpStatusCode.Forbidden); }, _ => { refreshes++; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult(); throw new Exception("Retry should fail"); }
+        catch (HttpRequestException) { Assert(sends == 2 && refreshes == 1, "Repeated auth failure never loops"); }
+        sends = 0; refreshes = 0;
+        try { EventUnlockRecovery.RunAsync(false, () => { sends++; throw new MissingEventTokenException(); }, _ => { refreshes++; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult(); throw new Exception("Disabled recovery should fail"); }
+        catch (MissingEventTokenException) { Assert(sends == 1 && refreshes == 0, "Disabled recovery preserves existing failure behavior"); }
+        sends = 0;
+        using (var stopRetry = new CancellationTokenSource())
+        {
+            try { EventUnlockRecovery.RunAsync(true, () => { sends++; throw new MissingEventTokenException(); }, _ => { stopRetry.Cancel(); return Task.FromResult(true); }, stopRetry.Token).GetAwaiter().GetResult(); throw new Exception("Stop should cancel retry"); }
+            catch (OperationCanceledException) { Assert(sends == 1, "Stopping during refresh prevents a retry unlock"); }
+        }
+        Assert(!EventUnlockRecovery.IsTokenFailure(new InvalidDataException("missing mapping")) && !EventUnlockRecovery.IsTokenFailure(new HttpRequestException("server", null, HttpStatusCode.InternalServerError)), "Unrelated failures do not refresh account tokens");
+        Assert(DesktopModel.TotalsFailureReason(new HttpRequestException("private content", null, HttpStatusCode.NotFound)) == "HTTP 404", "Report retains status and excludes private error content");
+        var rateHandler = new TotalsRateHandler();
+        using (var totalsHttp = new HttpClient(rateHandler))
+            Assert(AchievementTotals.ReadPageAsync(totalsHttp, "https://synthetic.invalid/achievements", CancellationToken.None).GetAwaiter().GetResult() == "synthetic page" && rateHandler.Calls == 2, "Totals retry rate limits without live HTTP");
+        var pages = new Queue<string>(new[] {
+            "{\"achievements\":[{\"id\":\"1\"},{\"id\":\"2\"}],\"pagingInfo\":{\"continuationToken\":\"next\"}}",
+            "{\"achievements\":[{\"id\":\"2\"},{\"id\":\"3\"},{\"id\":\"4\",\"achievementType\":\"Challenge\"}]}" });
+        var tokens = new List<string?>();
+        var total = AchievementTotals.CountAsync(token => { tokens.Add(token); return Task.FromResult(pages.Dequeue()); }, CancellationToken.None).GetAwaiter().GetResult();
+        Assert(total == 3 && tokens.SequenceEqual(new string?[] { null, "next" }), "Totals count all pages, deduplicate IDs and exclude challenges");
+        try { AchievementTotals.CountAsync(_ => Task.FromResult("{\"achievements\":[],\"pagingInfo\":{\"continuationToken\":\"repeat\"}}"), CancellationToken.None).GetAwaiter().GetResult(); throw new Exception("Repeated paging should fail"); }
+        catch (InvalidDataException) { }
+        var persistent = AchievementTotals.MeasureAsync(_ => Task.FromResult("{\"achievements\":[{\"id\":\"1\",\"progressState\":\"Achieved\"},{\"id\":\"2\",\"progressState\":\"NotStarted\"},{\"id\":\"3\",\"achievementType\":\"Challenge\",\"progressState\":\"Achieved\"}]}"), CancellationToken.None).GetAwaiter().GetResult();
+        Assert(persistent.Total == 2 && persistent.Unlocked == 1, "Persistent progress excludes earned challenges from numerator and denominator");
+        var missing = new LibraryGame("1", "Title", "XboxOne", 5, 0, 0);
+        Assert(DesktopModel.WithKnownTotal(missing, new Dictionary<string, int> { ["1"] = 20 }).Total == 20, "Known totals repair omitted title-history counts");
+        var conflicting = DesktopModel.WithKnownTotal(missing, new Dictionary<string, int> { ["1"] = 4 });
+        Assert(conflicting.Total == 4 && !conflicting.ProgressKnown, "Conflicting history counts never display impossible completion progress");
+        Assert(DesktopModel.WithKnownTotal(missing with { Total = 30 }, new Dictionary<string, int> { ["1"] = 20 }).Total == 30, "Fresh Xbox count takes priority");
+        Assert((missing with { Completed = 0, NoDefinitionsReturned = true }).ProgressLabel == "No Xbox achievements returned", "Empty service lists have an honest distinct label");
+        var notices = 0;
+        var failureVm = new AutoUnlockerViewModel(new NativeNotices(_ => { }), new NativeAccountContext()) { FailureNotification = _ => notices++ };
+        var failedEntry = new AutoUnlockQueueEntry { AchievementName = "Synthetic achievement" };
+        Assert(!failureVm.HandleUnlockFailure(failedEntry, "synthetic failure") && notices == 1, "Default notifies and continues");
+        failureVm.NotifyOnFailure = false; failureVm.StopOnFailure = true;
+        Assert(failureVm.HandleUnlockFailure(failedEntry, "synthetic failure") && notices == 1 && failureVm.StatusText.Contains("Click Start to retry"), "Stopping is independent of notification toggle");
+        var statePath = AutoUnlockState.GetSavePath();
+        var backup = File.Exists(statePath) ? File.ReadAllBytes(statePath) : null;
+        try
+        {
+            var saveState = new AutoUnlockState { GameName = "Synthetic game", Queue = new() { new() { DelaySeconds = 123 } } };
+            typeof(AutoUnlockerViewModel).GetField("_state", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(failureVm, saveState);
+            failureVm.SaveQueue();
+            var saved = AutoUnlockState.Load()!;
+            Assert(saved.Queue.Single().DelaySeconds == 123 && saved.StopOnFailure && !saved.NotifyOnFailure && !saved.RefreshTokenOnFailure && !saved.IsRunning, "Manual save preserves delays and failure options");
+            failureVm.IsRunning = true;
+            saveState.Queue[0].DelaySeconds = 456;
+            failureVm.SaveQueue();
+            Assert(AutoUnlockState.Load()!.Queue.Single().DelaySeconds == 123, "Manual save cannot overwrite a running queue");
+            failureVm.IsRunning = false;
+            var pendingIndex = saveState.CurrentIndex;
+            Assert(failureVm.HandleUnlockFailure(saveState.Queue[0], "synthetic failure") && saveState.CurrentIndex == pendingIndex && !saveState.Queue[0].Completed, "Stop failure preserves pending achievement for retry");
+        }
+        finally { if (backup == null) File.Delete(statePath); else File.WriteAllBytes(statePath, backup); }
+        var settings = Newtonsoft.Json.JsonConvert.DeserializeObject<AutoUnlockState>("{}")!;
+        Assert(settings.NotifyOnFailure && !settings.StopOnFailure, "Old saved queues keep safe compatible failure defaults");
         var sortPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "sort.txt");
         try
         {
@@ -86,7 +179,7 @@ public static class QueuePresenceTokenTests
         Assert(model.VisibleGames.Count() == 2, "Sort retains platform filter");
         typeof(DesktopModel).GetField("session", flags)!.SetValue(model, new ConnectedXboxSession("synthetic", "123", ""));
         typeof(DesktopModel).GetProperty("QueueActive")!.SetValue(model, true);
-        Assert(model.CanStartPresence && model.CanLookupSpoofTitle && !model.CanQuery && !model.CanDisconnect, "Queue allows spoofing but still protects disconnect");
+        Assert(model.CanStartPresence && model.CanLookupSpoofTitle && model.CanFillTotals && !model.CanQuery && !model.CanDisconnect, "Queue allows spoofing but still protects disconnect");
         var row = new AutoUnlockerViewModel.AutoUnlockQueueDisplay { Status = "Unlocked", CanEditDelay = true };
         model.XboxQueue.QueueItems.Add(row);
         model.XboxQueue.IsRunning = true;

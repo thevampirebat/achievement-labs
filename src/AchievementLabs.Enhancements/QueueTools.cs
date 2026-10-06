@@ -67,13 +67,12 @@ public static class QueueTools
  public static void Attach(Window owner,object model)
  {
   var buttons=owner.GetLogicalDescendants().OfType<Button>().ToArray();
-  var action=buttons.FirstOrDefault(b=>Equals(b.Content,"Unlock / retry"));
-  if(action?.Parent is Panel achievementPanel)
+  var open=buttons.FirstOrDefault(b=>b.Name=="OpenGameAutoSpoofer");
+  if(open!=null)
   {
-   var open=new Button{Name="OpenGameAutoSpoofer",Content="Open Auto Unlock",Margin=new Thickness(0,8,0,0)};
    ToolTip.SetTip(open,"Open the Xbox Auto Unlock page with this game's Title ID filled in.");
-   achievementPanel.Children.Add(open);open.Click+=(_,_)=>OpenForGame(model);
-   void Update()=>open.IsEnabled=P(model,"SelectedGame")!=null && P(model,"QueueActive") is not true && P(model,"PresenceRunning") is not true && P(model,"CanQuery") is true;
+   open.Click+=(_,_)=>OpenForGame(model);
+   void Update()=>open.IsEnabled=P(model,"SelectedGame")!=null && P(model,"QueueActive") is not true && P(model,"CanQuery") is true;
    var timer=new DispatcherTimer{Interval=TimeSpan.FromSeconds(1)};timer.Tick+=(_,_)=>Update();timer.Start();Update();owner.Closed+=(_,_)=>timer.Stop();
   }
   var build=buttons.FirstOrDefault(b=>Equals(b.Content,"Build queue"));
