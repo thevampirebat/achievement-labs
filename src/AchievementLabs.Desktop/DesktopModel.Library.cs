@@ -56,7 +56,7 @@ public sealed partial class DesktopModel
             try
             {
                 if (client == null || session == null) return;
-                totalsReport.Clear(); 
+                totalsReport.Clear();
         var api = client; var xuid = session.Xuid;
                 var result = await Task.Run(() => api.GetGamesListAsync(xuid), lifetime.Token) ?? throw new InvalidDataException();
                 lifetime.Token.ThrowIfCancellationRequested();
@@ -144,7 +144,7 @@ public sealed partial class DesktopModel
         var pending = Games.Where(g => g.Total <= 0 || g.Completed > g.Total).ToArray();
         using var cancel = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         totalsCancellation = cancel; Changed(nameof(CanExportVerifiedTotals)); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect));
-        totalsReport.Clear(); 
+        totalsReport.Clear();
         var api = client; var xuid = session.Xuid; var filled = 0; var failed = 0; var checkedCount = 0;
         async Task<TotalsReportRow> CheckAsync(Game game)
         {
