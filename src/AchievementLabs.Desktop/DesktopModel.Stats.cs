@@ -28,6 +28,14 @@ public sealed partial class DesktopModel
     public string ActiveSpoofTitle { get => activeSpoofTitle; private set { activeSpoofTitle = value; Changed(); } }
     public string PresenceHeartbeat { get => presenceHeartbeat; private set { presenceHeartbeat = value; Changed(); } }
     public string PresenceElapsed { get => presenceElapsed; private set { presenceElapsed = value; Changed(); } }
+    private string presenceTimer = "Elapsed: 00:00:00";
+    public string PresenceTimer { get => presenceTimer; private set { presenceTimer = value; Changed(); } }
+    private void UpdatePresenceElapsed(TimeSpan elapsed)
+    {
+        // Total hours keep sessions longer than a day from wrapping back to zero.
+        PresenceTimer = $"Elapsed: {(long)elapsed.TotalHours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
+        PresenceElapsed = $"Session: {elapsed.TotalHours:F2} hours";
+    }
     private void CompletePresence(string? failure, bool cancelled)
     {
         SpoofingStatus = failure != null && !cancelled ? "Spoofing stopped unexpectedly" : "Spoofing stopped";
@@ -77,7 +85,7 @@ public sealed partial class DesktopModel
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         ActiveSpoofTitle = $"{Games.FirstOrDefault(g => g.Id == titleId)?.Name ?? (SpoofTitleDetails.StartsWith("Title ID: " + titleId + "\n") ? SpoofTitleName : "Xbox title")} · {titleId}";
         PresenceHeartbeat = "Waiting for first heartbeat";
-        PresenceElapsed = "Session: 0.00 hours";
+        UpdatePresenceElapsed(TimeSpan.Zero);
         SpoofingStatus = "Starting spoofing…";
         string? failure = null;
         presenceCancellation = cancellation; Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect));
@@ -100,7 +108,7 @@ public sealed partial class DesktopModel
                 while (stopwatch.Elapsed - lastHeartbeat < TimeSpan.FromMinutes(5))
                 {
                     SpoofingStatus = "Spoofing active";
-                    PresenceElapsed = $"Session: {stopwatch.Elapsed.TotalHours:F2} hours";
+                    UpdatePresenceElapsed(stopwatch.Elapsed);
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellation.Token);
                 }
             }
@@ -120,7 +128,7 @@ public sealed partial class DesktopModel
                 }
             }
             catch { StatsOutput = "Presence stop request failed; the service may retain presence until it expires."; }
-            finally { var cancelled = cancellation.IsCancellationRequested; presenceCancellation = null; requests.Release(); cancellation.Dispose(); PresenceElapsed = $"Session: {stopwatch.Elapsed.TotalHours:F2} hours"; CompletePresence(failure, cancelled); Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect)); }
+            finally { var cancelled = cancellation.IsCancellationRequested; presenceCancellation = null; requests.Release(); cancellation.Dispose(); UpdatePresenceElapsed(stopwatch.Elapsed); CompletePresence(failure, cancelled); Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect)); }
         }
     }
     public void StopPresence() => presenceCancellation?.Cancel();
