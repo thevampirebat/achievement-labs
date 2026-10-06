@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-v1.0.3-fork.2
+  group: publish-v1.0.3-fork.3
   cancel-in-progress: false
 
 jobs:
@@ -22,10 +22,10 @@ jobs:
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: v1.0.3-fork.2
-      SOURCE_SHA: f8bbfc3cd0646ce3bd568782df369febc8138b08
-      BUILD_SHA: df445bfe804d91f4638a7eaf1af8570a3adb0fdd
-      BUILD_RUN: '37310738033'
+      RELEASE_TAG: v1.0.3-fork.3
+      SOURCE_SHA: 69e74203a7822c5261e461d4d2ada3104a85d9e8
+      BUILD_SHA: 5d1ada8907f594383021fc43029cee094a0e7205
+      BUILD_RUN: '37396333540'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,7 +59,7 @@ jobs:
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft > release-state.txt 2>/dev/null; then
             test "$(cat release-state.txt)" = true
           else
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs — All Fork Upgrades (fork.2)' --notes-file docs/releases/v1.0.3-fork.2.md --draft
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs — All Fork Upgrades (fork.3)' --notes-file docs/releases/v1.0.3-fork.3.md --draft
           fi
           gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" release-download/AchievementLabs.exe release-download/SHA256.txt release-download/BUILD-INFO.txt --clobber
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
