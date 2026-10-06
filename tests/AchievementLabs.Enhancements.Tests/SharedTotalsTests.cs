@@ -21,7 +21,7 @@ public static class SharedTotalsTests
     public static void Run()
     {
         var totals = SharedAchievementTotals.Bundled();
-        Assert(totals.Count == 232, "Only 232 successful report results are bundled");
+        Assert(totals.Count == 937, "All 937 successful cached definition totals are bundled");
         Assert(totals.TryGet("907086072", "XboxOne / XboxSeries", out var console) && console == 58, "Console edition total");
         Assert(totals.TryGet("1805003112", "PC", out var pc) && pc == 58, "Separate PC edition total");
         Assert(!totals.TryGet("907086072", "PC", out _) && !totals.TryGet("1805003112", "XboxOne", out _), "Title ID and matching platform both required");
@@ -67,7 +67,7 @@ public static class SharedTotalsTests
             var offline = SharedAchievementTotals.Bundled();
             using var unavailable = new HttpClient(new Handler("", true));
             offline.RefreshAsync(unavailable, cache, CancellationToken.None, true).GetAwaiter().GetResult();
-            Assert(offline.TryGet("123", "XboxOne", out count) && count == 20 && offline.Count == 233, "Offline uses bundled and cached entries");
+            Assert(offline.TryGet("123", "XboxOne", out count) && count == 20 && offline.Count == 938, "Offline uses bundled and cached entries");
             try { totals.Merge(Document(0, DateTimeOffset.UtcNow)); throw new Exception("Invalid catalogue accepted"); }
             catch (InvalidDataException) { }
             Assert(totals.TryGet("123", "XboxOne", out count) && count == 20, "Invalid update leaves existing totals intact");
