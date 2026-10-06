@@ -54,9 +54,9 @@ public sealed partial class DesktopModel : Observable, IDisposable
         private set
         {
             var selectedId = SelectedLibraryGame?.Id;
-            games = value.Select(g => WithKnownTotal(g, knownLibraryTotals)).ToArray();
+            games = value.Select(g => WithSharedTotal(WithKnownTotal(g, knownLibraryTotals))).ToArray();
             var visible = VisibleGames.ToArray();
-            Changed(); Changed(nameof(VisibleGames)); Changed(nameof(GameCount)); Changed(nameof(HomeXboxSummary));
+            Changed(); Changed(nameof(CanExportVerifiedTotals)); Changed(nameof(VisibleGames)); Changed(nameof(GameCount)); Changed(nameof(HomeXboxSummary));
             SelectedLibraryGame = visible.FirstOrDefault(g => g.Id == selectedId) ?? visible.FirstOrDefault();
         }
     }
@@ -136,6 +136,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         if (result.Titles == null) throw new InvalidDataException("Xbox title history was not returned.");
         client = candidate;
         session = connected;
+        await RefreshSharedTotalsAsync(lifetime.Token);
         LoadLibraryTotals();
         connectionMethod = method;
         ApplyXboxProfile(result.Profile?.ProfileUsers.FirstOrDefault());

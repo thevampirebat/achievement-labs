@@ -1,0 +1,2552 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "titleId": "16468936",
+      "name": "So Many Me",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 21,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "36217198",
+      "name": "Sherlock Holmes: Crimes and Punishments",
+      "platforms": [
+        "XboxOne"
+      ],
+      "total": 25,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "56347639",
+      "name": "Spyro™ Reignited Trilogy",
+      "platforms": [
+        "PC"
+      ],
+      "total": 105,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "60656359",
+      "name": "SOMA",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "74304278",
+      "name": "Tom Clancy’s The Division",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 65,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "80525889",
+      "name": "Valley",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "84790147",
+      "name": "Watch Dogs: Legion",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 49,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "227108897",
+      "name": "Virginia",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 17,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "315620102",
+      "name": "Refunct",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "333628240",
+      "name": "Quantum Break",
+      "platforms": [
+        "PC"
+      ],
+      "total": 42,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "346683864",
+      "name": "Tom Clancy's Ghost Recon Wildlands",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 57,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "367254866",
+      "name": "Sleeping Dogs™ Definitive Edition",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 59,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "374621264",
+      "name": "RESIDENT EVIL 2",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 44,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "383880849",
+      "name": "Transference™",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 14,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "415619002",
+      "name": "Watch Dogs®2",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 55,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "434412541",
+      "name": "Rise of the Tomb Raider",
+      "platforms": [
+        "PC"
+      ],
+      "total": 143,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "447911394",
+      "name": "Far Cry® 5",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 72,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "449394673",
+      "name": "Vampyr",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 28,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "452142470",
+      "name": "PsychoBreak® 2",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 51,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "453783733",
+      "name": "Q.U.B.E. 2",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "519443170",
+      "name": "Torment: Tides of Numenera",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 52,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "539671361",
+      "name": "Prey: Typhon Hunter",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "541295341",
+      "name": "Whispering Willows",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 19,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "548623535",
+      "name": "SpongeBob SquarePants: Battle for Bikini Bottom - Rehydrated",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 32,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "558797228",
+      "name": "Rocket League®",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 77,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "568218779",
+      "name": "Resident Evil 5",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 70,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "575845525",
+      "name": "Your Toy",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 22,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "585771792",
+      "name": "WATCH_DOGS™",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 48,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "591405932",
+      "name": "Red Dead Redemption 2",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 51,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "608369389",
+      "name": "FAR CRY PRIMAL",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "625948041",
+      "name": "Slime Rancher",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 57,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "651668093",
+      "name": "RESIDENT EVIL 7 biohazard",
+      "platforms": [
+        "PC"
+      ],
+      "total": 58,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "655591242",
+      "name": "Far Cry® New Dawn",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "676489959",
+      "name": "Remothered: Tormented Fathers",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "680942588",
+      "name": "STAR WARS Jedi: Fallen Order™",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 39,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "722694197",
+      "name": "Sherlock Holmes: The Devil's Daughter",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 25,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "739464821",
+      "name": "South Park™: The Fractured but Whole™",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 35,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "761259973",
+      "name": "RiME",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 31,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "770775860",
+      "name": "RESIDENT EVIL 3 for Windows",
+      "platforms": [
+        "PC"
+      ],
+      "total": 32,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "790047319",
+      "name": "Sekiro™: Shadows Die Twice - GOTY Edition",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 34,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "792914248",
+      "name": "Tricky Towers",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 29,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "828985924",
+      "name": "Resident Evil 6",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 70,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "847310458",
+      "name": "South Park™: The Stick of Truth ™",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "852431422",
+      "name": "ReCore",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 73,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "852732437",
+      "name": "State of Decay: Year-One",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 72,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "861949148",
+      "name": "What Remains of Edith Finch",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "862882237",
+      "name": "Unmechanical: Extended",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 17,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "903098188",
+      "name": "Strange Brigade",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 60,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "907086072",
+      "name": "Prey",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 58,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "913783821",
+      "name": "Shadow of the Tomb Raider",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 99,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "926771636",
+      "name": "Tom Clancy's Rainbow Six Siege",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 48,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "927474846",
+      "name": "Firewatch",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "939455454",
+      "name": "resident evil 4 (2005)",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "940594756",
+      "name": "World War Z",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 35,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "945909358",
+      "name": "Subnautica",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 17,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "945976112",
+      "name": "Rush: A DisneyPixar Adventure",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "950328474",
+      "name": "PUBG: BATTLEGROUNDS",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 37,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "961090289",
+      "name": "Tom Clancy's Ghost Recon Breakpoint",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "964214247",
+      "name": "Saints Row IV: Re-Elected",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 70,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "974586226",
+      "name": "We Happy Few",
+      "platforms": [
+        "PC"
+      ],
+      "total": 70,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1000604311",
+      "name": "RESIDENT EVIL REVELATIONS 2 (Episode One)",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 43,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1002731481",
+      "name": "Snooker Nation Championship",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 14,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1046363979",
+      "name": "Rise of the Tomb Raider",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 143,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1048549433",
+      "name": "WRC 6 FIA World Rally Championship",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 41,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1166935255",
+      "name": "Slender: The Arrival (2015)",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 20,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1169551644",
+      "name": "Saints Row: Gat out of Hell",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 45,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1265757851",
+      "name": "Trials Fusion",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 51,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1367952835",
+      "name": "Far Cry® 4",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 57,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1469186547",
+      "name": "Resident Evil 0",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 47,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1518572426",
+      "name": "Trackmania® Turbo",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 48,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1620316512",
+      "name": "Transient: Extended Edition",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 27,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1621567212",
+      "name": "ROUTINE",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 14,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1621608071",
+      "name": "POMBERO: The Lord of the Night",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 13,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1624350228",
+      "name": "Project Spark",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 148,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1628140410",
+      "name": "Rewind or Die",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 17,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1633340711",
+      "name": "Spray Paint Simulator",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 19,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1637794416",
+      "name": "Pneumata",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 32,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1641777228",
+      "name": "Serious Sam 4",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 54,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1642088148",
+      "name": "PROJECT 13",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 14,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1645030778",
+      "name": "Smart Moves (for Windows 10)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 27,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1657708224",
+      "name": "Seven Doors",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 17,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1658810016",
+      "name": "Resident Evil Requiem",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 49,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1661098733",
+      "name": "Turbo Golf Racing",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1671676860",
+      "name": "Snakeybus",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 14,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1672045983",
+      "name": "Feather",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 11,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1673258664",
+      "name": "Venatrix Game",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 20,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1675190546",
+      "name": "Stunt Paradise (Windows)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1677025209",
+      "name": "Wolfenstein: The New Order (PC)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1683265300",
+      "name": "Return to Grace",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 35,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1690524168",
+      "name": "Wo Long: Fallen Dynasty",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 90,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1693391830",
+      "name": "SpongeBob SquarePants™: The Patrick Star Game",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 34,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1695392136",
+      "name": "Tormented Souls",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 29,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1695638358",
+      "name": "Vampire Survivors",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 283,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1704490079",
+      "name": "South of Midnight",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 40,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1713136402",
+      "name": "She Wants Me Dead",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1713876987",
+      "name": "Wandersong",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 20,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1715352825",
+      "name": "Five Nights at Freddy's 2",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1717071867",
+      "name": "ZOMBI",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 20,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1717113201",
+      "name": "Sea of Thieves: 2026 Edition",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 306,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1723298499",
+      "name": "Where the Bees Make Honey",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 16,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1733492292",
+      "name": "Finding Frankie",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 14,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1734069370",
+      "name": "Farming Simulator 17 - Windows 10",
+      "platforms": [
+        "PC"
+      ],
+      "total": 17,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1734092917",
+      "name": "Spirit of the North: Enhanced Edition",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 24,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1736697479",
+      "name": "Smart Moves",
+      "platforms": [
+        "XboxOne"
+      ],
+      "total": 32,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1745314691",
+      "name": "Psychonauts 2",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 57,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1752291141",
+      "name": "Zombie Derby",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1758367827",
+      "name": "REVEIL",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 27,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1761751232",
+      "name": "ReactorX 2 (PC)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1768466312",
+      "name": "Poppy Playtime: Chapter 2",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 32,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1768760597",
+      "name": "Touchdown Pinball",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1770238303",
+      "name": "Smart Moves 2 (for Windows 10)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 20,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1773817392",
+      "name": "Rise of Insanity",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1781300625",
+      "name": "SLEEP AWAKE",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 23,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1786573857",
+      "name": "Smart Moves 2",
+      "platforms": [
+        "XboxOne"
+      ],
+      "total": 20,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1789318977",
+      "name": "SpongeBob SquarePants: Battle for Bikini Bottom - Rehydrated",
+      "platforms": [
+        "PC"
+      ],
+      "total": 32,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1790555170",
+      "name": "Safari Pinball",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1791966220",
+      "name": "Flaskoman for Windows 10",
+      "platforms": [
+        "PC"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1797086953",
+      "name": "Zombie Derby (Windows)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1799773408",
+      "name": "Security Booth: Director's Cut",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 14,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1801439021",
+      "name": "Silver Chains",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 16,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1805003112",
+      "name": "Prey",
+      "platforms": [
+        "PC"
+      ],
+      "total": 58,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1805490295",
+      "name": "ReactorX 2",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1805568255",
+      "name": "Trailmakers",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 22,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1811697311",
+      "name": "World War Z",
+      "platforms": [
+        "PC"
+      ],
+      "total": 35,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1813085990",
+      "name": "Road 96",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1813362885",
+      "name": "FIFA 14",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 41,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1825113946",
+      "name": "PowerWash Simulator",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 100,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1830825388",
+      "name": "SILENT HILL f",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 56,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1832512217",
+      "name": "Townscaper",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1835454890",
+      "name": "Stay Out of the House",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 29,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1836043414",
+      "name": "Snow Squall",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1837745362",
+      "name": "When the Past was Around",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 20,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1841078711",
+      "name": "Zombie Derby 2 (Windows)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1844264596",
+      "name": "Project Songbird",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 11,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1846662502",
+      "name": "Puppet House",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 35,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1847003138",
+      "name": "Without Escape: Console Edition",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1847259893",
+      "name": "Strawberry Vinegar",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 28,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1847402697",
+      "name": "ScreamRide",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 47,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1848301012",
+      "name": "Flaskoman",
+      "platforms": [
+        "XboxOne"
+      ],
+      "total": 25,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1849010458",
+      "name": "Soviet Project",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 16,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1852916479",
+      "name": "Resident Evil 4",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 46,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1864215620",
+      "name": "Five Nights at Freddy's: Help Wanted",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1867563048",
+      "name": "Rollerdrome (2022)",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 21,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1869863863",
+      "name": "REPLICA（レプリカ）",
+      "platforms": [
+        "PC",
+        "XboxOne"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1870842512",
+      "name": "She's Leaving",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 17,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1876224290",
+      "name": "Welcome to Hanwell",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 16,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1880727250",
+      "name": "Unpacking",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 25,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1882395273",
+      "name": "Fear the Spotlight",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 35,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1883232264",
+      "name": "STAR WARS™ Episode I Racer",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 29,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1883977094",
+      "name": "Sigi - A Fart for Melusina",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 17,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1884076770",
+      "name": "Visage",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 27,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1887639245",
+      "name": "Tracks - The Train Set Game",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1897447749",
+      "name": "ReactorX",
+      "platforms": [
+        "XboxOne"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1897725373",
+      "name": "Song of Horror",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 44,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1905434171",
+      "name": "TRAIL OUT",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 40,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1909396590",
+      "name": "Wolfenstein: The Old Blood (PC)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1911065365",
+      "name": "Stunt Paradise",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1911508378",
+      "name": "RoboCop: Rogue City",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 27,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1916611344",
+      "name": "Minecraft for Windows 10 Mobile",
+      "platforms": [
+        "Mobile",
+        "PC"
+      ],
+      "total": 111,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Legacy → Modern"
+    },
+    {
+      "titleId": "1917892678",
+      "name": "File Destined",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 28,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1917938753",
+      "name": "Yakuza 0 for Windows 10",
+      "platforms": [
+        "PC"
+      ],
+      "total": 55,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1918361672",
+      "name": "Werewolf Pinball",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1918859748",
+      "name": "Finis",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 24,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1925947069",
+      "name": "FARCRY 6",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 99,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1927790109",
+      "name": "Rememoried",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1929508962",
+      "name": "VAMPYR",
+      "platforms": [
+        "PC"
+      ],
+      "total": 28,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1936146608",
+      "name": "Scorn",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1938832846",
+      "name": "STAR WARS Jedi: Survivor™",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 53,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1938834516",
+      "name": "State of Decay 2: Juggernaut Edition",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 153,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1940322572",
+      "name": "Five Nights at Freddy's",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1942055330",
+      "name": "Skinwalker 3D",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 13,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1943121689",
+      "name": "Y. Village - The Visitors",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1944807356",
+      "name": "Twelve Minutes",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1949242128",
+      "name": "SILENT HILL 2",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 43,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1962369921",
+      "name": "Pumpkin Jack",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 33,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1964417553",
+      "name": "Word Sudoku by POWGI",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 27,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1966810654",
+      "name": "Ramp Bike Racing",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1970834532",
+      "name": "RAGE 2 (PC)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 65,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1972063516",
+      "name": "Sifu",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 61,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1974939921",
+      "name": "World Soccer Pinball",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1979258574",
+      "name": "Promesa",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 23,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1981403899",
+      "name": "Wolfenstein: The New Order",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1985144601",
+      "name": "Stranded Deep",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 35,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1992379571",
+      "name": "ReactorX (for Windows 10)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "1995576035",
+      "name": "Remnant II® - Standard Edition",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 65,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2001814192",
+      "name": "Zombie Derby 2",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2003460558",
+      "name": "Speed Truck Racing",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 16,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2005028938",
+      "name": "S.T.A.L.K.E.R. 2: Heart of Chornobyl - Windows Edition",
+      "platforms": [
+        "PC"
+      ],
+      "total": 76,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2007242268",
+      "name": "Pupperazzi",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 23,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2008811924",
+      "name": "Wolfenstein II: The New Colossus",
+      "platforms": [
+        "PC"
+      ],
+      "total": 80,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2011061477",
+      "name": "PRAGMATA",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 35,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2013541297",
+      "name": "Warhammer 40,000: Space Marine - Master Crafted Edition",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 60,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2015317909",
+      "name": "Speedway Racing",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 18,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2016262671",
+      "name": "Slayers X: Terminal Aftermath: Vengance of the Slayer",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 19,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2020176886",
+      "name": "Shenmue I & II",
+      "platforms": [
+        "PC"
+      ],
+      "total": 55,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2021025006",
+      "name": "Slender: The Arrival",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 20,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2025742829",
+      "name": "Titans Pinball",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2025818872",
+      "name": "Shines Over: The Damned",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 13,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2031266067",
+      "name": "Sker Ritual",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 52,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2031804130",
+      "name": "Red Dead Redemption",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 51,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2040520199",
+      "name": "Shadow Samurai Revenge",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2043130271",
+      "name": "Saborus",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 29,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2045008370",
+      "name": "Remothered: Broken Porcelain",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 33,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2056655762",
+      "name": "Remnant: From the Ashes",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2065674944",
+      "name": "Resident Evil Re:Verse",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2071320447",
+      "name": "Ravenlok",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 50,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2076466454",
+      "name": "Red Dead Redemption (PC)",
+      "platforms": [
+        "PC"
+      ],
+      "total": 51,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2076786715",
+      "name": "Scholar's Mate",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 18,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2076862108",
+      "name": "Scalextric",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2079794073",
+      "name": "Starfield",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 82,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2088425994",
+      "name": "Storm Boy",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 11,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2088656667",
+      "name": "Repentant",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2090474684",
+      "name": "Poppy Playtime: Chapter 1",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2090892978",
+      "name": "Farming Simulator 22",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 45,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2091620971",
+      "name": "Remains",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 10,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2093251542",
+      "name": "Project 13: Taxidermy",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 14,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2104363067",
+      "name": "Fatum Betula",
+      "platforms": [
+        "XboxOne"
+      ],
+      "total": 14,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2104483569",
+      "name": "Shark Pinball",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 15,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2104502032",
+      "name": "Stories Untold",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 12,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2108722049",
+      "name": "Resident Evil Village",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 56,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2109344129",
+      "name": "FINAL FANTASY XV WINDOWS EDITION",
+      "platforms": [
+        "PC"
+      ],
+      "total": 97,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2110882357",
+      "name": "Warp Bot (Xbox Series)",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "total": 30,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2112431452",
+      "name": "サイコブレイク",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 71,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2118758715",
+      "name": "Unknown 9: Awakening",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 38,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2123021352",
+      "name": "Sherlock Holmes: The Devil's Daughter Redux",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 25,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2125557798",
+      "name": "Still Wakes the Deep",
+      "platforms": [
+        "PC",
+        "XboxSeries"
+      ],
+      "total": 59,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2129620077",
+      "name": "Sherlock Holmes The Awakened",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 28,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2132785815",
+      "name": "Wolfenstein® II: The New Colossus™",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 80,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2142053337",
+      "name": "Trüberbrook",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 34,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2143488853",
+      "name": "Soccer Story",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 20,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2145390992",
+      "name": "Sherlock Holmes: Crimes and Punishments Redux",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 25,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    },
+    {
+      "titleId": "2145755783",
+      "name": "Split - manipulate time",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "total": 11,
+      "checkedAt": "2026-10-05T23:13:52Z",
+      "endpoint": "Modern"
+    }
+  ]
+}

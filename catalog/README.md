@@ -1,0 +1,18 @@
+# Shared achievement totals
+
+`achievement-totals.json` contains public title metadata and positive totals measured from complete Xbox achievement definition lists, excluding challenges. It contains no XUID, tokens, unlocked counts or account history. The initial 232 entries come from successful rows of the scan report checked on 5 October 2026. Empty responses and unsuccessful/count-conflict rows are excluded.
+
+The app bundles this catalogue and checks the public copy on this fork's main branch when connecting or refreshing the library. A successful download is cached for 24 hours; offline and invalid responses retain bundled/cached totals. Matching requires the exact Xbox Title ID and an overlapping listed platform. Existing Xbox/profile cache counts take priority. Shared counts fill missing totals; they never replace account progress. Titles with shared totals no longer need the missing-totals scan unless their account history conflicts with the count.
+
+After merge, the online URL is:
+https://raw.githubusercontent.com/thevampirebat/achievement-labs/main/catalog/achievement-totals.json
+
+To gather every earlier successful scan without rescanning, use **Export verified totals** in the Xbox library. It joins the connected profile’s cached definition totals to the current library metadata, and exports only positive successful counts. The normal scan report covers only the titles checked during that scan. Neither export uploads anything automatically.
+
+To add future scan results, export a totals report or verified totals and run:
+
+```sh
+python tools/Import-SharedTotals.py achievement-totals-report.csv --checked-at 2026-10-05T23:13:52Z
+```
+
+Use the actual scan timestamp. Review the catalogue diff and commit it to this fork's main branch through a pull request. Existing users receive the update on their next library refresh after the cache expires; new builds also include it. Nothing is automatically uploaded from users' accounts. Reports that only contain missing totals cover only those checked titles; additional successful scan reports can expand coverage.

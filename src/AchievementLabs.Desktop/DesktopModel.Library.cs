@@ -50,6 +50,8 @@ public sealed partial class DesktopModel
         Busy(true);
         try
         {
+            await RefreshSharedTotalsAsync(lifetime.Token);
+            LoadLibraryTotals();
             await requests.WaitAsync(lifetime.Token);
             try
             {
@@ -67,7 +69,16 @@ public sealed partial class DesktopModel
         catch { Notice = "Could not refresh the library. Your previous list is still available."; }
         finally { Busy(false); }
     }
+    private readonly AchievementLabs.Core.SharedAchievementTotals sharedLibraryTotals = AchievementLabs.Core.SharedAchievementTotals.Bundled();
     private readonly Dictionary<string, int> knownLibraryTotals = new();
+    private Game WithSharedTotal(Game game) => game.Total <= 0 && sharedLibraryTotals.TryGet(game.Id, game.Platform, out var total)
+        ? game with { Total = total, ProgressKnown = game.ProgressKnown && game.Completed <= total, NoDefinitionsReturned = false } : game;
+    private async Task RefreshSharedTotalsAsync(CancellationToken ct)
+    {
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        await sharedLibraryTotals.RefreshAsync(http, AchievementLabs.Core.AchievementLabsPaths.LocalFile("shared-library-totals.json"), ct);
+        TotalsStatus = $"Shared totals available for {sharedLibraryTotals.Count} titles. Fill missing totals checks the remaining titles.";
+    }
     private CancellationTokenSource? totalsCancellation;
     private string totalsStatus = "";
     public bool TotalsRunning => totalsCancellation != null;
@@ -101,6 +112,20 @@ public sealed partial class DesktopModel
     }
     public static Game WithKnownTotal(Game game, IReadOnlyDictionary<string, int> totals)
         => game.Total <= 0 && totals.TryGetValue(game.Id, out var total) && total > 0 ? game with { Total = total, ProgressKnown = game.ProgressKnown && game.Completed <= total } : game;
+    public bool CanExportVerifiedTotals => !TotalsRunning && Games.Any(g => knownLibraryTotals.ContainsKey(g.Id));
+    public TotalsReportRow[] VerifiedTotalsForExport() => Games
+        .Where(g => knownLibraryTotals.TryGetValue(g.Id, out var total) && total > 0)
+        .Select(g => new TotalsReportRow(g.Id, g.Name, g.Platform, "Cached definition total", knownLibraryTotals[g.Id], "Updated"))
+        .OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase).ToArray();
+    public async Task ExportVerifiedTotalsAsync(string path)
+    {
+        var entries = VerifiedTotalsForExport();
+        static string Q(string value) => "\"" + value.Replace("\"", "\"\"") + "\"";
+        var rows = new[] { "Title ID,Title,Platform,Endpoint,Total,Result" }.Concat(entries.Select(r =>
+            string.Join(",", new[] { r.TitleId, r.Name, r.Platform, r.Endpoint, r.Total.ToString(), r.Result }.Select(Q))));
+        await File.WriteAllLinesAsync(path, rows, new UTF8Encoding(true), lifetime.Token);
+        Notice = $"Exported {entries.Length} cached successful totals across your library. No unlocked counts or account details included.";
+    }
     public sealed record TotalsReportRow(string TitleId, string Name, string Platform, string Endpoint, int Total, string Result, int? PersistentUnlocked = null, int? HistoryUnlocked = null);
     private readonly List<TotalsReportRow> totalsReport = new();
     public bool CanExportTotalsReport => totalsReport.Count > 0 && !TotalsRunning;
@@ -127,7 +152,7 @@ public sealed partial class DesktopModel
         if (!CanFillTotals || client == null || session == null) return;
         var pending = Games.Where(g => g.Total <= 0 || g.Completed > g.Total).ToArray();
         using var cancel = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
-        totalsCancellation = cancel; Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect));
+        totalsCancellation = cancel; Changed(nameof(CanExportVerifiedTotals)); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect));
         totalsReport.Clear(); Changed(nameof(CanExportTotalsReport));
         var api = client; var xuid = session.Xuid; var filled = 0; var failed = 0; var checkedCount = 0;
         async Task<TotalsReportRow> CheckAsync(Game game)
@@ -178,7 +203,7 @@ public sealed partial class DesktopModel
             TotalsStatus = $"Totals updated: {filled}; unavailable: {failed}. {reasons} Export the totals report for per-title details.";
         }
         catch (OperationCanceledException) { TotalsStatus = $"Totals scan stopped; {filled} results saved."; }
-        finally { totalsCancellation = null; Changed(nameof(CanExportTotalsReport)); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect)); }
+        finally { totalsCancellation = null; Changed(nameof(CanExportTotalsReport)); Changed(nameof(CanExportVerifiedTotals)); Changed(nameof(TotalsRunning)); Changed(nameof(CanFillTotals)); Changed(nameof(CanDisconnect)); }
     }
     public async Task ExportCsvAsync(string path)
     {

@@ -49,6 +49,7 @@ public static class QueuePresenceTokenTests
     }
     public static void Run()
     {
+        SharedTotalsTests.Run();
         var definitions = Newtonsoft.Json.JsonConvert.DeserializeObject<AchievementsResponse>(
             "{\"achievements\":[{\"id\":\"1\",\"name\":\"First\"},{\"id\":\"2\",\"name\":\"Event\",\"progression\":{\"requirements\":[{\"id\":\"00000000-0000-0000-0000-000000000000\"},{\"id\":\"11111111-1111-1111-1111-111111111111\"}]}}]}")!;
         Assert(AutoUnlockerViewModel.UsesEvents(definitions.achievements), "Later achievements and later requirements determine event routing");

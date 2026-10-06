@@ -236,6 +236,14 @@ public partial class MainWindow : Window
     private async void CompleteBrowserLogin(object? s, RoutedEventArgs e) => await model.CompleteBrowserLoginAsync();
     private async void UnlockSelected(object? s, RoutedEventArgs e) => await model.UnlockSelectedAsync();
     private async void UnlockAll(object? s, RoutedEventArgs e) => await model.UnlockAllAsync();
+    private async void ExportVerifiedTotals(object? sender, RoutedEventArgs e)
+    {
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title = "Export all cached successful totals", SuggestedFileName = "achievement-verified-totals.csv", DefaultExtension = "csv" });
+        var path = file?.TryGetLocalPath();
+        if (path == null) return;
+        try { await model.ExportVerifiedTotalsAsync(path); }
+        catch { model.Notice = "Could not export verified totals."; }
+    }
     private async void ExportTotalsReport(object? sender, RoutedEventArgs e)
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title = "Export totals scan report", SuggestedFileName = "achievement-totals-report.csv", DefaultExtension = "csv" });
