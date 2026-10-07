@@ -28,6 +28,7 @@ public static class DlcCatalogueTests
         Assert(SharedDlcCatalogue.Group(ghosts,"92","Hat-Trick") == "Nemesis", "Punctuation preserved with exact ID");
         Assert(SharedDlcCatalogue.Group(ghosts,"91","Hat Trick") == "Unclassified", "Shifted ID not guessed");
         Assert(catalogue.Find("572802557", "PC") == null, "Wrong edition not matched");
+        Assert(!AchievementView.Supports(new {Id="572802557",Platform="PC"}), "UI rejects explicit mismatched platform");
         catalogue.Merge(Sample);
         SharedDlcCatalogue.Current.Merge(Sample);
         var game = new { Id="42", Platform="XboxOne" };

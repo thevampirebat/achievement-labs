@@ -200,7 +200,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         if (version != selectionVersion || lifetime.IsCancellationRequested) return;
         achievements = Map(response);
         var title = response.achievements[0].titleAssociations.FirstOrDefault();
-        SelectedGame = new Game(title?.id ?? Path.GetFileNameWithoutExtension(path), title?.name ?? Path.GetFileNameWithoutExtension(path), "LOCAL ACHIEVEMENT EXPORT", achievements.Count(a => a.Unlocked), achievements.Length, achievements.Where(a => a.Unlocked).Sum(a => a.Score), achievements.All(a => a.ProgressKnown));
+        SelectedGame = new Game(title?.id ?? Path.GetFileNameWithoutExtension(path), title?.name ?? Path.GetFileNameWithoutExtension(path), string.Join(" / ", response.achievements.SelectMany(a => a.platforms).Distinct(StringComparer.OrdinalIgnoreCase)), achievements.Count(a => a.Unlocked), achievements.Length, achievements.Where(a => a.Unlocked).Sum(a => a.Score), achievements.All(a => a.ProgressKnown));
         GamePlaytimeText = "Xbox-recorded playtime: Unavailable for local export";
         Search = ""; Filter("All"); Navigate("Achievements"); Notice = $"Opened {achievements.Length} achievements from a local export.";
     }

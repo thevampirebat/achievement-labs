@@ -28,11 +28,13 @@ public static class AchievementView
     static void Add(string pack,string names){foreach(var n in names.Split('|'))Ghosts.Add(Normalize(n),pack);}
     static SharedDlcCatalogue.Title? CatalogueTitle(object? game) => SharedDlcCatalogue.Current.Find(
         Prop(game,"Id")?.ToString() ?? "", Prop(game,"Platform")?.ToString() ?? "");
-    public static bool Supports(object? game) => CatalogueTitle(game) != null || Prop(game,"Id")?.ToString()=="572802557";
+    // Keep legacy callers without platform metadata working; explicit mismatched platforms are rejected.
+    static bool LegacyGhosts(object? game) => Prop(game,"Id")?.ToString()=="572802557" && string.IsNullOrEmpty(Prop(game,"Platform")?.ToString());
+    public static bool Supports(object? game) => CatalogueTitle(game) != null || LegacyGhosts(game);
     public static string Group(object? row)=>Ghosts.TryGetValue(Normalize(Prop(row,"Name")?.ToString()??""),out var pack)?pack:"Unclassified";
     public static string Group(object? row, object? game) => CatalogueTitle(game) is { } title
         ? SharedDlcCatalogue.Group(title, Prop(row,"Id")?.ToString() ?? "", Prop(row,"Name")?.ToString() ?? "")
-        : Prop(game,"Id")?.ToString()=="572802557" ? Group(row) : "Unclassified";
+        : LegacyGhosts(game) ? Group(row) : "Unclassified";
     public static string[] PacksFor(object? game) => CatalogueTitle(game) is { } title
         ? new[] {"All packs"}.Concat(title.Packs.OrderBy(p => p.Kind == "base" ? 0 : 1).Select(p=>p.Name)).Append("Unclassified").ToArray()
         : Packs;

@@ -12,7 +12,7 @@ public static class GameDetailsTests
         const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         var type = typeof(DesktopModel);
         type.GetField("session",flags)!.SetValue(model,new ConnectedXboxSession("synthetic","123",""));
-        var game = new Game("572802557","Ghosts","XboxOne",0,91,0);
+        var game = new AchievementLabs.Desktop.Game("572802557","Ghosts","XboxOne",0,91,0);
         type.GetProperty("SelectedGame",flags)!.SetValue(model,game);
         type.GetProperty("QueueActive",flags)!.SetValue(model,true);
         Assert(model.CanOpenGameSpoofer,"Active queue permits spoofer navigation");
