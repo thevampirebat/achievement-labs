@@ -73,7 +73,7 @@ See the [release notes](docs/releases/v1.0.3-fork.5.md) and [implementation deta
 
 ## Validation and current limits
 
-The previous fork.4 release passed all nine offline regression groups and its Windows build in [Actions run 37514873136](https://github.com/thevampirebat/achievement-labs/actions/runs/37514873136). The catalogue update adds a full offline sweep of usable mappings; fork.5 validation is recorded in its release notes. These checks use synthetic credentials and intercepted requests, including real-window scrolling, timer bindings, queue state, mapping validation, token matching, exports and shared totals.
+All nine offline regression groups and the Windows build passed for fork.5 in [Actions run 37664170543](https://github.com/thevampirebat/achievement-labs/actions/runs/37664170543). The full bundled-catalogue sweep validated **397 enabled titles, 15,725 usable achievement mappings and 30,417 strict-JSON payloads**, including all 43 supplied 7 Days to Die mappings. These checks use synthetic credentials and intercepted requests, including real-window scrolling, timer bindings, queue state, mapping validation, token matching, exports and shared totals.
 
 - DLC grouping is currently implemented for **Ghosts Xbox One**, rather than automatically classifying every game's DLC.
 - Reviewed event mappings are supported by catalogue/metadata evidence and offline checks; this does not establish live Xbox achievement credit. Ten ambiguous Escapists entries remain unavailable.
