@@ -60,6 +60,12 @@ internal sealed class BundledEventCatalog
             return Task.FromResult(templates[id]);
         });
         var payloads = await catalog.BuildPayloadsAsync(titleId, achievementId, xuid, DateTime.UtcNow, ct);
+        foreach (var payload in payloads)
+        {
+            var body = JObject.Parse(payload)["data"]?["baseData"];
+            if (body?["titleId"] == null || body["titleId"]!.ToString() != titleId)
+                throw new InvalidDataException("Catalogue payload is missing the selected Title ID.");
+        }
         return new(payloads.ToArray());
     }
 }
