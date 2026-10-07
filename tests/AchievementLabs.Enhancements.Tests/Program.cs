@@ -88,6 +88,15 @@ static class Test
     typedModel.GetType().GetProperty("PresenceElapsed")!.SetValue(typedModel,"Session: 26.50 hours");
     Dispatcher.UIThread.RunJobs();
     Assert(Desc<SelectableTextBlock>(window).Any(t=>t.Text=="Synthetic title · 42") && Desc<TextBlock>(window).Any(t=>t.Text=="Session: 26.50 hours"), "Active title and total hours propagate to queue tile");
+    var updateElapsed=typedModel.GetType().GetMethod("UpdatePresenceElapsed",flags)!;
+    updateElapsed.Invoke(typedModel,new object[] { TimeSpan.FromHours(26)+TimeSpan.FromMinutes(30)+TimeSpan.FromSeconds(3) });
+    Dispatcher.UIThread.RunJobs();
+    Assert(Desc<TextBlock>(window).Single(t=>t.Name=="SpooferSessionTimer").Text=="Elapsed: 26:30:03", "Spoofer page has elapsed timer with total hours beyond 24");
+    Assert(Desc<TextBlock>(window).Single(t=>t.Name=="QueueSpooferSessionTimer").Text=="Elapsed: 26:30:03", "Auto Unlock shows the same elapsed timer");
+    updateElapsed.Invoke(typedModel,new object[] { TimeSpan.FromSeconds(1) });Dispatcher.UIThread.RunJobs();
+    Assert(Desc<TextBlock>(window).Single(t=>t.Name=="SpooferSessionTimer").Text=="Elapsed: 00:00:01" && Desc<TextBlock>(window).Single(t=>t.Name=="QueueSpooferSessionTimer").Text=="Elapsed: 00:00:01", "Both timers update to the next elapsed value");
+    updateElapsed.Invoke(typedModel,new object[] { TimeSpan.Zero });Dispatcher.UIThread.RunJobs();
+    Assert(Desc<TextBlock>(window).Single(t=>t.Name=="SpooferSessionTimer").Text=="Elapsed: 00:00:00", "Timer resets for a new session");
     var playtimeValue=Desc<StackPanel>(window).Single(t=>t.Name=="XboxRecordedPlaytime").Children.OfType<TextBlock>().ElementAt(1);
     playtimeValue.Text="123.45 hours";Dispatcher.UIThread.RunJobs();
     Assert(spooferPlaytime.Text=="Xbox-recorded playtime: 123.45 hours", "Queue mirrors existing playtime reader");
