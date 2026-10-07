@@ -5,7 +5,17 @@ param(
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 $output = Join-Path $repo $OutputDirectory
-$data = Get-Content -LiteralPath (Join-Path $repo 'src/AchievementLabs.App/Events/Data.json') -Raw | ConvertFrom-Json -AsHashtable
+$taskBundle = Join-Path $repo 'catalog/event-catalog-1.0.5.zip'
+if (Test-Path -LiteralPath $taskBundle) {
+    $taskArchive = [IO.Compression.ZipFile]::OpenRead($taskBundle)
+    try {
+        $taskReader = [IO.StreamReader]::new($taskArchive.GetEntry('Data.json').Open())
+        try { $data = $taskReader.ReadToEnd() | ConvertFrom-Json -AsHashtable -Depth 100 }
+        finally { $taskReader.Dispose() }
+    } finally { $taskArchive.Dispose() }
+} else {
+    $data = Get-Content -LiteralPath (Join-Path $repo 'src/AchievementLabs.App/Events/Data.json') -Raw | ConvertFrom-Json -AsHashtable
+}
 $catalog = Get-Content -LiteralPath (Join-Path $repo 'XboxTitleIDs.json') -Raw | ConvertFrom-Json
 $byId = @{}
 foreach ($entry in $catalog) { $byId[[string]$entry.TitleId] = $entry }

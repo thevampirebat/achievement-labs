@@ -59,6 +59,6 @@ if (-not [string]::IsNullOrWhiteSpace($SigningThumbprint)) {
     $taskSigned = $true
 }
 $taskHash = (Get-FileHash -LiteralPath $taskExe.FullName -Algorithm SHA256).Hash
-[ordered]@{ version=$Version; file=$taskExe.FullName; bytes=$taskExe.Length; sha256=$taskHash; selfContained=$true; privateEventsIncluded=$false; signed=$taskSigned; liveLicensingVerified=$true } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWork 'release-manifest.json')
+[ordered]@{ version=$Version; file=$taskExe.FullName; bytes=$taskExe.Length; sha256=$taskHash; selfContained=$true; privateEventsIncluded=$false; publicEventCatalogVersion="1.0.5"; signed=$taskSigned; liveLicensingVerified=$true } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWork 'release-manifest.json')
 Write-Output "Release candidate: $($taskExe.FullName)"
 Write-Output "SHA256: $taskHash"

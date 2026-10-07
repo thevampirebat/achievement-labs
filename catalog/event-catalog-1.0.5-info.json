@@ -1,0 +1,16 @@
+{
+  "source": "achievement-labs-1.0.5.zip",
+  "sourceSha256": "78645caf2225e05d07fce264c208325d9f68072a98ba91665b679a9b476468e9",
+  "titleBlocks": 400,
+  "supportedIds": 398,
+  "newTitleBlocks": 95,
+  "mappedAchievements": 15944,
+  "normalizedRawBodyRequests": 608,
+  "repairedMetadataFragments": 48,
+  "supportedTitleIdsLast": true,
+  "sevenDaysToDie": {
+    "titleId": "60633334",
+    "mappedAchievements": 43,
+    "liveUnlockVerified": false
+  }
+}

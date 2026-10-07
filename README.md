@@ -4,11 +4,11 @@ Achievement, stat, presence and save tooling for Windows PC and Xbox titles. The
 
 This is an unofficial fork of [ethanwp28/achievement-labs](https://github.com/ethanwp28/achievement-labs), with the improvements below added to the upstream 1.0.3 source.
 
-**[Download the latest fork release](https://github.com/thevampirebat/achievement-labs/releases/latest)** · **[Download AchievementLabs.exe — fork.4](https://github.com/thevampirebat/achievement-labs/releases/download/v1.0.3-fork.4/AchievementLabs.exe)**
+**[Download the latest fork release](https://github.com/thevampirebat/achievement-labs/releases/latest)** · **[Download AchievementLabs.exe — fork.5](https://github.com/thevampirebat/achievement-labs/releases/download/v1.0.3-fork.5/AchievementLabs.exe)**
 
-The latest published version is **v1.0.3-fork.4**, including the cumulative upgrades from PRs #1–#8. The application version remains **1.0.3**; the fork suffix identifies our release. Existing settings and saved queues are retained. Windows x64, Windows 10 build 19041 or newer; the executable is unsigned.
+The latest published version is **v1.0.3-fork.5**, including the cumulative upgrades from PRs #1–#9. The application version remains **1.0.3**; the fork suffix identifies our release. Existing settings and saved queues are retained. Windows x64, Windows 10 build 19041 or newer; the executable is unsigned.
 
-See the [release notes](docs/releases/v1.0.3-fork.4.md) and [implementation details](docs/enhancements.md).
+See the [release notes](docs/releases/v1.0.3-fork.5.md) and [implementation details](docs/enhancements.md).
 
 ## Improvements in this fork
 
@@ -73,11 +73,11 @@ See the [release notes](docs/releases/v1.0.3-fork.4.md) and [implementation deta
 
 ## Validation and current limits
 
-All nine offline regression groups and the self-contained Windows build passed for fork.4 in [Actions run 37514873136](https://github.com/thevampirebat/achievement-labs/actions/runs/37514873136). These checks use synthetic credentials and intercepted requests, including real-window scrolling, timer bindings, queue state, mapping validation, token matching, exports and shared totals.
+The previous fork.4 release passed all nine offline regression groups and its Windows build in [Actions run 37514873136](https://github.com/thevampirebat/achievement-labs/actions/runs/37514873136). The catalogue update adds a full offline sweep of usable mappings; fork.5 validation is recorded in its release notes. These checks use synthetic credentials and intercepted requests, including real-window scrolling, timer bindings, queue state, mapping validation, token matching, exports and shared totals.
 
 - DLC grouping is currently implemented for **Ghosts Xbox One**, rather than automatically classifying every game's DLC.
 - Reviewed event mappings are supported by catalogue/metadata evidence and offline checks; this does not establish live Xbox achievement credit. Ten ambiguous Escapists entries remain unavailable.
-- Missing event data is not invented. This fork does not add verified event recipes for **7 Days to Die (Title ID 60633334)**.
+- The uploaded **1.0.5 event catalogue** is bundled in the app: 400 title blocks, 95 additions and 15,944 supplied achievement mappings. Incomplete recipes remain unavailable after payload validation. It includes **43 mappings for 7 Days to Die (Xbox One, Title ID 60633334)**; live achievement credit has not been verified.
 - Some titles may still lack totals when Xbox returns no usable definitions and no matching shared total exists. Shared definition totals do not supply another account's progress.
 - Automatic event-token retrieval depends on the matching Windows broker account being available. Gaming Services cache retrieval remains experimental.
 - Verify native notification delivery on your PC with **Settings → Test Windows notification**; Windows notification settings govern delivery.

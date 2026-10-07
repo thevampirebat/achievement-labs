@@ -26,7 +26,7 @@
 <AvaloniaResource Include="../../Epic_Games_Store_logo_2023_vertical_black.png" Link="Assets/epic-logo.png"/>
 <AvaloniaResource Include="../../Ubisoft_logo.png" Link="Assets/ubisoft-logo.png"/>
 <EmbeddedResource Include="../../site/assets/games.json" LogicalName="AchievementLabs.PublicCatalog.json"/>
-<!-- Private event recipes are served by the licensing API, never packaged. -->
+<!-- The public 1.0.5 event snapshot is embedded by Core; private service data is not packaged. -->
 <Content Include="../AchievementLabs.App/StatsCatalog/**/*.*" LinkBase="StatsCatalog" CopyToOutputDirectory="PreserveNewest"/>
 <Content Include="../../gfwlam/**/*.*" LinkBase="gfwlam" CopyToOutputDirectory="PreserveNewest"/>
 <Content Include="../../tools/Submit-ColdAlleyAchievements.ps1" Link="tools/Submit-ColdAlleyAchievements.ps1" CopyToOutputDirectory="PreserveNewest"/>
