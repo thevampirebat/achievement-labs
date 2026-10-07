@@ -89,7 +89,7 @@ public static class BatchPicker
         var all=new Button {Content="Select all eligible"}; var clear=new Button {Content="Clear"};
         tools.Children.Add(all);tools.Children.Add(clear);header.Children.Add(tools);
         var sorts=new ComboBox {Name="PickerNameSort",ItemsSource=AchievementView.Sorts,SelectedIndex=AchievementView.For(model).Sort,MinWidth=160};
-        var packs=new ComboBox {Name="PickerPackFilter",ItemsSource=AchievementView.Packs,SelectedIndex=0,MinWidth=170,IsVisible=AchievementView.Supports(game)};
+        var packs=new ComboBox {Name="PickerPackFilter",ItemsSource=AchievementView.PacksFor(game),SelectedIndex=0,MinWidth=170,IsVisible=AchievementView.Supports(game)};
         var viewTools=new WrapPanel {Orientation=Orientation.Horizontal};
         viewTools.Children.Add(new TextBlock {Text="Sort: ",VerticalAlignment=VerticalAlignment.Center});viewTools.Children.Add(sorts);
         viewTools.Children.Add(packs);header.Children.Add(viewTools);
@@ -123,12 +123,12 @@ public static class BatchPicker
         void Render()
         {
             list.Children.Clear();
-            var ordered=AchievementView.Arrange(rows,AchievementView.Supports(game),Math.Max(0,sorts.SelectedIndex),packs.SelectedItem as string??"All packs");
+            var ordered=AchievementView.Arrange(rows,AchievementView.Supports(game),Math.Max(0,sorts.SelectedIndex),packs.SelectedItem as string??"All packs",game);
             foreach(var c in choices)c.Check.IsVisible=ordered.Contains(c.Row);
             string? lastGroup=null;
             foreach(var row in ordered)
             {
-                string group=AchievementView.Group(row);
+                string group=AchievementView.Group(row,game);
                 if(AchievementView.Supports(game) && group!=lastGroup)
                 {
                     list.Children.Add(AchievementView.Divider(group));

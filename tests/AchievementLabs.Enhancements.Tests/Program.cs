@@ -17,7 +17,7 @@ static class Test
  static void Submit(Window d)=>Click(Desc<Button>(d).Single(b=>(b.Content as string)=="Unlock / retry selected"));
  public static void Main(string[] args)
  {
-  if(args.Contains("--queue-tools")){QueueToolTests.Run();return;}
+  if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();GameDetailsTests.Run();QueueToolTests.Run();return;}
   if(args.Contains("--playtime")){PlaytimeTests.Run();return;}
   if(args.Contains("--auto-token")){AutomaticTokenTests.Run();return;}
   if(args.Contains("--export")){ExportTests.Run();return;}
@@ -57,6 +57,13 @@ static class Test
    Assert(Desc<Button>(window).Any(b=>Equals(b.Content,"Save queue delays")), "Manual delay save present");
    Assert(Desc<CheckBox>(window).Any(b=>Equals(b.Content,"Stop on unlock failure")), "Failure stop toggle present");
    Assert(Desc<Button>(window).Count(b=>b.Name=="RemoveQueueAchievements")==1,"Queue removal attached");
+   Assert(Desc<Button>(window).Count(b=>b.Name=="RemoveCompletedQueueAchievements")==1,"Completed queue cleanup attached");
+   Assert(Desc<Button>(window).Count(b=>b.Name=="OpenGameTitleSpoofer")==1,"Game spoofer shortcut present");
+   var searchBox=Desc<TextBox>(window).First(b=>b.PlaceholderText=="Search achievements…");
+   Assert(searchBox.InnerRightContent is Button,"Search clearing control attached");
+   searchBox.Text="test search";Dispatcher.UIThread.RunJobs();
+   Click((Button)searchBox.InnerRightContent!);Dispatcher.UIThread.RunJobs();
+   Assert(searchBox.Text=="","Search clear immediately empties bound input");
    Assert(Desc<Button>(window).Any(b=>Equals(b.Content,"Load saved queue")),"Saved queue load button relabelled");
    {
     var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic;
