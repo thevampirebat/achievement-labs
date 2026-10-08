@@ -180,7 +180,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
             if (UsesLegacyEndpoint(game))
             {
                 var response = await Task.Run(() => api.GetAchievementsFor360TitleAsync(xuid, game.Id), lifetime.Token);
-                loaded = response?.achievements.Select(a => new Achievement(a.id.ToString(), a.name, a.description, a.gamerscore, DateTime.TryParse(a.timeUnlocked, out var unlocked) && unlocked.Year > 1970)).ToArray() ?? throw new InvalidDataException();
+                loaded = response?.achievements.Select(a => new Achievement(a.id.ToString(), a.name, a.description, a.gamerscore, a.unlocked ?? a.unlockedOnline ?? (DateTime.TryParse(a.timeUnlocked, out var unlocked) && unlocked.Year >= 2005))).ToArray() ?? throw new InvalidDataException();
             }
             else
             {

@@ -27,6 +27,14 @@ public sealed class AchievementExport
     static string Continuation(JsonElement e)=>S(Get(e,"pagingInfo"),"continuationToken") is string s && s.Length>0?s:S(e,"continuationToken");
     static bool ValidId(string s)=>s.Length>0 && s.All(char.IsAsciiDigit);
     public static bool Legacy(Game g)=>g.Platform.Split(", ",StringSplitOptions.RemoveEmptyEntries).Any(d=>new[]{"Xbox360","Mobile","WindowsPhone","Win8","Windows8"}.Contains(d,StringComparer.OrdinalIgnoreCase));
+    public static bool LegacyUnlocked(JsonElement achievement)
+    {
+        var unlocked = Get(achievement, "unlocked");
+        if (unlocked.ValueKind is JsonValueKind.True or JsonValueKind.False) return unlocked.GetBoolean();
+        var online = Get(achievement, "unlockedOnline");
+        if (online.ValueKind is JsonValueKind.True or JsonValueKind.False) return online.GetBoolean();
+        return DateTimeOffset.TryParse(S(achievement,"timeUnlocked"),out var when) && when.Year >= 2005;
+    }
     async Task<JsonDocument> Read(string url,string version,CancellationToken token)
     {
         for(int attempt=0;;attempt++)
@@ -88,7 +96,7 @@ public sealed class AchievementExport
                     throw new InvalidDataException("Achievement title associations do not match the requested game.");
                 string unlocked=legacy?S(a,"timeUnlocked"):S(Get(a,"progression"),"timeUnlocked");
                 string state=S(a,"progressState");
-                if(legacy)state=DateTimeOffset.TryParse(unlocked,out var when)&&when.Year>1970?"Achieved":"NotStarted";
+                if(legacy)state=LegacyUnlocked(a)?"Achieved":"NotStarted";
                 string score=S(a,"gamerscore");var rewards=Get(a,"rewards");
                 if(rewards.ValueKind==JsonValueKind.Array)foreach(var r in rewards.EnumerateArray())if(S(r,"type").Equals("Gamerscore",StringComparison.OrdinalIgnoreCase))score=S(r,"value");
                 string description=state=="Achieved"?S(a,"description"):S(a,"lockedDescription");if(description.Length==0)description=S(a,"description");

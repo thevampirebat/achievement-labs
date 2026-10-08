@@ -43,7 +43,11 @@ public sealed partial class DesktopModel
     }
     private void RefreshLibraryPresentation()
     {
-        if (games.Length > 0) Games = games;
+        if (games.Length == 0) return;
+        var selectedId = SelectedLibraryGame?.Id;
+        games = games.Select(WithLibraryPresentation).ToArray(); SaveCompletionCache();
+        Changed(nameof(VisibleGames));
+        SelectedLibraryGame = games.FirstOrDefault(g => g.Id == selectedId);
     }
     private void LoadCompletionCache()
     {
@@ -120,8 +124,11 @@ public sealed partial class DesktopModel
             {
                 var current = completionProgress.GetValueOrDefault(saved.Game.Id);
                 if (current != null && current.CheckedAt >= saved.ScannedAt) continue;
+                bool LegacyPlaceholder(AchievementExport.Row r) => AchievementExport.Legacy(saved.Game) &&
+                    r.Status == "Unlocked" && (!DateTimeOffset.TryParse(r.UnlockedAt,out var when) || when.Year < 2005);
                 var progress = saved.Rows.Select(r => new CompletionMarkers.Row(r.Id, r.Name,
-                    r.Status == "Unlocked", r.Status is "Unlocked" or "Locked")).ToArray();
+                    r.Status == "Unlocked" && !LegacyPlaceholder(r),
+                    (r.Status is "Unlocked" or "Locked") && !LegacyPlaceholder(r))).ToArray();
                 var title = SharedDlcCatalogue.Current.Find(saved.Game.Id, saved.Game.Platform.Replace(", ", " / "));
                 var result = CompletionMarkers.Evaluate(title, progress, progress.Length,
                     progress.Count(r => r.Known && r.Unlocked), progress.All(r => r.Known));

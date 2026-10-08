@@ -10,6 +10,12 @@ public static class CompletionPresentationTests
     public static void Run()
     {
         AppContext.SetSwitch("AchievementLabs.OfflineChecks", true);
+        using var lockedLegacy = JsonDocument.Parse("""{"unlocked":false,"timeUnlocked":"2002-11-15T00:00:00Z"}""");
+        using var earnedLegacy = JsonDocument.Parse("""{"unlocked":true,"unlockedOnline":false,"timeUnlocked":"2002-11-15T00:00:00Z"}""");
+        using var placeholderLegacy = JsonDocument.Parse("""{"timeUnlocked":"2002-11-15T00:00:00Z"}""");
+        Assert(!AchievementExport.LegacyUnlocked(lockedLegacy.RootElement), "Explicit locked flag overrides timestamp");
+        Assert(AchievementExport.LegacyUnlocked(earnedLegacy.RootElement), "Explicit unlocked flag is authoritative");
+        Assert(!AchievementExport.LegacyUnlocked(placeholderLegacy.RootElement), "Placeholder timestamp alone never proves an unlock");
         var title = new SharedDlcCatalogue.Title("70", ["XboxOne"], "https://example.com/verified", [
             new("Base game", "base", [new("1","First"),new("2","Second")]),
             new("Expansion", "dlc", [new("3","Third")])]);
