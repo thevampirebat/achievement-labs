@@ -78,7 +78,7 @@ public partial class MainWindow : Window
                 Close();
                 return;
             }
-            if (!Environment.GetCommandLineArgs().Contains("--smoke-test")) { await model.LoadPreferencesAsync(); await model.RefreshDlcCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return; }
+            if (!Environment.GetCommandLineArgs().Contains("--smoke-test")) { await model.LoadPreferencesAsync(); _ = model.RefreshDlcCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return; }
             try
             {
                 var args = Environment.GetCommandLineArgs();

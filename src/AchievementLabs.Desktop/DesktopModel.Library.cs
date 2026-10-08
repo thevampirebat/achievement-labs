@@ -77,8 +77,8 @@ public sealed partial class DesktopModel
     {
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
         await sharedLibraryTotals.RefreshAsync(http, AchievementLabs.Core.AchievementLabsPaths.LocalFile("shared-library-totals.json"), ct);
-        if (AutoRefreshDlc) await AchievementLabs.MultiSelect.SharedDlcCatalogue.Current.RefreshAsync(http, AchievementLabs.Core.AchievementLabsPaths.LocalFile("shared-achievement-packs.json"), ct);
-        UpdateDlcCatalogueStatus();
+        if (AutoRefreshDlc && !dlcRefreshRunning) await AchievementLabs.MultiSelect.SharedDlcCatalogue.Current.RefreshAsync(http, AchievementLabs.Core.AchievementLabsPaths.LocalFile("shared-achievement-packs.json"), ct);
+        if (!dlcRefreshRunning) UpdateDlcCatalogueStatus();
         TotalsStatus = $"Shared totals available for {sharedLibraryTotals.Count} titles. Fill missing totals checks the remaining titles.";
     }
     private CancellationTokenSource? totalsCancellation;
