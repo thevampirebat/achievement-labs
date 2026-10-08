@@ -95,7 +95,7 @@ public static class ExportAllView
                     bar.IsIndeterminate=p.Total==0;bar.Maximum=Math.Max(1,p.Total);bar.Value=p.Done;
                     counts.Text=$"{p.Done:N0} / {p.Total:N0} titles · {p.Saved:N0} saved · {p.Skipped:N0} skipped · {p.Failed:N0} failed";status.Text=p.Message;
                 }),cancel.Token));
-                status.Text=$"{(result.Paused?"Paused":"Finished")}. CSV saved to:\n{Path.Combine(result.Folder,"all-achievements.csv")}"+(result.Failed>0?"\nSee scan-errors.csv for titles to retry.":"");
+                status.Text=$"{(result.Paused?"Paused":"Finished")}. CSV saved to:\n{Path.Combine(result.Folder,"all-achievements.csv")}"+(result.Failed>0?"\nSee debug/scan-errors.csv for titles to retry.":"");
             }
             catch(Exception e){status.Text="Export stopped: "+e.Message+"\nCompleted titles remain saved. Resume using the same folder.";}
             finally

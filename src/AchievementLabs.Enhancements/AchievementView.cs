@@ -38,12 +38,20 @@ public static class AchievementView
     public static string[] PacksFor(object? game) => CatalogueTitle(game) is { } title
         ? new[] {"All packs"}.Concat(title.Packs.OrderBy(p => p.Kind == "base" ? 0 : 1).Select(p=>p.Name)).Append("Unclassified").ToArray()
         : Packs;
-    public sealed class Settings { public int Sort; public string Pack="All packs"; internal object? LastGame; }
+    public sealed class Settings
+    {
+        public int Sort; public string Pack = "All packs"; internal object? LastGame; internal string GameKey = "";
+        public readonly Dictionary<string, HashSet<string>> CollapsedByGame = new(StringComparer.Ordinal);
+        public HashSet<string> Collapsed => CollapsedByGame.TryGetValue(GameKey, out var groups) ? groups
+            : CollapsedByGame[GameKey] = new(StringComparer.Ordinal);
+    }
     static readonly ConditionalWeakTable<object,Settings> States=new();
     public static Settings For(object model)
     {
         var s=States.GetValue(model,_=>new Settings());object? game=Prop(model,"SelectedGame");
-        if(!ReferenceEquals(game,s.LastGame)){s.Pack="All packs";s.LastGame=game;}
+        var key = (Prop(game,"Id")?.ToString() ?? "") + "/" + (Prop(game,"Platform")?.ToString() ?? "");
+        if(key != s.GameKey) { s.Pack="All packs"; s.GameKey=key; }
+        s.LastGame=game;
         return s;
     }
     public static object[] Arrange(IEnumerable rows,bool grouped,int sort,string pack,object? game=null)
@@ -57,13 +65,26 @@ public static class AchievementView
         if(sort==2)ordered=ordered.ThenByDescending(r=>Prop(r,"Name")?.ToString(),StringComparer.CurrentCultureIgnoreCase);
         return ordered.ToArray();
     }
-    public static Array Transform(Array rows,object model)
+    public static Array Transform(Array rows,object model, bool respectCollapse = true)
     {
         var s=For(model);var selected=Arrange(rows,Supports(Prop(model,"SelectedGame")),s.Sort,s.Pack,Prop(model,"SelectedGame"));
+        // Retain a real representative row so its section heading stays available when collapsed.
+        // Searching temporarily expands sections, so matching achievements are never hidden.
+        if (respectCollapse && Supports(Prop(model,"SelectedGame")) && string.IsNullOrEmpty(Prop(model,"Search")?.ToString()))
+        {
+            var retained = new HashSet<string>(StringComparer.Ordinal);
+            selected = selected.Where(row => {
+                var group = Group(row, Prop(model,"SelectedGame"));
+                return !s.Collapsed.Contains(group) || retained.Add(group);
+            }).ToArray();
+        }
         Array typed=Array.CreateInstance(rows.GetType().GetElementType()!,selected.Length);
         for(int i=0;i<selected.Length;i++)typed.SetValue(selected[i],i);
         return typed;
     }
+    public static bool IsCollapsed(object model, object row) => Supports(Prop(model,"SelectedGame")) &&
+        string.IsNullOrEmpty(Prop(model,"Search")?.ToString()) &&
+        For(model).Collapsed.Contains(Group(row,Prop(model,"SelectedGame")));
     public static bool StartsGroup(IEnumerable? rows,object row,object? game=null)
     {
         string? previous=null;
@@ -124,8 +145,25 @@ public static class AchievementView
                 Control? original=template.Build(row);
                 if(!Supports(Prop(model,"SelectedGame")))return original;
                 var box=new StackPanel {Spacing=3};
-                var divider=Divider(Group(row,Prop(model,"SelectedGame")));divider.Tag=row;divider.IsVisible=StartsGroup(list.ItemsSource,row,Prop(model,"SelectedGame"));box.Children.Add(divider);
-                if(original!=null)box.Children.Add(original);return box;
+                var group = Group(row, Prop(model,"SelectedGame"));
+                var state = For(model);
+                bool collapsed = state.Collapsed.Contains(group) && string.IsNullOrEmpty(Prop(model,"Search")?.ToString());
+                var divider=Divider(group);divider.Tag=row;divider.IsVisible=StartsGroup(list.ItemsSource,row,Prop(model,"SelectedGame"));
+                var toggle = new Button { Name="ToggleAchievementSection", Content=(collapsed ? "▸  " : "▾  ") + group,
+                    HorizontalAlignment=HorizontalAlignment.Stretch, HorizontalContentAlignment=HorizontalAlignment.Left,
+                    Background=Brushes.Transparent, BorderThickness=new Thickness(0), Padding=new Thickness(0,4),
+                    Foreground=new SolidColorBrush(Color.Parse("#58DBA1")), FontWeight=FontWeight.SemiBold };
+                ToolTip.SetTip(toggle, (collapsed ? "Expand " : "Collapse ") + group);
+                toggle.Click += (_,e) => {
+                    e.Handled = true;
+                    var current = For(model);
+                    if (!current.Collapsed.Remove(group)) current.Collapsed.Add(group);
+                    if (Prop(model,"SelectedAchievement") is { } selected && Group(selected,Prop(model,"SelectedGame")) == group)
+                        model.GetType().GetProperty("SelectedAchievement",Flags)?.SetValue(model,null);
+                    Changed();
+                };
+                divider.Child=toggle;box.Children.Add(divider);
+                if(original!=null) { original.IsVisible=!collapsed; box.Children.Add(original); } return box;
             },false);
             list.PropertyChanged+=(_,e)=>
             {

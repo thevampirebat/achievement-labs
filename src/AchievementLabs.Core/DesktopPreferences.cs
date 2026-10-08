@@ -15,6 +15,11 @@ public sealed record DesktopPreferences
     public bool LaunchXboxAppHidden { get; init; }
     public bool WindowsNotificationsEnabled { get; init; } = true;
     public bool NotifySpooferStops { get; init; } = true;
+    public bool AutoRefreshDlc { get; init; } = true;
+    public bool ShowMythicIcon { get; init; } = true;
+    public bool HighlightCompletedDlcs { get; init; } = true;
+    public string MythicColour { get; init; } = "#70C98A";
+    public string CompletedDlcColour { get; init; } = "#183A27";
     public bool MintAccent { get; init; }
 }
 public sealed class DesktopPreferencesStore(string path)

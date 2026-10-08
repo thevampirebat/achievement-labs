@@ -18,6 +18,7 @@ public sealed partial class DesktopModel
 
     private void ResetWorkflowAccount()
     {
+        completionScanCancellation?.Cancel(); completionProgress.Clear();
         queueAccount.XAUTH = "";
         queueAccount.XUIDOnly = "";
         queueAccount.EventsToken = "";

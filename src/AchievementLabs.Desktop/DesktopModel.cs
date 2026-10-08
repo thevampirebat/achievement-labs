@@ -22,6 +22,13 @@ public record Achievement(string Id, string Name, string Description, int Score,
 }
 public record Game(string Id, string Name, string Platform, int Completed, int Total, int Score, bool ProgressKnown = true, string? ImageUrl = null, DateTime? LastPlayed = null, bool NoDefinitionsReturned = false)
 {
+    public bool BaseComplete { get; init; }
+    public bool AddOnsComplete { get; init; }
+    public bool MythicVisible { get; init; }
+    public string MythicColour { get; init; } = "#70C98A";
+    public string CompletionBackground { get; init; } = "Transparent";
+    public string PlatformLabel => AchievementLabs.MultiSelect.GfwlTitles.Label(Id, Platform);
+    public string CompletionTooltip => AddOnsComplete ? "All verified DLC and title-update achievements completed" : "Base game completed (local indicator from verified achievement progress)";
     public string ShortName => Name;
     public string Monogram => string.Concat(Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0]));
     public string Color => "#70C98A";
@@ -54,7 +61,8 @@ public sealed partial class DesktopModel : Observable, IDisposable
         private set
         {
             var selectedId = SelectedLibraryGame?.Id;
-            games = value.Select(g => WithSharedTotal(WithKnownTotal(g, knownLibraryTotals))).ToArray();
+            games = value.Select(g => WithLibraryPresentation(WithSharedTotal(WithKnownTotal(g, knownLibraryTotals)))).ToArray();
+            SaveCompletionCache();
             var visible = VisibleGames.ToArray();
             Changed(); Changed(nameof(CanExportVerifiedTotals)); Changed(nameof(VisibleGames)); Changed(nameof(GameCount)); Changed(nameof(HomeXboxSummary));
             SelectedLibraryGame = visible.FirstOrDefault(g => g.Id == selectedId) ?? visible.FirstOrDefault();
@@ -75,8 +83,11 @@ public sealed partial class DesktopModel : Observable, IDisposable
     }
     public string LibrarySearch { get => librarySearch; set { librarySearch = value ?? ""; Changed(); Changed(nameof(VisibleGames)); } }
     public string GameCount => Games.Length.ToString();
-    public Achievement[] VisibleAchievements => (Achievement[])AchievementLabs.MultiSelect.AchievementView.Transform(
-        achievements.Where(a => (filter == "All" || a.ProgressKnown && (filter == "Unlocked") == a.Unlocked) && (a.Name.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Description.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Id == Search)).ToArray(), this);
+    private Achievement[] FilteredAchievementRows() => achievements.Where(a =>
+        (filter == "All" || a.ProgressKnown && (filter == "Unlocked") == a.Unlocked) &&
+        (a.Name.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Description.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Id == Search)).ToArray();
+    public Achievement[] VisibleAchievements => (Achievement[])AchievementLabs.MultiSelect.AchievementView.Transform(FilteredAchievementRows(), this);
+    public Achievement[] BatchAchievements => (Achievement[])AchievementLabs.MultiSelect.AchievementView.Transform(FilteredAchievementRows(), this, false);
     public Game? SelectedGame { get => selectedGame; private set { selectedGame = value; Changed(); } }
     public Game? SelectedLibraryGame { get => selectedLibraryGame; set { selectedLibraryGame = value; Changed(); Changed(nameof(HasLibrarySelection)); } }
     public bool HasLibrarySelection => SelectedLibraryGame != null;
@@ -138,10 +149,12 @@ public sealed partial class DesktopModel : Observable, IDisposable
         session = connected;
         await RefreshSharedTotalsAsync(lifetime.Token);
         LoadLibraryTotals();
+        LoadCompletionCache();
         connectionMethod = method;
         ApplyXboxProfile(result.Profile?.ProfileUsers.FirstOrDefault());
         Games = result.Titles.Titles.Where(t => t.TitleId != null).Select(t => new Game(t.TitleId!, t.Name ?? t.TitleId!, string.Join(" / ", t.Devices), t.Achievement?.CurrentAchievements ?? 0, t.Achievement?.TotalAchievements ?? 0, t.Achievement?.CurrentGamerscore ?? 0, true, ResolveTitleImage(t.DisplayImage, t.Images), t.TitleHistory?.LastTimePlayed)).OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ToArray();
         Changed(nameof(ConnectionLabel)); Changed(nameof(CanDisconnect)); Changed(nameof(HomeXboxSummary));
+        await ImportCompletionExportsAsync(false);
     }
     public async Task SelectGameAsync(Game game)
     {
@@ -178,6 +191,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
             }
             if (version != selectionVersion || lifetime.IsCancellationRequested) return;
             achievements = loaded;
+            RememberCompletion(game, loaded.Select(a => new AchievementLabs.MultiSelect.CompletionMarkers.Row(a.Id, a.Name, a.Unlocked, a.ProgressKnown)).ToArray());
             var updated = game with { Completed = loaded.Count(a => a.Unlocked), Total = loaded.Length, Score = loaded.Where(a => a.Unlocked).Sum(a => a.Score), ProgressKnown = loaded.All(a => a.ProgressKnown) };
             RememberLibraryTotal(updated.Id, updated.Total);
             SelectedGame = updated;
@@ -213,6 +227,6 @@ public sealed partial class DesktopModel : Observable, IDisposable
             .Select(value => value.Type == JTokenType.String ? value.Value<string>() : null)
             .FirstOrDefault(value => value != null && (value.StartsWith("http", StringComparison.OrdinalIgnoreCase) || value.StartsWith("//", StringComparison.Ordinal)));
     }
-    public void Dispose() { Windows8.Dispose(); eventCatalog.Dispose(); apiServer?.Dispose(); StopQueues(); steam.StopSpoofSession(); browserLogin?.Dispose(); lifetime.Cancel(); /* Requests may still own the client; dispose after completion. */ _ = DisposeClientAsync(); }
+    public void Dispose() { completionScanCancellation?.Cancel(); Windows8.Dispose(); eventCatalog.Dispose(); apiServer?.Dispose(); StopQueues(); steam.StopSpoofSession(); browserLogin?.Dispose(); lifetime.Cancel(); /* Requests may still own the client; dispose after completion. */ _ = DisposeClientAsync(); }
     private async Task DisposeClientAsync() { await requests.WaitAsync(); client?.Dispose(); requests.Release(); }
 }

@@ -12,6 +12,7 @@ namespace AchievementLabs.Desktop;
 public partial class MainWindow : Window
 {
     private readonly DesktopModel model = new();
+    private readonly DispatcherTimer dlcCatalogueTimer = new() { Interval = TimeSpan.FromHours(1) };
     private readonly DispatcherTimer xboxPresenceTimer = new() { Interval = TimeSpan.FromSeconds(2) };
 
     public MainWindow()
@@ -32,8 +33,9 @@ public partial class MainWindow : Window
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
         xboxPresenceTimer.Tick += (_, _) => model.RefreshXboxPcAppPresence();
         var offlineChecks = AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var offline) && offline;
-        if (!offlineChecks) xboxPresenceTimer.Start();
-        Closed += (_, _) => { xboxPresenceTimer.Stop(); model.Dispose(); };
+        dlcCatalogueTimer.Tick += async (_, _) => await model.RefreshDlcCatalogueAsync(false);
+        if (!offlineChecks) { xboxPresenceTimer.Start(); dlcCatalogueTimer.Start(); }
+        Closed += (_, _) => { xboxPresenceTimer.Stop(); dlcCatalogueTimer.Stop(); model.Dispose(); };
         model.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(model.MintAccent)) ApplyAccent();
@@ -76,7 +78,7 @@ public partial class MainWindow : Window
                 Close();
                 return;
             }
-            if (!Environment.GetCommandLineArgs().Contains("--smoke-test")) { await model.LoadPreferencesAsync(); await model.AttachXboxPcAppAsync(); return; }
+            if (!Environment.GetCommandLineArgs().Contains("--smoke-test")) { await model.LoadPreferencesAsync(); await model.RefreshDlcCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return; }
             try
             {
                 var args = Environment.GetCommandLineArgs();
@@ -264,6 +266,19 @@ public partial class MainWindow : Window
         try { await model.ExportCsvAsync(path); } catch { model.Notice = "Could not export achievements. Check the destination and try again."; }
     }
     private void ApplyAccent() => Application.Current!.Resources["Accent"] = new SolidColorBrush(Color.Parse(model.MintAccent ? "#8AD7A0" : "#70C98A"));
+    private async void RefreshDlcCatalogue(object? s, RoutedEventArgs e) => await model.RefreshDlcCatalogueAsync();
+    private async void ImportCompletionExports(object? s, RoutedEventArgs e) => await model.ImportCompletionExportsAsync();
+    private async void ScanCompletionProgress(object? s, RoutedEventArgs e) => await model.ScanMissingCompletionAsync();
+    private void StopCompletionScan(object? s, RoutedEventArgs e) => model.StopCompletionScan();
+    private void ResetCompletionColours(object? s, RoutedEventArgs e) => model.ResetCompletionColours();
+    private void OpenDebugReports(object? s, RoutedEventArgs e) => model.OpenDebugReports();
+    private void OpenCatalogueReview(object? s, RoutedEventArgs e) => model.OpenCatalogueReview((s as Button)?.Tag as string ?? "corrections");
+    private async void OpenBulkAchievementExport(object? s, RoutedEventArgs e)
+    {
+        if (!model.CanQuery) return;
+        try { await AchievementLabs.MultiSelect.ExportAllView.Show(this, model); }
+        catch { model.Notice = "Could not open the bulk achievement export."; }
+    }
     private void ShowSettings(object? s, RoutedEventArgs e) => model.Navigate("Settings");
     private void ShowDiagnostics(object? s, RoutedEventArgs e) => model.Navigate("Diagnostics");
     private void TestWindowsNotification(object? s, RoutedEventArgs e) => model.TestWindowsNotification();

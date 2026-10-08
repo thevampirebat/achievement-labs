@@ -170,7 +170,8 @@ public sealed class AchievementExport
         {
             // Completed titles survive cancellation, authentication failures and restarts.
             await WriteCsv(folder,saved.Values);
-            await Atomic(Path.Combine(folder,"scan-errors.csv"),string.Join("\r\n",failures));
+            var debug = Path.Combine(folder, "debug"); Directory.CreateDirectory(debug);
+            await Atomic(Path.Combine(debug,"scan-errors.csv"),string.Join("\r\n",failures));
         }
         return new(added,skipped,failed,paused,folder);
     }
