@@ -40,6 +40,19 @@ public static class DlcCatalogueTests
         try { catalogue.Merge(Sample.Replace("\"id\":\"9\"", "\"id\":\"1\"")); throw new Exception("Expected invalid map"); }
         catch (InvalidDataException) { }
         Assert(SharedDlcCatalogue.Group(catalogue.Find("42","XboxOne")!,"9","Last") == "Expansion", "Invalid update leaves prior mappings intact");
+        var hub = catalogue.Find("2001700854", "XboxOne")!;
+        Assert(hub != null && hub.IsHub && hub.Packs.All(p => p.Kind != "base"), "CoD hub contains real game sections without a fake base game");
+        Assert(hub!.Packs.Sum(p => p.Achievements.Length) == 157, "Every exported CoD hub achievement is classified");
+        foreach (var pack in hub.Packs)
+            foreach (var achievement in pack.Achievements)
+                Assert(SharedDlcCatalogue.Group(hub, achievement.Id, achievement.Name) == pack.Name, "Hub retains exact Xbox achievement identity");
+        var hubSample = Sample.Replace("\"titleId\":\"42\"", "\"titleId\":\"44\",\"isHub\":true")
+            .Replace("{\"name\":\"Base game\",\"kind\":\"base\",\"achievements\":[{\"id\":\"1\",\"name\":\"First\"}]},", "");
+        catalogue.Merge(hubSample);
+        Assert(catalogue.Find("44", "XboxOne")!.Packs.Length == 1, "Explicit hub accepts only its game section");
+        try { catalogue.Merge(hubSample.Replace(",\"isHub\":true", "")); throw new Exception("Expected invalid ordinary title"); }
+        catch (InvalidDataException) { }
+        Assert(catalogue.Find("44", "XboxOne")!.IsHub, "Invalid ordinary title does not replace the hub");
         var cache = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "packs.json");
         try
         {

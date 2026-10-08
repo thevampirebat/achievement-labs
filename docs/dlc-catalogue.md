@@ -18,3 +18,7 @@ Pack `kind` is `base`, `dlc`, or `update`. Exactly one base pack is required, an
 - The game header displays Xbox-recorded playtime using the connected account. Values are cached per account/title for five minutes; absent statistics display **Unavailable**, rather than an invented zero.
 
 Xbox Mythic completion means all original achievements, excluding later DLC and updates. A future library badge should use verified base completion or authoritative Xbox Mythic status, not assume total gamerscore or current DLC-inclusive completion proves Mythic status.
+
+## Achievement hubs
+
+An explicitly marked `isHub: true` title has named game/add-on sections and no base-game section. Ordinary titles still require exactly one nonempty base section. The Call of Duty hub (Title ID 2001700854) is bundled in `catalog/achievement-hubs.json`; it keeps Modern Warfare II, Modern Warfare III, Black Ops 6 and Black Ops 7 separate, including the MWIII title update. This separate embedded resource keeps the published shared catalogue readable by older app versions. Hub support requires a new executable; ordinary pack updates still use the existing shared catalogue refresh.

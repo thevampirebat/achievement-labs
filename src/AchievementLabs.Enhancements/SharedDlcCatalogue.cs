@@ -7,7 +7,7 @@ public sealed class SharedDlcCatalogue
 {
     public sealed record Definition(string Id, string Name);
     public sealed record Pack(string Name, string Kind, Definition[] Achievements);
-    public sealed record Title(string TitleId, string[] Platforms, string Source, Pack[] Packs);
+    public sealed record Title(string TitleId, string[] Platforms, string Source, Pack[] Packs, bool IsHub = false);
     public sealed record Document(int SchemaVersion, Title[] Titles);
     static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     public static SharedDlcCatalogue Current { get; } = Bundled();
@@ -20,7 +20,13 @@ public sealed class SharedDlcCatalogue
         using var stream = typeof(SharedDlcCatalogue).Assembly.GetManifestResourceStream("AchievementLabs.SharedPacks.json")
             ?? throw new InvalidDataException("Bundled DLC catalogue missing.");
         using var reader = new StreamReader(stream);
-        var result = new SharedDlcCatalogue(); result.Merge(reader.ReadToEnd()); return result;
+        var result = new SharedDlcCatalogue(); result.Merge(reader.ReadToEnd());
+        // Hubs use a separate embedded catalogue so older app versions can still
+        // read the published schema that requires a nonempty base-game section.
+        using var hubs = typeof(SharedDlcCatalogue).Assembly.GetManifestResourceStream("AchievementLabs.SharedHubs.json")
+            ?? throw new InvalidDataException("Bundled achievement hub catalogue missing.");
+        using var hubReader = new StreamReader(hubs);
+        result.Merge(hubReader.ReadToEnd()); return result;
     }
     public void Merge(string json)
     {
@@ -34,7 +40,7 @@ public sealed class SharedDlcCatalogue
             if (title == null || !uint.TryParse(title.TitleId, out var id) || id == 0 || title.TitleId != id.ToString() ||
                 title.Platforms == null || title.Platforms.Length == 0 || title.Platforms.Any(string.IsNullOrWhiteSpace) ||
                 !Uri.TryCreate(title.Source, UriKind.Absolute, out var source) || source.Scheme != "https" ||
-                title.Packs == null || title.Packs.Length == 0 || title.Packs.Length > 500 || title.Packs.Count(p => p?.Kind == "base") != 1)
+                title.Packs == null || title.Packs.Length == 0 || title.Packs.Length > 500 || title.Packs.Count(p => p?.Kind == "base") != (title.IsHub ? 0 : 1))
                 throw new InvalidDataException("Invalid DLC title.");
             foreach (var platform in title.Platforms)
                 if (!editions.Add(title.TitleId + "/" + platform)) throw new InvalidDataException("Duplicate edition.");

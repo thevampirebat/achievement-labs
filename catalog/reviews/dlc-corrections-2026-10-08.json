@@ -1,0 +1,2427 @@
+{
+  "reviewedAt": "2026-10-08",
+  "method": "Display metadata only. Edition links supplied by the user are manually confirmed edition overrides, including GFWL exports labelled Xbox360. Complete source sets and pack counts/Gamerscore reconcile. Xbox achievement IDs/names are retained. Names are compared ignoring case, punctuation and diacritics; explicit name corrections are recorded. Other renamed achievements require identical requirement text and matching Gamerscore. Duplicate names require unique descriptions or membership in the same pack. Missing export Gamerscore is accepted only when the complete achievement set matches by name; every supplied score must agree. No list positions, events or account progress are used. Existing 1146 title mappings remain unchanged.",
+  "inputZipSha256": "f4daf09f593dd8fefd927d23737d5c3ec5ca36075a3146be1809d00d8971f914",
+  "summary": {
+    "reviewed": 178,
+    "added": 178,
+    "remaining": 0,
+    "achievementsAdded": 10311,
+    "totalTitleLists": 1324,
+    "sharedCatalogueLists": 1323,
+    "bundledHubLists": 1,
+    "newAddOnSections": 119,
+    "newUpdateSections": 260
+  },
+  "accepted": [
+    {
+      "titleId": "2115929793",
+      "title": "A Memoir Blue",
+      "source": "https://www.trueachievements.com/game/A-Memoir-Blue/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 1,
+      "nameExceptions": [],
+      "achievementCount": 15,
+      "isHub": false
+    },
+    {
+      "titleId": "1755599316",
+      "title": "Age of Empires Definitive Edition",
+      "source": "https://www.trueachievements.com/game/Age-of-Empires-Definitive-Edition/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 44,
+      "isHub": false
+    },
+    {
+      "titleId": "2064168993",
+      "title": "Age of Empires II: Definitive Edition",
+      "source": "https://www.trueachievements.com/game/Age-of-Empires-II-Definitive-Edition/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "337",
+          "xboxName": "Supply Surplus",
+          "sourceName": "An Army Marches on its Stomach",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 370,
+      "isHub": false
+    },
+    {
+      "titleId": "897067440",
+      "title": "Age of Empires: Definitive Edition",
+      "source": "https://www.trueachievements.com/game/Age-of-Empires-Definitive-Edition/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 44,
+      "isHub": false
+    },
+    {
+      "titleId": "1480659507",
+      "title": "Alan Wake's American Nightmare ®",
+      "source": "https://www.trueachievements.com/game/American-Nightmare/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "1715349030",
+      "title": "Asphalt Legends",
+      "source": "https://www.trueachievements.com/game/Asphalt-9/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 20,
+      "isHub": false
+    },
+    {
+      "titleId": "1431504989",
+      "title": "Assassin's Creed Brotherhood",
+      "source": "https://www.trueachievements.com/game/Assassins-Creed-Brotherhood/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 60,
+      "isHub": false
+    },
+    {
+      "titleId": "1431504955",
+      "title": "Assassin's Creed II",
+      "source": "https://www.trueachievements.com/game/Assassins-Creed-2/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1754564226",
+      "title": "Atlas Fallen: Reign of Sand (Windows)",
+      "source": "https://www.trueachievements.com/game/Atlas-Fallen/achievements",
+      "sourcePlatform": "Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 38,
+      "isHub": false
+    },
+    {
+      "titleId": "1414596577",
+      "title": "Avatar: TLA: TBE",
+      "source": "https://www.trueachievements.com/game/Avatar-The-Burning-Earth/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 5,
+      "isHub": false
+    },
+    {
+      "titleId": "1464995744",
+      "title": "Batman Arkham City",
+      "source": "https://www.trueachievements.com/game/Batman-Arkham-City-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 64,
+      "isHub": false
+    },
+    {
+      "titleId": "1396901900",
+      "title": "Batman: AA GOTY",
+      "source": "https://www.trueachievements.com/game/Batman-Arkham-Asylum-GOTY/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 47,
+      "isHub": false
+    },
+    {
+      "titleId": "1396901878",
+      "title": "Batman: Arkham Asylum",
+      "source": "https://www.trueachievements.com/game/Batman-Arkham-Asylum/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 47,
+      "isHub": false
+    },
+    {
+      "titleId": "1396901887",
+      "title": "Batman: Arkham Asylum",
+      "source": "https://www.trueachievements.com/game/Batman-Arkham-Asylum-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 47,
+      "isHub": false
+    },
+    {
+      "titleId": "20391045",
+      "title": "Batman: Return to Arkham - Arkham Asylum",
+      "source": "https://www.trueachievements.com/game/Batman-Arkham-Asylum-Xbox-One/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 47,
+      "isHub": false
+    },
+    {
+      "titleId": "1612082944",
+      "title": "Billy’s Game Show",
+      "source": "https://www.trueachievements.com/game/Billys-Game-Show-Xbox-One/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 17,
+      "isHub": false
+    },
+    {
+      "titleId": "2109727492",
+      "title": "Billy’s Game Show (Xbox Series X|S)",
+      "source": "https://www.trueachievements.com/game/Billys-Game-Show/achievements",
+      "sourcePlatform": "Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 17,
+      "isHub": false
+    },
+    {
+      "titleId": "298354887",
+      "title": "BIOHAZARD 7 resident evil グロテスクVer.",
+      "source": "https://www.trueachievements.com/game/Resident-Evil-7-Grotesque/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 58,
+      "isHub": false
+    },
+    {
+      "titleId": "918284490",
+      "title": "BIOHAZARD RE:2 Z Version",
+      "source": "https://www.trueachievements.com/game/Resident-Evil-2-Japanese/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 44,
+      "isHub": false
+    },
+    {
+      "titleId": "420309331",
+      "title": "BIOHAZARD RE:3 Z Version for Windows",
+      "source": "https://www.trueachievements.com/game/Resident-Evil-3-Japanese/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 32,
+      "isHub": false
+    },
+    {
+      "titleId": "1854828947",
+      "title": "BIOHAZARD VILLAGE Z Version",
+      "source": "https://www.trueachievements.com/game/Resident-Evil-Village-Japanese/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 56,
+      "isHub": false
+    },
+    {
+      "titleId": "1414793176",
+      "title": "BioShock",
+      "source": "https://www.trueachievements.com/game/BioShock/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 51,
+      "isHub": false
+    },
+    {
+      "titleId": "1414793230",
+      "title": "BioShock",
+      "source": "https://www.trueachievements.com/game/BioShock-German/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 51,
+      "isHub": false
+    },
+    {
+      "titleId": "1414793308",
+      "title": "BioShock 2",
+      "source": "https://www.trueachievements.com/game/BioShock-2-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 68,
+      "isHub": false
+    },
+    {
+      "titleId": "996030243",
+      "title": "BioShock 2 Remastered",
+      "source": "https://www.trueachievements.com/game/BioShock-2-Xbox-One/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 53,
+      "isHub": false
+    },
+    {
+      "titleId": "699731308",
+      "title": "BioShock Infinite: The Complete Edition",
+      "source": "https://www.trueachievements.com/game/BioShock-Infinite-Xbox-One/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 80,
+      "isHub": false
+    },
+    {
+      "titleId": "1096288213",
+      "title": "BlazBlue",
+      "source": "https://www.trueachievements.com/game/BlazBlue-Calamity-Trigger/achievements",
+      "sourcePlatform": "Xbox 360, Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1112934366",
+      "title": "Bolt",
+      "source": "https://www.trueachievements.com/game/Disney-Bolt/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 37,
+      "isHub": false
+    },
+    {
+      "titleId": "1414793191",
+      "title": "Borderlands",
+      "source": "https://www.trueachievements.com/game/Borderlands/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 80,
+      "isHub": false
+    },
+    {
+      "titleId": "1880653152",
+      "title": "Bright Lights of Svetlov",
+      "source": "https://www.trueachievements.com/game/Bright-Lights-of-Svetlov-Xbox-One/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "1612357248",
+      "title": "Bright Lights of Svetlov (Xbox Series X|S)",
+      "source": "https://www.trueachievements.com/game/Bright-Lights-of-Svetlov/achievements",
+      "sourcePlatform": "Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "2001700854",
+      "title": "Call of Duty®",
+      "source": "https://www.trueachievements.com/game/Call-of-Duty/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": true,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 157,
+      "isHub": true
+    },
+    {
+      "titleId": "1636606847",
+      "title": "Call of Duty®: Modern Warfare® - Digital Standard Edition (Windows)",
+      "source": "https://www.trueachievements.com/game/Call-of-Duty-Modern-Warfare-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 27,
+      "isHub": false
+    },
+    {
+      "titleId": "59903186",
+      "title": "Call of Duty®: Modern Warfare® 2 Campaign Remastered",
+      "source": "https://www.trueachievements.com/game/Modern-Warfare-2-Remastered/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1764318423",
+      "title": "Call of Duty®: Vanguard - Standard Edition",
+      "source": "https://www.trueachievements.com/game/Call-of-Duty-Vanguard-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 44,
+      "isHub": false
+    },
+    {
+      "titleId": "1096157212",
+      "title": "Call of Duty®: WaW",
+      "source": "https://www.trueachievements.com/game/Call-of-Duty-World-at-War/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 66,
+      "isHub": false
+    },
+    {
+      "titleId": "1096157379",
+      "title": "COD: Black Ops II",
+      "source": "https://www.trueachievements.com/game/Call-of-Duty-Black-Ops-II/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 90,
+      "isHub": false
+    },
+    {
+      "titleId": "1904590412",
+      "title": "Cold Silence",
+      "source": "https://www.trueachievements.com/game/Cold-Silence/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 10,
+      "nameExceptions": [],
+      "achievementCount": 68,
+      "isHub": false
+    },
+    {
+      "titleId": "824378203",
+      "title": "Crackdown 3: Campaign",
+      "source": "https://www.trueachievements.com/game/Crackdown-3/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 95,
+      "isHub": false
+    },
+    {
+      "titleId": "623325843",
+      "title": "Cuphead",
+      "source": "https://www.trueachievements.com/game/Cuphead/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 4,
+      "nameExceptions": [],
+      "achievementCount": 42,
+      "isHub": false
+    },
+    {
+      "titleId": "2002259331",
+      "title": "Darksiders III",
+      "source": "https://www.trueachievements.com/game/Darksiders-3-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 64,
+      "isHub": false
+    },
+    {
+      "titleId": "2038696401",
+      "title": "Daymare: 1994 Sandcastle (Xbox one version)",
+      "source": "https://www.trueachievements.com/game/Daymare-1994-Sandcastle-Xbox-One/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 30,
+      "isHub": false
+    },
+    {
+      "titleId": "1734943461",
+      "title": "Daymare: 1994 Sandcastle (Xbox Series X|S Version)",
+      "source": "https://www.trueachievements.com/game/Daymare-1994-Sandcastle/achievements",
+      "sourcePlatform": "Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 30,
+      "isHub": false
+    },
+    {
+      "titleId": "5433956",
+      "title": "Dead Island Definitive Edition",
+      "source": "https://www.trueachievements.com/game/Dead-Island/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 58,
+      "isHub": false
+    },
+    {
+      "titleId": "1128466412",
+      "title": "Dead Rising 2",
+      "source": "https://www.trueachievements.com/game/Dead-Rising-2/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1128466446",
+      "title": "Dead Rising 2",
+      "source": "https://www.trueachievements.com/game/Dead-Rising-2-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "903716936",
+      "title": "Dear Esther: Landmark Edition",
+      "source": "https://www.trueachievements.com/game/Dear-Esther/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 10,
+      "isHub": false
+    },
+    {
+      "titleId": "1623704813",
+      "title": "DEATH STRANDING DIRECTOR'S CUT",
+      "source": "https://www.trueachievements.com/game/Death-Stranding-Directors-Cut/achievements",
+      "sourcePlatform": "Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "51",
+          "xboxName": "Well-Travelled",
+          "sourceName": "Well-Traveled",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 63,
+      "isHub": false
+    },
+    {
+      "titleId": "638965135",
+      "title": "Descenders",
+      "source": "https://www.trueachievements.com/game/Descenders/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 1,
+      "nameExceptions": [],
+      "achievementCount": 40,
+      "isHub": false
+    },
+    {
+      "titleId": "1480657549",
+      "title": "DR2: CASE ZERO",
+      "source": "https://www.trueachievements.com/game/Dead-Rising-2-Case-Zero/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "834001943",
+      "title": "Dying Light 2: Stay Human - Reloaded Edition",
+      "source": "https://www.trueachievements.com/game/Dying-Light-2/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "69",
+          "xboxName": "Street Art Aficionado",
+          "sourceName": "Street Art Afficionado",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 65,
+      "isHub": false
+    },
+    {
+      "titleId": "1797796342",
+      "title": "Eastern Exorcist",
+      "source": "https://www.trueachievements.com/game/Eastern-Exorcist/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 38,
+      "isHub": false
+    },
+    {
+      "titleId": "1804401706",
+      "title": "F1® 22 Xbox Series X|S",
+      "source": "https://www.trueachievements.com/game/F1-22/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1297287382",
+      "title": "Fable III",
+      "source": "https://www.trueachievements.com/game/Fable-3/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 60,
+      "isHub": false
+    },
+    {
+      "titleId": "1297287434",
+      "title": "Fable III",
+      "source": "https://www.trueachievements.com/game/Fable-3/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 60,
+      "isHub": false
+    },
+    {
+      "titleId": "1112737750",
+      "title": "Fallout 3",
+      "source": "https://www.trueachievements.com/game/Fallout-3-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 72,
+      "isHub": false
+    },
+    {
+      "titleId": "1882395273",
+      "title": "Fear the Spotlight",
+      "source": "https://www.trueachievements.com/game/Fear-the-Spotlight/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "18",
+          "xboxName": "Goodbye",
+          "sourceName": "The End",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 35,
+      "isHub": false
+    },
+    {
+      "titleId": "2109344129",
+      "title": "FINAL FANTASY XV WINDOWS EDITION",
+      "source": "https://www.trueachievements.com/game/Final-Fantasy-XV/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 97,
+      "isHub": false
+    },
+    {
+      "titleId": "1940322572",
+      "title": "Five Nights at Freddy's",
+      "source": "https://www.trueachievements.com/game/Five-Nights-at-Freddys/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "4",
+          "xboxName": "Four Nights at Freddy's",
+          "sourceName": "Four Nights at Feddy's",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 10,
+      "isHub": false
+    },
+    {
+      "titleId": "1715352825",
+      "title": "Five Nights at Freddy's 2",
+      "source": "https://www.trueachievements.com/game/Five-Nights-at-Freddys-2/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "4",
+          "xboxName": "Four Nights at Freddy's",
+          "sourceName": "Four Nights at Feddy's",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 10,
+      "isHub": false
+    },
+    {
+      "titleId": "1162676180",
+      "title": "FlatOut UC (PC)",
+      "source": "https://www.trueachievements.com/game/Flatout-Ultimate-Carnage-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 45,
+      "isHub": false
+    },
+    {
+      "titleId": "1712769195",
+      "title": "Football Manager 2022 Xbox Edition",
+      "source": "https://www.trueachievements.com/game/Football-Manager-2022/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 94,
+      "isHub": false
+    },
+    {
+      "titleId": "1289871275",
+      "title": "Forza Horizon 3",
+      "source": "https://www.trueachievements.com/game/Forza-Horizon-3/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": true,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 135,
+      "isHub": false
+    },
+    {
+      "titleId": "2079757188",
+      "title": "Forza Horizon 6",
+      "source": "https://www.trueachievements.com/game/Forza-Horizon-6/achievements",
+      "sourcePlatform": "Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "12",
+          "xboxName": "Fresh Tyre Smoke",
+          "sourceName": "Fresh Tire Smoke",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 57,
+      "isHub": false
+    },
+    {
+      "titleId": "2067126551",
+      "title": "Forza Motorsport 5",
+      "source": "https://www.trueachievements.com/game/Forza-Motorsport-5/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": true,
+      "missingExportScores": 18,
+      "nameExceptions": [
+        {
+          "xboxId": "49",
+          "xboxName": "Color of Money",
+          "sourceName": "Colour of Money",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 98,
+      "isHub": false
+    },
+    {
+      "titleId": "1129121805",
+      "title": "FUEL™",
+      "source": "https://www.trueachievements.com/game/Fuel/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 46,
+      "isHub": false
+    },
+    {
+      "titleId": "1129121839",
+      "title": "FUEL™",
+      "source": "https://www.trueachievements.com/game/Fuel-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 46,
+      "isHub": false
+    },
+    {
+      "titleId": "1297287425",
+      "title": "Game Room",
+      "source": "https://www.trueachievements.com/game/Game-Room/achievements",
+      "sourcePlatform": "Xbox 360, Games For Windows Live",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 56,
+      "isHub": false
+    },
+    {
+      "titleId": "529515303",
+      "title": "Gone Home Base Game",
+      "source": "https://www.trueachievements.com/game/Gone-Home-Console-Edition/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 10,
+      "isHub": false
+    },
+    {
+      "titleId": "1778348973",
+      "title": "Grand Theft Auto Online (Xbox Series X|S)",
+      "source": "https://www.trueachievements.com/game/Grand-Theft-Auto-V/achievements",
+      "sourcePlatform": "Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 77,
+      "isHub": false
+    },
+    {
+      "titleId": "2101636955",
+      "title": "Grand Theft Auto V Legacy (PC)",
+      "source": "https://www.trueachievements.com/game/Grand-Theft-Auto-V-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 77,
+      "isHub": false
+    },
+    {
+      "titleId": "1414793202",
+      "title": "GTA IV",
+      "source": "https://www.trueachievements.com/game/Grand-Theft-Auto-4/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 65,
+      "isHub": false
+    },
+    {
+      "titleId": "1414793275",
+      "title": "GTA IV PC",
+      "source": "https://www.trueachievements.com/game/Grand-Theft-Auto-4-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 65,
+      "isHub": false
+    },
+    {
+      "titleId": "1414793383",
+      "title": "GTA V",
+      "source": "https://www.trueachievements.com/game/Grand-Theft-Auto-V-Xbox-360/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 58,
+      "isHub": false
+    },
+    {
+      "titleId": "1297287183",
+      "title": "Halo 2 (PC)",
+      "source": "https://www.trueachievements.com/game/Halo-2/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 41,
+      "isHub": false
+    },
+    {
+      "titleId": "1144039928",
+      "title": "Halo: The Master Chief Collection",
+      "source": "https://www.trueachievements.com/game/Halo-The-Master-Chief-Collection/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "164",
+          "xboxName": "Would It've Killed You To Take The Lift",
+          "sourceName": "Would It've Killed You To Take The Elevator",
+          "evidence": "supplied name correction and matching score"
+        },
+        {
+          "xboxId": "314",
+          "xboxName": "Enamoured",
+          "sourceName": "Enamored",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "317",
+          "xboxName": "Knowledgeable",
+          "sourceName": "Knowledgable",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "405",
+          "xboxName": "Monopolised",
+          "sourceName": "Monopolized",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "796",
+          "xboxName": "World Traveller",
+          "sourceName": "World Traveler",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "803",
+          "xboxName": "An Earful",
+          "sourceName": "An Ear Full",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "842",
+          "xboxName": "Record Shop Owner",
+          "sourceName": "Record Store Owner",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "877",
+          "xboxName": "Vandalised",
+          "sourceName": "Vandalized",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "999",
+          "xboxName": "New Ways to Save a Quid",
+          "sourceName": "New Ways to Save a Buck",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 700,
+      "isHub": false
+    },
+    {
+      "titleId": "1161890133",
+      "title": "Harry Potter and the Deathly Hallows - Part 2",
+      "source": "https://www.trueachievements.com/game/Harry-Potter-and-the-Deathly-Hallows-2/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1161889786",
+      "title": "Harry Potter HBP",
+      "source": "https://www.trueachievements.com/game/Harry-Potter-and-the-Half-Blood-Prince/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 43,
+      "isHub": false
+    },
+    {
+      "titleId": "1161889817",
+      "title": "Harry Potter OOTP",
+      "source": "https://www.trueachievements.com/game/Harry-Potter-and-the-Order-of-the-Phoenix/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 41,
+      "isHub": false
+    },
+    {
+      "titleId": "1835926818",
+      "title": "Hellblade II: Senua's Saga",
+      "source": "https://www.trueachievements.com/game/Senuas-Saga-Hellblade-II/achievements",
+      "sourcePlatform": "Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "311700060",
+      "title": "Hitchhiker",
+      "source": "https://www.trueachievements.com/game/Hitchhiker-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "30",
+          "xboxName": "Full Steam Ahead",
+          "sourceName": "Full Seam Ahead",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "5117102",
+      "title": "HITMAN™ 2",
+      "source": "https://www.trueachievements.com/game/HITMAN-2/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 146,
+      "isHub": false,
+      "duplicateNameResolution": [
+        {
+          "xboxId": "23",
+          "name": "Come Prepared",
+          "section": "Hawke's Bay (Add-on)",
+          "evidence": "10G; requirement names Hawke's Bay. Only Select/Selected and use/used wording differs."
+        },
+        {
+          "xboxId": "119",
+          "name": "Come Prepared",
+          "section": "HITMAN Legacy: Hokkaido (Add-on)",
+          "evidence": "10G; requirement names Hokkaido. Only Select/Selected and use/used wording differs."
+        }
+      ]
+    },
+    {
+      "titleId": "2113165348",
+      "title": "Hoa",
+      "source": "https://www.trueachievements.com/game/Hoa/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 1,
+      "nameExceptions": [],
+      "achievementCount": 19,
+      "isHub": false
+    },
+    {
+      "titleId": "2059211995",
+      "title": "Hollow Knight: Voidheart Edition",
+      "source": "https://www.trueachievements.com/game/Hollow-Knight/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 63,
+      "isHub": false
+    },
+    {
+      "titleId": "1638973441",
+      "title": "Human: Fall Flat Legacy",
+      "source": "https://www.trueachievements.com/game/Human-Fall-Flat-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 63,
+      "isHub": false
+    },
+    {
+      "titleId": "2051823976",
+      "title": "Immortality",
+      "source": "https://www.trueachievements.com/game/Immortality/achievements",
+      "sourcePlatform": "Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "12",
+          "xboxName": "What Happened to Carl Greenwood",
+          "sourceName": "What Happened to Carl Goodman",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 27,
+      "isHub": false
+    },
+    {
+      "titleId": "1635790563",
+      "title": "Infliction: Extended Cut",
+      "source": "https://www.trueachievements.com/game/Infliction/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 19,
+      "isHub": false
+    },
+    {
+      "titleId": "1414596639",
+      "title": "Juiced 2: HIN",
+      "source": "https://www.trueachievements.com/game/Juiced-2-Hot-Import-Nights-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 41,
+      "isHub": false
+    },
+    {
+      "titleId": "1396901863",
+      "title": "Just Cause 2",
+      "source": "https://www.trueachievements.com/game/Just-Cause-2/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1396901867",
+      "title": "Kane & Lynch: Dead Men",
+      "source": "https://www.trueachievements.com/game/Kane-And-Lynch-Dead-Men-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 44,
+      "isHub": false
+    },
+    {
+      "titleId": "1833960090",
+      "title": "Kentucky Route Zero: TV Edition",
+      "source": "https://www.trueachievements.com/game/Kentucky-Route-Zero/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 24,
+      "isHub": false
+    },
+    {
+      "titleId": "646403599",
+      "title": "Kholat",
+      "source": "https://www.trueachievements.com/game/Kholat/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 20,
+      "isHub": false
+    },
+    {
+      "titleId": "217258585",
+      "title": "Killing Floor 2",
+      "source": "https://www.trueachievements.com/game/KILLING-FLOOR-2/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "57",
+          "xboxName": "Old Skull",
+          "sourceName": "Old Skulln",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 65,
+      "isHub": false
+    },
+    {
+      "titleId": "1003487612",
+      "title": "Korgan",
+      "source": "https://www.trueachievements.com/game/Korgan/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 1,
+      "nameExceptions": [],
+      "achievementCount": 11,
+      "isHub": false
+    },
+    {
+      "titleId": "504518218",
+      "title": "L.A. Noire",
+      "source": "https://www.trueachievements.com/game/LA-Noire/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 62,
+      "isHub": false
+    },
+    {
+      "titleId": "985429182",
+      "title": "L.A. Noire",
+      "source": "https://www.trueachievements.com/game/LA-Noire-Japanese/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 62,
+      "isHub": false
+    },
+    {
+      "titleId": "1872911874",
+      "title": "Lake Ridden",
+      "source": "https://www.trueachievements.com/game/Lake-Ridden/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 6,
+      "nameExceptions": [],
+      "achievementCount": 16,
+      "isHub": false
+    },
+    {
+      "titleId": "1480657497",
+      "title": "Lara Croft: GoL",
+      "source": "https://www.trueachievements.com/game/Lara-Croft-Guardian-of-Light/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "575414105",
+      "title": "Life is Strange 2 - Episode 1",
+      "source": "https://www.trueachievements.com/game/Life-Is-Strange-2/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 1,
+      "nameExceptions": [],
+      "achievementCount": 47,
+      "isHub": false
+    },
+    {
+      "titleId": "1397819419",
+      "title": "LIGHTNING RETURNS FFXIII",
+      "source": "https://www.trueachievements.com/game/Lightning-Returns-Final-Fantasy-13/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 42,
+      "isHub": false
+    },
+    {
+      "titleId": "1128466398",
+      "title": "LOST PLANET COLONIES",
+      "source": "https://www.trueachievements.com/game/Lost-Planet-Colonies/achievements",
+      "sourcePlatform": "Xbox 360, Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1994181526",
+      "title": "Madden NFL 21 Xbox Series X|S",
+      "source": "https://www.trueachievements.com/game/Madden-NFL-21/achievements",
+      "sourcePlatform": "Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 28,
+      "isHub": false
+    },
+    {
+      "titleId": "2037306298",
+      "title": "Mafia: Definitive Edition for XBOX Series X|S",
+      "source": "https://www.trueachievements.com/game/Mafia-Definitive-Edition/achievements",
+      "sourcePlatform": "Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 43,
+      "isHub": false
+    },
+    {
+      "titleId": "102287491",
+      "title": "Marvel's Avengers Definitive Edition",
+      "source": "https://www.trueachievements.com/game/Marvels-Avengers/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1414793208",
+      "title": "MCLA: Complete",
+      "source": "https://www.trueachievements.com/game/Midnight-Club-Los-Angeles/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 55,
+      "isHub": false
+    },
+    {
+      "titleId": "85494077",
+      "title": "Microsoft Solitaire Collection",
+      "source": "https://www.trueachievements.com/game/Microsoft-Solitaire-Collection/achievements",
+      "sourcePlatform": "Windows, iOS, Android (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 76,
+      "isHub": false
+    },
+    {
+      "titleId": "1828326430",
+      "title": "Minecraft",
+      "source": "https://www.trueachievements.com/game/Minecraft/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "164",
+          "xboxName": "Sail the seven seas",
+          "sourceName": "Sail the 7 Seas",
+          "evidence": "supplied name correction and matching score"
+        },
+        {
+          "xboxId": "215",
+          "xboxName": "Mob Kabab",
+          "sourceName": "Mob Kabob",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 133,
+      "isHub": false
+    },
+    {
+      "titleId": "1739947436",
+      "title": "Minecraft for Android",
+      "source": "https://www.trueachievements.com/game/Minecraft-Pocket-Edition/achievements",
+      "sourcePlatform": "Android",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "122",
+          "xboxName": "Caves and Cliffs",
+          "sourceName": "Caves & Cliffs",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "136",
+          "xboxName": "Mob Kabab",
+          "sourceName": "Mob Kabob",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 133,
+      "isHub": false
+    },
+    {
+      "titleId": "1909043648",
+      "title": "Minecraft for Gear VR",
+      "source": "https://www.trueachievements.com/game/Minecraft-Pocket-Edition-Gear-VR/achievements",
+      "sourcePlatform": "Android",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 111,
+      "isHub": false
+    },
+    {
+      "titleId": "1810924247",
+      "title": "Minecraft for iOS",
+      "source": "https://www.trueachievements.com/game/Minecraft-Pocket-Edition-iOS/achievements",
+      "sourcePlatform": "iOS",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "118",
+          "xboxName": "Caves and Cliffs",
+          "sourceName": "Caves & Cliffs",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "132",
+          "xboxName": "Mob Kabab",
+          "sourceName": "Mob Kabob",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 133,
+      "isHub": false
+    },
+    {
+      "titleId": "1944307183",
+      "title": "Minecraft for Kindle Fire",
+      "source": "https://www.trueachievements.com/game/Minecraft-Pocket-Edition-Kindle-Fire/achievements",
+      "sourcePlatform": "Android",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "118",
+          "xboxName": "Caves and Cliffs",
+          "sourceName": "Caves & Cliffs",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "132",
+          "xboxName": "Mob Kabab",
+          "sourceName": "Mob Kabob",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 133,
+      "isHub": false
+    },
+    {
+      "titleId": "2047319603",
+      "title": "Minecraft for Nintendo Switch",
+      "source": "https://www.trueachievements.com/game/Minecraft-Nintendo-Switch/achievements",
+      "sourcePlatform": "Nintendo Switch",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "118",
+          "xboxName": "Caves and Cliffs",
+          "sourceName": "Caves & Cliffs",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "132",
+          "xboxName": "Mob Kebab",
+          "sourceName": "Mob Kabob",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 133,
+      "isHub": false
+    },
+    {
+      "titleId": "896928775",
+      "title": "Minecraft for Windows",
+      "source": "https://www.trueachievements.com/game/Minecraft-Windows-10/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "80",
+          "xboxName": "So I've Got That Going for Me",
+          "sourceName": "So I Got That Going for Me",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "84",
+          "xboxName": "Organisational Wizard",
+          "sourceName": "Organizational Wizard",
+          "evidence": "identical requirement text and matching score"
+        },
+        {
+          "xboxId": "141",
+          "xboxName": "Mob Kebab",
+          "sourceName": "Mob Kabob",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 133,
+      "isHub": false
+    },
+    {
+      "titleId": "1480659447",
+      "title": "Minecraft: Xbox 360 Edition",
+      "source": "https://www.trueachievements.com/game/Minecraft-Xbox-360/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 93,
+      "isHub": false
+    },
+    {
+      "titleId": "345903534",
+      "title": "Minecraft: Xbox One Edition",
+      "source": "https://www.trueachievements.com/game/Minecraft-Xbox-One-Edition/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "3",
+          "xboxName": "Benchmarking",
+          "sourceName": "Benchmaking",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 87,
+      "isHub": false
+    },
+    {
+      "titleId": "1096157158",
+      "title": "Modern Warfare®",
+      "source": "https://www.trueachievements.com/game/Call-of-Duty-4/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 37,
+      "isHub": false
+    },
+    {
+      "titleId": "1096157387",
+      "title": "Modern Warfare® 3",
+      "source": "https://www.trueachievements.com/game/Modern-Warfare-3/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 76,
+      "isHub": false
+    },
+    {
+      "titleId": "1480657491",
+      "title": "Monkey Island 2: SE",
+      "source": "https://www.trueachievements.com/game/Monkey-Island-2-Lechucks-Revenge/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "2070801878",
+      "title": "NieR:Automata BECOME AS GODS Edition",
+      "source": "https://www.trueachievements.com/game/NieR-Automata-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 1,
+      "nameExceptions": [],
+      "achievementCount": 48,
+      "isHub": false
+    },
+    {
+      "titleId": "87350449",
+      "title": "NieR:Automata™ BECOME AS GODS Edition",
+      "source": "https://www.trueachievements.com/game/NieR-Automata/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 1,
+      "nameExceptions": [],
+      "achievementCount": 48,
+      "isHub": false
+    },
+    {
+      "titleId": "1700516900",
+      "title": "NINJA GAIDEN 3: Razor's Edge",
+      "source": "https://www.trueachievements.com/game/Ninja-Gaiden-3-Razors-Edge/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "32",
+          "xboxName": "Eclipse Scythe Expert",
+          "sourceName": "The True Form of Eclipse Scythe.",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 48,
+      "isHub": false
+    },
+    {
+      "titleId": "1981817951",
+      "title": "One Night Stand: Console Edition",
+      "source": "https://www.trueachievements.com/game/One-Night-Stand/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 24,
+      "isHub": false
+    },
+    {
+      "titleId": "452142470",
+      "title": "PsychoBreak® 2",
+      "source": "https://www.trueachievements.com/game/The-Evil-Within-2-Japanese/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 51,
+      "isHub": false
+    },
+    {
+      "titleId": "950328474",
+      "title": "PUBG: BATTLEGROUNDS",
+      "source": "https://www.trueachievements.com/game/PlayerUnknowns-Battlegrounds/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 37,
+      "isHub": false
+    },
+    {
+      "titleId": "1096157225",
+      "title": "Quantum of Solace PC",
+      "source": "https://www.trueachievements.com/game/Quantum-of-Solace-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1480660044",
+      "title": "RE Revelations 2",
+      "source": "https://www.trueachievements.com/game/Resident-Evil-Revelations-2-Xbox-360/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 43,
+      "isHub": false
+    },
+    {
+      "titleId": "852431422",
+      "title": "ReCore",
+      "source": "https://www.trueachievements.com/game/ReCore/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": true,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 73,
+      "isHub": false
+    },
+    {
+      "titleId": "1414596663",
+      "title": "Red Faction: Guerrilla",
+      "source": "https://www.trueachievements.com/game/Red-Faction-Guerilla-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "770775860",
+      "title": "RESIDENT EVIL 3 for Windows",
+      "source": "https://www.trueachievements.com/game/Resident-Evil-3/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 32,
+      "isHub": false
+    },
+    {
+      "titleId": "1128466423",
+      "title": "RESIDENT EVIL 5",
+      "source": "https://www.trueachievements.com/game/Resident-Evil-5-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "651668093",
+      "title": "RESIDENT EVIL 7 biohazard",
+      "source": "https://www.trueachievements.com/game/Resident-Evil-7/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 58,
+      "isHub": false
+    },
+    {
+      "titleId": "1128468385",
+      "title": "Resident Evil: Operation Raccoon City",
+      "source": "https://www.trueachievements.com/game/Resident-Evil-Operation-Raccoon-City-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "2005028938",
+      "title": "S.T.A.L.K.E.R. 2: Heart of Chornobyl - Windows Edition",
+      "source": "https://www.trueachievements.com/game/STALKER-2/achievements",
+      "sourcePlatform": "Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 76,
+      "isHub": false
+    },
+    {
+      "titleId": "1613348546",
+      "title": "Sea of Stars: Sunset Edition",
+      "source": "https://www.trueachievements.com/game/Sea-of-Stars/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "8",
+          "xboxName": "Home sweet home",
+          "sourceName": "Home",
+          "evidence": "identical requirement text and matching score"
+        }
+      ],
+      "achievementCount": 54,
+      "isHub": false
+    },
+    {
+      "titleId": "1717113201",
+      "title": "Sea of Thieves: 2026 Edition",
+      "source": "https://www.trueachievements.com/game/Sea-of-Thieves/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 6,
+      "nameExceptions": [],
+      "achievementCount": 306,
+      "isHub": false
+    },
+    {
+      "titleId": "1946484624",
+      "title": "Session: Skate Sim",
+      "source": "https://www.trueachievements.com/game/Session/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 48,
+      "isHub": false
+    },
+    {
+      "titleId": "2040520199",
+      "title": "Shadow Samurai Revenge",
+      "source": "https://www.trueachievements.com/game/Shadow-Samurai-Revenge/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": false,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "12",
+          "xboxName": "Unlock level 11",
+          "sourceName": "Unlock level 50",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "2000442171",
+      "title": "Shadow Warrior 3: Definitive Edition",
+      "source": "https://www.trueachievements.com/game/Shadow-Warrior-3/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 38,
+      "isHub": false
+    },
+    {
+      "titleId": "1297287126",
+      "title": "Shadowrun",
+      "source": "https://www.trueachievements.com/game/Shadowrun/achievements",
+      "sourcePlatform": "Xbox 360, Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "2125030606",
+      "title": "She Sees Red Interactive Movie",
+      "source": "https://www.trueachievements.com/game/She-Sees-Red/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 14,
+      "isHub": false
+    },
+    {
+      "titleId": "2020176886",
+      "title": "Shenmue I & II",
+      "source": "https://www.trueachievements.com/game/Shenmue-I-and-II-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 55,
+      "isHub": false
+    },
+    {
+      "titleId": "1972063516",
+      "title": "Sifu",
+      "source": "https://www.trueachievements.com/game/Sifu/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 1,
+      "nameExceptions": [],
+      "achievementCount": 61,
+      "isHub": false
+    },
+    {
+      "titleId": "1263405125",
+      "title": "Silent Hill:  HD Collection",
+      "source": "https://www.trueachievements.com/game/Silent-Hill-HD/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1726756158",
+      "title": "Spiritfarer®: Farewell Edition",
+      "source": "https://www.trueachievements.com/game/Spiritfarer/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 39,
+      "isHub": false
+    },
+    {
+      "titleId": "1431504907",
+      "title": "SplinterCellConviction",
+      "source": "https://www.trueachievements.com/game/Tom-Clancys-Splinter-Cell-Conviction/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 54,
+      "isHub": false
+    },
+    {
+      "titleId": "1938834516",
+      "title": "State of Decay 2: Juggernaut Edition",
+      "source": "https://www.trueachievements.com/game/State-of-Decay-2/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 5,
+      "nameExceptions": [],
+      "achievementCount": 153,
+      "isHub": false
+    },
+    {
+      "titleId": "852732437",
+      "title": "State of Decay: Year-One",
+      "source": "https://www.trueachievements.com/game/State-of-Decay-Year-One-Survival-Edition/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 72,
+      "isHub": false
+    },
+    {
+      "titleId": "945909358",
+      "title": "Subnautica",
+      "source": "https://www.trueachievements.com/game/Subnautica/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "6",
+          "xboxName": "Follow the Lost River",
+          "sourceName": "Find the Lost River",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 17,
+      "isHub": false
+    },
+    {
+      "titleId": "1279330283",
+      "title": "SWTCW: Republic Heroes",
+      "source": "https://www.trueachievements.com/game/Star-Wars-the-Clone-Wars-Republic-Heroes-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 49,
+      "isHub": false
+    },
+    {
+      "titleId": "1431504855",
+      "title": "TC's SC Double Agent",
+      "source": "https://www.trueachievements.com/game/Tom-Clancys-Splinter-Cell-Double-Agent/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 38,
+      "isHub": false
+    },
+    {
+      "titleId": "1936930219",
+      "title": "Tell Me Why",
+      "source": "https://www.trueachievements.com/game/Tell-Me-Why/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [
+        {
+          "xboxId": "20",
+          "xboxName": "Remember Strange Vampyr",
+          "sourceName": "Remember Strange Vampire",
+          "evidence": "supplied name correction and matching score"
+        }
+      ],
+      "achievementCount": 30,
+      "isHub": false
+    },
+    {
+      "titleId": "504085184",
+      "title": "The Crew® 2 Standard Edition",
+      "source": "https://www.trueachievements.com/game/The-Crew-2/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 34,
+      "isHub": false
+    },
+    {
+      "titleId": "2116740682",
+      "title": "The Grinch: Christmas Adventures - Merry & Mischievous Edition",
+      "source": "https://www.trueachievements.com/game/The-Grinch-Christmas-Adventures-Merry-and-Mischievous-Edition/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 18,
+      "isHub": false
+    },
+    {
+      "titleId": "1986295132",
+      "title": "The Last Case of Benedict Fox: Definitive Edition",
+      "source": "https://www.trueachievements.com/game/The-Last-Case-of-Benedict-Fox/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 32,
+      "isHub": false
+    },
+    {
+      "titleId": "1843694822",
+      "title": "The Quarry for Xbox Series X|S",
+      "source": "https://www.trueachievements.com/game/The-Quarry/achievements",
+      "sourcePlatform": "Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 40,
+      "isHub": false
+    },
+    {
+      "titleId": "1864185316",
+      "title": "The Sinking City Xbox Series X|S",
+      "source": "https://www.trueachievements.com/game/The-Sinking-City/achievements",
+      "sourcePlatform": "Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 28,
+      "isHub": false
+    },
+    {
+      "titleId": "1015066519",
+      "title": "The Walking Dead: Season 2",
+      "source": "https://www.trueachievements.com/game/The-Walking-Dead-Season-Two-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 40,
+      "isHub": false
+    },
+    {
+      "titleId": "1795379754",
+      "title": "The Walking Dead: The Complete First Season",
+      "source": "https://www.trueachievements.com/game/The-Walking-Dead/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 48,
+      "isHub": false
+    },
+    {
+      "titleId": "1464993828",
+      "title": "The Witcher 2: Assassins of Kings",
+      "source": "https://www.trueachievements.com/game/The-Witcher-2/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "530462567",
+      "title": "The Witcher 3: Wild Hunt — Remastered",
+      "source": "https://www.trueachievements.com/game/The-Witcher-3-Wild-Hunt-Complete-Edition/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 78,
+      "isHub": false
+    },
+    {
+      "titleId": "1480657387",
+      "title": "Tinker",
+      "source": "https://www.trueachievements.com/game/Tinker/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 15,
+      "isHub": false
+    },
+    {
+      "titleId": "74304278",
+      "title": "Tom Clancy’s The Division",
+      "source": "https://www.trueachievements.com/game/The-Division/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 65,
+      "isHub": false
+    },
+    {
+      "titleId": "1905434171",
+      "title": "TRAIL OUT",
+      "source": "https://www.trueachievements.com/game/TRAIL-OUT/achievements",
+      "sourcePlatform": "Xbox Series X|S",
+      "explicitEdition": false,
+      "refreshedExport": true,
+      "missingExportScores": 9,
+      "nameExceptions": [],
+      "achievementCount": 40,
+      "isHub": false
+    },
+    {
+      "titleId": "1096157236",
+      "title": "Transformers 2",
+      "source": "https://www.trueachievements.com/game/Transformers-Revenge-of-the-Fallen/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 51,
+      "isHub": false
+    },
+    {
+      "titleId": "1620316512",
+      "title": "Transient: Extended Edition",
+      "source": "https://www.trueachievements.com/game/Transient/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 27,
+      "isHub": false
+    },
+    {
+      "titleId": "1096157409",
+      "title": "TWD: Survival Instinct",
+      "source": "https://www.trueachievements.com/game/The-Walking-Dead-Survival-Instinct/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1944807356",
+      "title": "Twelve Minutes",
+      "source": "https://www.trueachievements.com/game/12-Minutes/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "465979625",
+      "title": "UFC® 4",
+      "source": "https://www.trueachievements.com/game/EA-SPORTS-UFC-4/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 27,
+      "isHub": false
+    },
+    {
+      "titleId": "1673258664",
+      "title": "Venatrix Game",
+      "source": "https://www.trueachievements.com/game/Venatrix/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 20,
+      "isHub": false
+    },
+    {
+      "titleId": "1297287154",
+      "title": "Viva Piñata",
+      "source": "https://www.trueachievements.com/game/Viva-Pinata/achievements",
+      "sourcePlatform": "Xbox 360",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "1297287233",
+      "title": "Viva Piñata",
+      "source": "https://www.trueachievements.com/game/Viva-Pinata-PC/achievements",
+      "sourcePlatform": "Games For Windows Live",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 50,
+      "isHub": false
+    },
+    {
+      "titleId": "2016076229",
+      "title": "Weird West: Definitive Edition",
+      "source": "https://www.trueachievements.com/game/Weird-West/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 53,
+      "isHub": false
+    },
+    {
+      "titleId": "1847003138",
+      "title": "Without Escape: Console Edition",
+      "source": "https://www.trueachievements.com/game/Without-Escape/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 12,
+      "isHub": false
+    },
+    {
+      "titleId": "1811697311",
+      "title": "World War Z",
+      "source": "https://www.trueachievements.com/game/World-War-Z-Windows/achievements",
+      "sourcePlatform": "Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 35,
+      "isHub": false
+    },
+    {
+      "titleId": "940594756",
+      "title": "World War Z",
+      "source": "https://www.trueachievements.com/game/World-War-Z/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 35,
+      "isHub": false
+    },
+    {
+      "titleId": "1048549433",
+      "title": "WRC 6 FIA World Rally Championship",
+      "source": "https://www.trueachievements.com/game/WRC-6/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 41,
+      "isHub": false
+    },
+    {
+      "titleId": "1905856995",
+      "title": "You Suck at Parking® Complete Edition",
+      "source": "https://www.trueachievements.com/game/You-Suck-at-Parking/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S, Windows (Windows 10)",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 25,
+      "isHub": false
+    },
+    {
+      "titleId": "2112431452",
+      "title": "サイコブレイク",
+      "source": "https://www.trueachievements.com/game/The-Evil-Within-Japanese/achievements",
+      "sourcePlatform": "Xbox One, Xbox Series X|S",
+      "explicitEdition": true,
+      "refreshedExport": false,
+      "missingExportScores": 0,
+      "nameExceptions": [],
+      "achievementCount": 71,
+      "isHub": false
+    }
+  ],
+  "held": []
+}
