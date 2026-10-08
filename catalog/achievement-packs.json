@@ -1655,6 +1655,880 @@
           ]
         }
       ]
+    },
+    {
+      "titleId": "951560105",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "source": "https://www.trueachievements.com/game/control-xbox-one/achievements",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievements": [
+            {
+              "id": "1",
+              "name": "Astral Construction"
+            },
+            {
+              "id": "2",
+              "name": "Non-Standard Issue"
+            },
+            {
+              "id": "3",
+              "name": "Career Development"
+            },
+            {
+              "id": "4",
+              "name": "The Importance of Synergy"
+            },
+            {
+              "id": "5",
+              "name": "Inter-Departmental Cooperation"
+            },
+            {
+              "id": "6",
+              "name": "FBC Crisis Solution Task Force"
+            },
+            {
+              "id": "7",
+              "name": "Paranatural Collection"
+            },
+            {
+              "id": "8",
+              "name": "Interdimensional Defender"
+            },
+            {
+              "id": "9",
+              "name": "Parautilitarian"
+            },
+            {
+              "id": "10",
+              "name": "Expert Parautilitarian"
+            },
+            {
+              "id": "11",
+              "name": "Master Parautilitarian"
+            },
+            {
+              "id": "12",
+              "name": "Choose to be Chosen"
+            },
+            {
+              "id": "13",
+              "name": "Paranatural Powerhouse"
+            },
+            {
+              "id": "14",
+              "name": "Insular Telekinesis"
+            },
+            {
+              "id": "15",
+              "name": "Shifting Positions"
+            },
+            {
+              "id": "16",
+              "name": "Psychic Occupation"
+            },
+            {
+              "id": "17",
+              "name": "Rising Thought"
+            },
+            {
+              "id": "18",
+              "name": "Ritualistic Thinking"
+            },
+            {
+              "id": "19",
+              "name": "Ritual Intuition"
+            },
+            {
+              "id": "20",
+              "name": "Discerning the Pattern"
+            },
+            {
+              "id": "21",
+              "name": "Strange Collection"
+            },
+            {
+              "id": "22",
+              "name": "Record Keeper"
+            },
+            {
+              "id": "23",
+              "name": "Bureau Archivist"
+            },
+            {
+              "id": "24",
+              "name": "Altered Manifestations May Occur"
+            },
+            {
+              "id": "25",
+              "name": "Aggressive Growth"
+            },
+            {
+              "id": "26",
+              "name": "Head of Communications"
+            },
+            {
+              "id": "27",
+              "name": "Living Archetypes"
+            },
+            {
+              "id": "28",
+              "name": "Astral Phenomena"
+            },
+            {
+              "id": "29",
+              "name": "Welcome to the Oldest House"
+            },
+            {
+              "id": "30",
+              "name": "Unknown Caller"
+            },
+            {
+              "id": "31",
+              "name": "Directorial Override"
+            },
+            {
+              "id": "32",
+              "name": "Old Boys' Club"
+            },
+            {
+              "id": "33",
+              "name": "Threshold"
+            },
+            {
+              "id": "34",
+              "name": "My Brother's Keeper"
+            },
+            {
+              "id": "35",
+              "name": "The Face of the Enemy"
+            },
+            {
+              "id": "36",
+              "name": "Finnish Tango"
+            },
+            {
+              "id": "37",
+              "name": "Polaris"
+            },
+            {
+              "id": "38",
+              "name": "Take Control"
+            },
+            {
+              "id": "39",
+              "name": "Cognitive Intruder"
+            },
+            {
+              "id": "40",
+              "name": "Unstable Matter"
+            },
+            {
+              "id": "41",
+              "name": "Volatile Debris"
+            },
+            {
+              "id": "42",
+              "name": "Proper Handling Procedures"
+            },
+            {
+              "id": "43",
+              "name": "War Games"
+            },
+            {
+              "id": "44",
+              "name": "Astral Tactician"
+            },
+            {
+              "id": "45",
+              "name": "First On the Scene"
+            },
+            {
+              "id": "46",
+              "name": "Crisis Management"
+            }
+          ]
+        },
+        {
+          "name": "The Foundation (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "47",
+              "name": "< Make/Unmake >"
+            },
+            {
+              "id": "48",
+              "name": "Hostile Work Environment"
+            },
+            {
+              "id": "49",
+              "name": "Rush Job"
+            },
+            {
+              "id": "50",
+              "name": "Niche Position"
+            },
+            {
+              "id": "51",
+              "name": "Subterranean Research"
+            },
+            {
+              "id": "52",
+              "name": "Supportive Staff"
+            },
+            {
+              "id": "53",
+              "name": "One of Us"
+            },
+            {
+              "id": "54",
+              "name": "Star Performance"
+            },
+            {
+              "id": "55",
+              "name": "Astral Plumbing"
+            },
+            {
+              "id": "56",
+              "name": "A Strong Foundation"
+            }
+          ]
+        },
+        {
+          "name": "AWE (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "57",
+              "name": "Familiar Methodologies"
+            },
+            {
+              "id": "58",
+              "name": "Chief Investigator"
+            },
+            {
+              "id": "59",
+              "name": "Vending Spree"
+            },
+            {
+              "id": "60",
+              "name": "The Third Thing"
+            },
+            {
+              "id": "61",
+              "name": "Workplace Recreation"
+            },
+            {
+              "id": "62",
+              "name": "Surge of Power"
+            },
+            {
+              "id": "63",
+              "name": "Surge Protector"
+            },
+            {
+              "id": "64",
+              "name": "Elevated Mind"
+            },
+            {
+              "id": "65",
+              "name": "In-depth Investigations"
+            },
+            {
+              "id": "66",
+              "name": "Work Smarter, Not Harder"
+            },
+            {
+              "id": "67",
+              "name": "Multiple Applications"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "titleId": "2107339353",
+      "platforms": [
+        "PC"
+      ],
+      "source": "https://www.trueachievements.com/game/control-windows/achievements",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievements": [
+            {
+              "id": "1",
+              "name": "Astral Construction"
+            },
+            {
+              "id": "2",
+              "name": "Non-Standard Issue"
+            },
+            {
+              "id": "3",
+              "name": "Career Development"
+            },
+            {
+              "id": "4",
+              "name": "The Importance of Synergy"
+            },
+            {
+              "id": "5",
+              "name": "Inter-Departmental Cooperation"
+            },
+            {
+              "id": "6",
+              "name": "FBC Crisis Solution Task Force"
+            },
+            {
+              "id": "7",
+              "name": "Paranatural Collection"
+            },
+            {
+              "id": "8",
+              "name": "Interdimensional Defender"
+            },
+            {
+              "id": "9",
+              "name": "Parautilitarian"
+            },
+            {
+              "id": "10",
+              "name": "Expert Parautilitarian"
+            },
+            {
+              "id": "11",
+              "name": "Master Parautilitarian"
+            },
+            {
+              "id": "12",
+              "name": "Choose to be Chosen"
+            },
+            {
+              "id": "13",
+              "name": "Paranatural Powerhouse"
+            },
+            {
+              "id": "14",
+              "name": "Insular Telekinesis"
+            },
+            {
+              "id": "15",
+              "name": "Shifting Positions"
+            },
+            {
+              "id": "16",
+              "name": "Psychic Occupation"
+            },
+            {
+              "id": "17",
+              "name": "Rising Thought"
+            },
+            {
+              "id": "18",
+              "name": "Ritualistic Thinking"
+            },
+            {
+              "id": "19",
+              "name": "Ritual Intuition"
+            },
+            {
+              "id": "20",
+              "name": "Discerning the Pattern"
+            },
+            {
+              "id": "21",
+              "name": "Strange Collection"
+            },
+            {
+              "id": "22",
+              "name": "Record Keeper"
+            },
+            {
+              "id": "23",
+              "name": "Bureau Archivist"
+            },
+            {
+              "id": "24",
+              "name": "Altered Manifestations May Occur"
+            },
+            {
+              "id": "25",
+              "name": "Aggressive Growth"
+            },
+            {
+              "id": "26",
+              "name": "Head of Communications"
+            },
+            {
+              "id": "27",
+              "name": "Living Archetypes"
+            },
+            {
+              "id": "28",
+              "name": "Astral Phenomena"
+            },
+            {
+              "id": "29",
+              "name": "Welcome to the Oldest House"
+            },
+            {
+              "id": "30",
+              "name": "Unknown Caller"
+            },
+            {
+              "id": "31",
+              "name": "Directorial Override"
+            },
+            {
+              "id": "32",
+              "name": "Old Boys' Club"
+            },
+            {
+              "id": "33",
+              "name": "Threshold"
+            },
+            {
+              "id": "34",
+              "name": "My Brother's Keeper"
+            },
+            {
+              "id": "35",
+              "name": "The Face of the Enemy"
+            },
+            {
+              "id": "36",
+              "name": "Finnish Tango"
+            },
+            {
+              "id": "37",
+              "name": "Polaris"
+            },
+            {
+              "id": "38",
+              "name": "Take Control"
+            },
+            {
+              "id": "39",
+              "name": "Cognitive Intruder"
+            },
+            {
+              "id": "40",
+              "name": "Unstable Matter"
+            },
+            {
+              "id": "41",
+              "name": "Volatile Debris"
+            },
+            {
+              "id": "42",
+              "name": "Proper Handling Procedures"
+            },
+            {
+              "id": "43",
+              "name": "War Games"
+            },
+            {
+              "id": "44",
+              "name": "Astral Tactician"
+            },
+            {
+              "id": "45",
+              "name": "First On the Scene"
+            },
+            {
+              "id": "46",
+              "name": "Crisis Management"
+            }
+          ]
+        },
+        {
+          "name": "The Foundation (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "47",
+              "name": "< Make/Unmake >"
+            },
+            {
+              "id": "48",
+              "name": "Hostile Work Environment"
+            },
+            {
+              "id": "49",
+              "name": "Rush Job"
+            },
+            {
+              "id": "50",
+              "name": "Niche Position"
+            },
+            {
+              "id": "51",
+              "name": "Subterranean Research"
+            },
+            {
+              "id": "52",
+              "name": "Supportive Staff"
+            },
+            {
+              "id": "53",
+              "name": "One of Us"
+            },
+            {
+              "id": "54",
+              "name": "Star Performance"
+            },
+            {
+              "id": "55",
+              "name": "Astral Plumbing"
+            },
+            {
+              "id": "56",
+              "name": "A Strong Foundation"
+            }
+          ]
+        },
+        {
+          "name": "AWE (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "57",
+              "name": "Familiar Methodologies"
+            },
+            {
+              "id": "58",
+              "name": "Chief Investigator"
+            },
+            {
+              "id": "59",
+              "name": "Vending Spree"
+            },
+            {
+              "id": "60",
+              "name": "The Third Thing"
+            },
+            {
+              "id": "61",
+              "name": "Workplace Recreation"
+            },
+            {
+              "id": "62",
+              "name": "Surge of Power"
+            },
+            {
+              "id": "63",
+              "name": "Surge Protector"
+            },
+            {
+              "id": "64",
+              "name": "Elevated Mind"
+            },
+            {
+              "id": "65",
+              "name": "In-depth Investigations"
+            },
+            {
+              "id": "66",
+              "name": "Work Smarter, Not Harder"
+            },
+            {
+              "id": "67",
+              "name": "Multiple Applications"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "titleId": "1781344339",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "source": "https://www.trueachievements.com/game/control/achievements",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievements": [
+            {
+              "id": "1",
+              "name": "Astral Construction"
+            },
+            {
+              "id": "2",
+              "name": "Non-Standard Issue"
+            },
+            {
+              "id": "3",
+              "name": "Career Development"
+            },
+            {
+              "id": "4",
+              "name": "The Importance of Synergy"
+            },
+            {
+              "id": "5",
+              "name": "Inter-Departmental Cooperation"
+            },
+            {
+              "id": "6",
+              "name": "FBC Crisis Solution Task Force"
+            },
+            {
+              "id": "7",
+              "name": "Paranatural Collection"
+            },
+            {
+              "id": "8",
+              "name": "Interdimensional Defender"
+            },
+            {
+              "id": "9",
+              "name": "Parautilitarian"
+            },
+            {
+              "id": "10",
+              "name": "Expert Parautilitarian"
+            },
+            {
+              "id": "11",
+              "name": "Master Parautilitarian"
+            },
+            {
+              "id": "12",
+              "name": "Choose to be Chosen"
+            },
+            {
+              "id": "13",
+              "name": "Paranatural Powerhouse"
+            },
+            {
+              "id": "14",
+              "name": "Insular Telekinesis"
+            },
+            {
+              "id": "15",
+              "name": "Shifting Positions"
+            },
+            {
+              "id": "16",
+              "name": "Psychic Occupation"
+            },
+            {
+              "id": "17",
+              "name": "Rising Thought"
+            },
+            {
+              "id": "18",
+              "name": "Ritualistic Thinking"
+            },
+            {
+              "id": "19",
+              "name": "Ritual Intuition"
+            },
+            {
+              "id": "20",
+              "name": "Discerning the Pattern"
+            },
+            {
+              "id": "21",
+              "name": "Strange Collection"
+            },
+            {
+              "id": "22",
+              "name": "Record Keeper"
+            },
+            {
+              "id": "23",
+              "name": "Bureau Archivist"
+            },
+            {
+              "id": "24",
+              "name": "Altered Manifestations May Occur"
+            },
+            {
+              "id": "25",
+              "name": "Aggressive Growth"
+            },
+            {
+              "id": "26",
+              "name": "Head of Communications"
+            },
+            {
+              "id": "27",
+              "name": "Living Archetypes"
+            },
+            {
+              "id": "28",
+              "name": "Astral Phenomena"
+            },
+            {
+              "id": "29",
+              "name": "Welcome to the Oldest House"
+            },
+            {
+              "id": "30",
+              "name": "Unknown Caller"
+            },
+            {
+              "id": "31",
+              "name": "Directorial Override"
+            },
+            {
+              "id": "32",
+              "name": "Old Boys' Club"
+            },
+            {
+              "id": "33",
+              "name": "Threshold"
+            },
+            {
+              "id": "34",
+              "name": "My Brother's Keeper"
+            },
+            {
+              "id": "35",
+              "name": "The Face of the Enemy"
+            },
+            {
+              "id": "36",
+              "name": "Finnish Tango"
+            },
+            {
+              "id": "37",
+              "name": "Polaris"
+            },
+            {
+              "id": "38",
+              "name": "Take Control"
+            },
+            {
+              "id": "39",
+              "name": "Cognitive Intruder"
+            },
+            {
+              "id": "40",
+              "name": "Unstable Matter"
+            },
+            {
+              "id": "41",
+              "name": "Volatile Debris"
+            },
+            {
+              "id": "42",
+              "name": "Proper Handling Procedures"
+            },
+            {
+              "id": "43",
+              "name": "War Games"
+            },
+            {
+              "id": "44",
+              "name": "Astral Tactician"
+            },
+            {
+              "id": "45",
+              "name": "First On the Scene"
+            },
+            {
+              "id": "46",
+              "name": "Crisis Management"
+            },
+            {
+              "id": "47",
+              "name": "< Make/Unmake >"
+            },
+            {
+              "id": "48",
+              "name": "Hostile Work Environment"
+            },
+            {
+              "id": "49",
+              "name": "Rush Job"
+            },
+            {
+              "id": "50",
+              "name": "Niche Position"
+            },
+            {
+              "id": "51",
+              "name": "Subterranean Research"
+            },
+            {
+              "id": "52",
+              "name": "Supportive Staff"
+            },
+            {
+              "id": "53",
+              "name": "One of Us"
+            },
+            {
+              "id": "54",
+              "name": "Star Performance"
+            },
+            {
+              "id": "55",
+              "name": "Astral Plumbing"
+            },
+            {
+              "id": "56",
+              "name": "A Strong Foundation"
+            },
+            {
+              "id": "57",
+              "name": "Familiar Methodologies"
+            },
+            {
+              "id": "58",
+              "name": "Chief Investigator"
+            },
+            {
+              "id": "59",
+              "name": "Vending Spree"
+            },
+            {
+              "id": "60",
+              "name": "The Third Thing"
+            },
+            {
+              "id": "61",
+              "name": "Workplace Recreation"
+            },
+            {
+              "id": "62",
+              "name": "Surge of Power"
+            },
+            {
+              "id": "63",
+              "name": "Surge Protector"
+            },
+            {
+              "id": "64",
+              "name": "Elevated Mind"
+            },
+            {
+              "id": "65",
+              "name": "In-depth Investigations"
+            },
+            {
+              "id": "66",
+              "name": "Work Smarter, Not Harder"
+            },
+            {
+              "id": "67",
+              "name": "Multiple Applications"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

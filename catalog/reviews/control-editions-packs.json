@@ -1,0 +1,99 @@
+{
+  "titles": [
+    {
+      "titleId": "951560105",
+      "title": "Control",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 67,
+      "totalGamerscore": 1390,
+      "unclassified": 0,
+      "method": "Unique exact Xbox achievement name, description and gamerscore matched independently against the corresponding TrueAchievements edition. Whitespace trimmed for matching only. No position or ID-range inference. Account progress omitted.",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 46,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/control-xbox-one/achievements"
+        },
+        {
+          "name": "The Foundation (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 195,
+          "source": "https://www.trueachievements.com/game/Control-Xbox-One/dlc/The-Foundation"
+        },
+        {
+          "name": "AWE (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 11,
+          "gamerscore": 195,
+          "source": "https://www.trueachievements.com/game/Control-Xbox-One/dlc/Altered-World-Events"
+        }
+      ]
+    },
+    {
+      "titleId": "2107339353",
+      "title": "Control Standard Edition",
+      "platforms": [
+        "PC"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 67,
+      "totalGamerscore": 1390,
+      "unclassified": 0,
+      "method": "Unique exact Xbox achievement name, description and gamerscore matched independently against the corresponding TrueAchievements edition. Whitespace trimmed for matching only. No position or ID-range inference. Account progress omitted.",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 46,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/control-windows/achievements"
+        },
+        {
+          "name": "The Foundation (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 195,
+          "source": "https://www.trueachievements.com/game/Control-Windows/dlc/The-Foundation"
+        },
+        {
+          "name": "AWE (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 11,
+          "gamerscore": 195,
+          "source": "https://www.trueachievements.com/game/Control-Windows/dlc/Altered-World-Events"
+        }
+      ]
+    },
+    {
+      "titleId": "1781344339",
+      "title": "Control Ultimate Edition - Xbox Series X|S",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 67,
+      "totalGamerscore": 1390,
+      "unclassified": 0,
+      "method": "Unique exact Xbox achievement name, description and gamerscore matched independently against the corresponding TrueAchievements edition. Whitespace trimmed for matching only. No position or ID-range inference. Account progress omitted.",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 67,
+          "gamerscore": 1390,
+          "source": "https://www.trueachievements.com/game/control/achievements"
+        }
+      ]
+    }
+  ]
+}
