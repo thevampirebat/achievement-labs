@@ -64,6 +64,12 @@ public static class QueueTools
   Set(model,"StatusText",$"Removed {count} achievement(s). Queue saved. Click Start when ready.");
   return count;
  }
+ public static int RemoveCompleted(object model,object state)
+ {
+  if(P(state,"Queue") is not IList list)return 0;
+  // Reuse removal's active-run guard, index adjustment, delay preservation and rollback.
+  return Remove(model,state,list.Cast<object>().Where(e=>P(e,"Completed") is true).ToArray());
+ }
  public static void Attach(Window owner,object model)
  {
   var buttons=owner.GetLogicalDescendants().OfType<Button>().ToArray();
@@ -72,16 +78,26 @@ public static class QueueTools
   {
    ToolTip.SetTip(open,"Open the Xbox Auto Unlock page with this game's Title ID filled in.");
    open.Click+=(_,_)=>OpenForGame(model);
-   void Update()=>open.IsEnabled=P(model,"SelectedGame")!=null && P(model,"QueueActive") is not true && P(model,"CanQuery") is true;
+   var spoof=buttons.FirstOrDefault(b=>b.Name=="OpenGameTitleSpoofer");
+   void Update(){if(spoof!=null)spoof.IsEnabled=P(model,"CanOpenGameSpoofer") is true;open.IsEnabled=P(model,"SelectedGame")!=null && P(model,"QueueActive") is not true && P(model,"CanQuery") is true;}
    var timer=new DispatcherTimer{Interval=TimeSpan.FromSeconds(1)};timer.Tick+=(_,_)=>Update();timer.Start();Update();owner.Closed+=(_,_)=>timer.Stop();
   }
   var build=buttons.FirstOrDefault(b=>Equals(b.Content,"Build queue"));
   if(build?.Parent is not Panel panel)return;
   var remove=new Button{Name="RemoveQueueAchievements",Content="Remove achievements…",Margin=new Thickness(8,0,0,0)};
-  panel.Children.Add(remove);bool editing=false;
+  var completed=new Button{Name="RemoveCompletedQueueAchievements",Content="Remove completed",Margin=new Thickness(8,0,0,0)};
+  ToolTip.SetTip(completed,"Remove completed entries from the saved queue. Pause the queue first.");
+  panel.Children.Add(remove);panel.Children.Add(completed);bool editing=false;
   object? Queue()=>P(model,"XboxQueue");
-  void Refresh(){var q=Queue();remove.IsEnabled=!editing && P(q,"IsRunning") is not true && F(q,"_state") is object s && P(s,"Queue") is IList l && l.Count>0;}
+  void Refresh(){var q=Queue();completed.IsEnabled=!editing && P(q,"IsRunning") is not true && F(q,"_state") is object state && P(state,"Queue") is IList entries && entries.Cast<object>().Any(e=>P(e,"Completed") is true);remove.IsEnabled=!editing && P(q,"IsRunning") is not true && F(q,"_state") is object s && P(s,"Queue") is IList l && l.Count>0;}
   var tick=new DispatcherTimer{Interval=TimeSpan.FromSeconds(1)};tick.Tick+=(_,_)=>Refresh();tick.Start();Refresh();owner.Closed+=(_,_)=>tick.Stop();
+  completed.Click+=(_,_)=>
+  {
+   var q=Queue();var state=F(q,"_state");if(q==null || state==null)return;
+   try{int count=RemoveCompleted(q,state);Set(q,"StatusText",$"Removed {count} completed achievement(s). Remaining delays preserved.");}
+   catch{Set(q,"StatusText","The queue could not be saved. Original entries and delays were restored.");}
+   Refresh();
+  };
   remove.Click+=async (_,_)=>
   {
    var q=Queue();var state=F(q,"_state");if(q==null || state==null || P(q,"IsRunning") is true || P(state,"Queue") is not IList list)return;

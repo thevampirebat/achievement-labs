@@ -28,6 +28,7 @@ public partial class MainWindow : Window
         };
         AchievementLabs.MultiSelect.EventTokenView.PreferredAcquireAsync = WamEventTokens.AcquireAsync;
         AchievementLabs.MultiSelect.BatchPicker.Attach(this);
+        AchievementLabs.MultiSelect.SearchClearButtons.Attach(this);
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
         xboxPresenceTimer.Tick += (_, _) => model.RefreshXboxPcAppPresence();
         var offlineChecks = AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var offline) && offline;
@@ -143,6 +144,7 @@ public partial class MainWindow : Window
     private void FilterLocked(object? s, RoutedEventArgs e) => model.Filter("Locked");
     private void FilterUnlocked(object? s, RoutedEventArgs e) => model.Filter("Unlocked");
     private async void ConnectXbox(object? s, RoutedEventArgs e) => await model.ConnectAsync();
+    private void OpenGameTitleSpoof(object? sender, RoutedEventArgs e) => model.OpenGameSpoofer();
     private async void LaunchXboxAndAttach(object? s, RoutedEventArgs e) => await model.LaunchXboxPcAppAndAttachAsync();
     private async void PasteAndCompleteBrowserLogin(object? s, RoutedEventArgs e)
     {

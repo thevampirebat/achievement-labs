@@ -9,4 +9,5 @@
     <PackageReference Include="Avalonia" Version="12.1.2" />
     <EmbeddedResource Include="EditionMappings.json" LogicalName="AchievementLabs.MultiSelect.EditionMappings.json" />
   </ItemGroup>
+  <ItemGroup><EmbeddedResource Include="../../catalog/achievement-packs.json" LogicalName="AchievementLabs.SharedPacks.json" /></ItemGroup>
 </Project>

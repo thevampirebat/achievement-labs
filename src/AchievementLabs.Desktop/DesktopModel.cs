@@ -149,8 +149,9 @@ public sealed partial class DesktopModel : Observable, IDisposable
         var version = ++selectionVersion;
         ResetActions();
         if (busy) return;
+        ResetGamePlaytime();
         SelectedGame = game; achievements = []; Search = ""; Filter("All"); Navigate("Achievements");
-        if (client == null || session == null) return;
+        if (client == null || session == null) { GamePlaytimeText = "Xbox-recorded playtime: Unavailable"; return; }
         if (AutoSpoof && !UsesLegacyEndpoint(game))
         {
             if (autoPresenceTask != null) { StopPresence(); await autoPresenceTask; }
@@ -182,6 +183,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
             SelectedGame = updated;
             Games = Games.Select(g => g.Id == updated.Id ? updated : g).ToArray();
             Refresh(); Notice = $"Loaded {loaded.Length} achievements for {game.Name}.";
+            _ = LoadGamePlaytimeAsync(updated, version);
         }
         catch (OperationCanceledException) { }
         catch { if (version == selectionVersion) Notice = "Achievements could not be loaded. Select the title again to retry."; }
@@ -198,7 +200,8 @@ public sealed partial class DesktopModel : Observable, IDisposable
         if (version != selectionVersion || lifetime.IsCancellationRequested) return;
         achievements = Map(response);
         var title = response.achievements[0].titleAssociations.FirstOrDefault();
-        SelectedGame = new Game(title?.id ?? Path.GetFileNameWithoutExtension(path), title?.name ?? Path.GetFileNameWithoutExtension(path), "LOCAL ACHIEVEMENT EXPORT", achievements.Count(a => a.Unlocked), achievements.Length, achievements.Where(a => a.Unlocked).Sum(a => a.Score), achievements.All(a => a.ProgressKnown));
+        SelectedGame = new Game(title?.id ?? Path.GetFileNameWithoutExtension(path), title?.name ?? Path.GetFileNameWithoutExtension(path), string.Join(" / ", response.achievements.SelectMany(a => a.platforms).Distinct(StringComparer.OrdinalIgnoreCase)), achievements.Count(a => a.Unlocked), achievements.Length, achievements.Where(a => a.Unlocked).Sum(a => a.Score), achievements.All(a => a.ProgressKnown));
+        GamePlaytimeText = "Xbox-recorded playtime: Unavailable for local export";
         Search = ""; Filter("All"); Navigate("Achievements"); Notice = $"Opened {achievements.Length} achievements from a local export.";
     }
     private static Achievement[] Map(AchievementsResponse response) => response.achievements.Where(a => !string.Equals(a.achievementType, "Challenge", StringComparison.OrdinalIgnoreCase)).Select(a => new Achievement(a.id, a.name, (a.progressState == "Achieved" ? a.description : a.lockedDescription) ?? a.description ?? "", int.TryParse(a.rewards.FirstOrDefault(r => r.type == "Gamerscore")?.value, out var score) ? score : 0, a.progressState == "Achieved", a.progressState != "Null", a.rewards.Any(r => r.type == "Gamerscore"), a.mediaAssets.FirstOrDefault(m => m.type == "Icon")?.url ?? a.mediaAssets.FirstOrDefault()?.url)).ToArray();

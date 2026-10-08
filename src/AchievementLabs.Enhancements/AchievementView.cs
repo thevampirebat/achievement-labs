@@ -26,11 +26,18 @@ public static class AchievementView
         Add("Nemesis", "Mass Exodus|Unstoppable|Nemesis Completionist|The Final Chapter|Postmaster|Eggstra Nemesis!|Timing is Everything|You Wish|Always Hard|Hat Trick");
     }
     static void Add(string pack,string names){foreach(var n in names.Split('|'))Ghosts.Add(Normalize(n),pack);}
-    public static bool Supports(object? game)
-    {
-        return Prop(game,"Id")?.ToString()=="572802557";
-    }
+    static SharedDlcCatalogue.Title? CatalogueTitle(object? game) => SharedDlcCatalogue.Current.Find(
+        Prop(game,"Id")?.ToString() ?? "", Prop(game,"Platform")?.ToString() ?? "");
+    // Keep legacy callers without platform metadata working; explicit mismatched platforms are rejected.
+    static bool LegacyGhosts(object? game) => Prop(game,"Id")?.ToString()=="572802557" && string.IsNullOrEmpty(Prop(game,"Platform")?.ToString());
+    public static bool Supports(object? game) => CatalogueTitle(game) != null || LegacyGhosts(game);
     public static string Group(object? row)=>Ghosts.TryGetValue(Normalize(Prop(row,"Name")?.ToString()??""),out var pack)?pack:"Unclassified";
+    public static string Group(object? row, object? game) => CatalogueTitle(game) is { } title
+        ? SharedDlcCatalogue.Group(title, Prop(row,"Id")?.ToString() ?? "", Prop(row,"Name")?.ToString() ?? "")
+        : LegacyGhosts(game) ? Group(row) : "Unclassified";
+    public static string[] PacksFor(object? game) => CatalogueTitle(game) is { } title
+        ? new[] {"All packs"}.Concat(title.Packs.OrderBy(p => p.Kind == "base" ? 0 : 1).Select(p=>p.Name)).Append("Unclassified").ToArray()
+        : Packs;
     public sealed class Settings { public int Sort; public string Pack="All packs"; internal object? LastGame; }
     static readonly ConditionalWeakTable<object,Settings> States=new();
     public static Settings For(object model)
@@ -39,29 +46,31 @@ public static class AchievementView
         if(!ReferenceEquals(game,s.LastGame)){s.Pack="All packs";s.LastGame=game;}
         return s;
     }
-    public static object[] Arrange(IEnumerable rows,bool grouped,int sort,string pack)
+    public static object[] Arrange(IEnumerable rows,bool grouped,int sort,string pack,object? game=null)
     {
         IEnumerable<object> result=rows.Cast<object>();
-        if(grouped && pack!="All packs")result=result.Where(r=>Group(r)==pack);
-        IOrderedEnumerable<object> ordered=result.OrderBy(r=>grouped?Array.IndexOf(Packs,Group(r)):0);
+        string GetGroup(object row) => game == null ? Group(row) : Group(row,game);
+        var packNames = game == null ? Packs : PacksFor(game);
+        if(grouped && pack!="All packs")result=result.Where(r=>GetGroup(r)==pack);
+        IOrderedEnumerable<object> ordered=result.OrderBy(r=>grouped?Array.IndexOf(packNames,GetGroup(r)):0);
         if(sort==1)ordered=ordered.ThenBy(r=>Prop(r,"Name")?.ToString(),StringComparer.CurrentCultureIgnoreCase);
         if(sort==2)ordered=ordered.ThenByDescending(r=>Prop(r,"Name")?.ToString(),StringComparer.CurrentCultureIgnoreCase);
         return ordered.ToArray();
     }
     public static Array Transform(Array rows,object model)
     {
-        var s=For(model);var selected=Arrange(rows,Supports(Prop(model,"SelectedGame")),s.Sort,s.Pack);
+        var s=For(model);var selected=Arrange(rows,Supports(Prop(model,"SelectedGame")),s.Sort,s.Pack,Prop(model,"SelectedGame"));
         Array typed=Array.CreateInstance(rows.GetType().GetElementType()!,selected.Length);
         for(int i=0;i<selected.Length;i++)typed.SetValue(selected[i],i);
         return typed;
     }
-    public static bool StartsGroup(IEnumerable? rows,object row)
+    public static bool StartsGroup(IEnumerable? rows,object row,object? game=null)
     {
         string? previous=null;
         if(rows is null)return false;
         foreach(object current in rows)
         {
-            string group=Group(current);
+            string group=game == null ? Group(current) : Group(current,game);
             if(ReferenceEquals(current,row))return previous!=group;
             previous=group;
         }
@@ -91,8 +100,12 @@ public static class AchievementView
         {
             updating=true;
             bool grouped=Supports(Prop(model,"SelectedGame"));var s=For(model);
-            packs.IsVisible=packLabel.IsVisible=grouped;packs.SelectedItem=s.Pack;
-            info.IsVisible=grouped;info.Text=s.Pack=="All packs"?"Base game → Onslaught → Devastation → Invasion → Nemesis":"Showing "+s.Pack;
+            packs.IsVisible=packLabel.IsVisible=grouped;
+            var available=PacksFor(Prop(model,"SelectedGame"));
+            if(packs.ItemsSource is not string[] old || !old.SequenceEqual(available)) packs.ItemsSource=available;
+            if(!available.Contains(s.Pack))s.Pack="All packs";
+            packs.SelectedItem=s.Pack;
+            info.IsVisible=grouped;info.Text=s.Pack=="All packs"?string.Join(" → ",available.Where(p=>p is not ("All packs" or "Unclassified"))):"Showing "+s.Pack;
             updating=false;
         }
         if(model is System.ComponentModel.INotifyPropertyChanged npc)
@@ -111,7 +124,7 @@ public static class AchievementView
                 Control? original=template.Build(row);
                 if(!Supports(Prop(model,"SelectedGame")))return original;
                 var box=new StackPanel {Spacing=3};
-                var divider=Divider(Group(row));divider.Tag=row;divider.IsVisible=StartsGroup(list.ItemsSource,row);box.Children.Add(divider);
+                var divider=Divider(Group(row,Prop(model,"SelectedGame")));divider.Tag=row;divider.IsVisible=StartsGroup(list.ItemsSource,row,Prop(model,"SelectedGame"));box.Children.Add(divider);
                 if(original!=null)box.Children.Add(original);return box;
             },false);
             list.PropertyChanged+=(_,e)=>
@@ -119,7 +132,7 @@ public static class AchievementView
                 if(e.Property.Name!="ItemsSource")return;
                 Avalonia.Threading.Dispatcher.UIThread.Post(()=> {
                     foreach(var divider in list.GetLogicalDescendants().OfType<Border>().Where(b=>b.Name=="AchievementPackDivider"))
-                        divider.IsVisible=Supports(Prop(model,"SelectedGame")) && divider.Tag is object row && StartsGroup(list.ItemsSource,row);
+                        divider.IsVisible=Supports(Prop(model,"SelectedGame")) && divider.Tag is object row && StartsGroup(list.ItemsSource,row,Prop(model,"SelectedGame"));
                 });
             };
         }
