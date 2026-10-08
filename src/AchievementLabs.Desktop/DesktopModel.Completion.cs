@@ -35,10 +35,10 @@ public sealed partial class DesktopModel
             completionDirty = true;
         }
         return game with {
-            BaseComplete = mythic, AddOnsComplete = result.AddOnsComplete,
+            BaseComplete = mythic, AddOnsComplete = result.AddOnsComplete, FullyComplete = result.FullyComplete,
             MythicVisible = ShowMythicIcon && mythic,
             MythicColour = ValidColour(MythicColour, "#70C98A"),
-            CompletionBackground = HighlightCompletedDlcs && result.AddOnsComplete ? ValidColour(CompletedDlcColour, "#183A27") : "Transparent"
+            CompletionBackground = HighlightCompletedDlcs && result.FullyComplete ? ValidColour(CompletedDlcColour, "#183A27") : "Transparent"
         };
     }
     private void RefreshLibraryPresentation()

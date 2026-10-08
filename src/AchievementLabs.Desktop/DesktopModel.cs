@@ -24,11 +24,12 @@ public record Game(string Id, string Name, string Platform, int Completed, int T
 {
     public bool BaseComplete { get; init; }
     public bool AddOnsComplete { get; init; }
+    public bool FullyComplete { get; init; }
     public bool MythicVisible { get; init; }
     public string MythicColour { get; init; } = "#70C98A";
     public string CompletionBackground { get; init; } = "Transparent";
     public string PlatformLabel => AchievementLabs.MultiSelect.GfwlTitles.Label(Id, Platform);
-    public string CompletionTooltip => AddOnsComplete ? "All verified DLC and title-update achievements completed" : "Base game completed (local indicator from verified achievement progress)";
+    public string CompletionTooltip => FullyComplete ? "100% completed: all achievements, including DLC and title updates" : "Base game completed (local indicator from verified achievement progress)";
     public string ShortName => Name;
     public string Monogram => string.Concat(Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0]));
     public string Color => "#70C98A";

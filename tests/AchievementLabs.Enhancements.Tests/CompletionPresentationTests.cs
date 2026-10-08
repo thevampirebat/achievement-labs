@@ -32,6 +32,16 @@ public static class CompletionPresentationTests
         Assert(baseOnly.BaseComplete && !baseOnly.AddOnsComplete, "Base completion excludes locked DLC");
         var dlcOnly = CompletionMarkers.Evaluate(title,[new("1","First",false),new("2","Second",false),new("3","Third",true)],3,1,true);
         Assert(!dlcOnly.BaseComplete && dlcOnly.AddOnsComplete, "DLC completion independent of base");
+        Assert(!dlcOnly.FullyComplete && !baseOnly.FullyComplete, "Neither DLC-only nor base-only completion is 100%");
+        Assert(CompletionMarkers.Evaluate(title,[],3,3,true).FullyComplete, "Base and DLC together prove 100%");
+        Assert(CompletionMarkers.Evaluate(null,[],30,30,true).FullyComplete, "Ungrouped completed game is 100%");
+        Assert(!CompletionMarkers.Evaluate(null,[],30,20,true).FullyComplete, "Incomplete ungrouped game stays unhighlighted");
+        Assert(!CompletionMarkers.Evaluate(null,[],0,0,true).FullyComplete, "Zero-achievement titles stay unhighlighted");
+        Assert(!CompletionMarkers.Evaluate(null,[],30,30,false).FullyComplete, "Unknown progress cannot prove 100%");
+        var noDlc = new SharedDlcCatalogue.Title("73",["XboxOne"],"https://example.com/base-only",[
+            new("Base game","base",[new("1","First"),new("2","Second")])]);
+        Assert(CompletionMarkers.Evaluate(noDlc,[],2,2,true).FullyComplete, "No-DLC game gets 100% completion");
+        Assert(!CompletionMarkers.Evaluate(noDlc,[],2,1,true).FullyComplete, "Partial no-DLC game stays unhighlighted");
         Assert(!CompletionMarkers.Evaluate(null,[],30,20,true).BaseComplete, "Unknown partial list is not inferred from 1000G or row order");
         Assert(CompletionMarkers.Evaluate(null,[],30,30,true).BaseComplete, "Complete entire known list proves base completion");
         Assert(!CompletionMarkers.Evaluate(null,[],30,30,false).BaseComplete, "Unknown account progress never awards a marker");
@@ -64,6 +74,13 @@ public static class CompletionPresentationTests
         Assert(!model.SelectedGame.MythicVisible, "Achievement page respects icon opt-out immediately");
         model.ShowMythicIcon=true; model.MythicColour="#123456";
         Assert(model.SelectedGame.MythicVisible && model.SelectedGame.MythicColour==DesktopModel.ValidColour("#123456",""), "Achievement page respects custom icon colour");
+        SharedDlcCatalogue.Current.Merge(JsonSerializer.Serialize(new SharedDlcCatalogue.Document(1,[noDlc]),new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+        typeof(DesktopModel).GetProperty("Games")!.SetValue(model,new AchievementLabs.Desktop.Game[]{new("73","No DLC","XboxOne",2,2,1000),new("74","Ungrouped","XboxOne",2,2,1000)});
+        Assert(model.Games.All(g=>g.FullyComplete && g.CompletionBackground!="Transparent"),"Completed no-DLC and ungrouped games both highlighted");
+        model.HighlightCompletedDlcs=false;
+        Assert(model.Games.All(g=>g.CompletionBackground=="Transparent"),"100% highlight remains optional");
+        model.HighlightCompletedDlcs=true; model.CompletedDlcColour="#334455";
+        Assert(model.Games.All(g=>g.CompletionBackground==DesktopModel.ValidColour("#334455","")),"100% highlight keeps saved custom colour");
         // Collapse does not remove achievements from exports or batch selection, and search reveals matches.
         var game = new AchievementLabs.Desktop.Game("70","Test","XboxOne",2,3,1000);
         typeof(DesktopModel).GetProperty("SelectedGame")!.SetValue(model,game);
