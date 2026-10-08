@@ -15,9 +15,9 @@ public static class DlcCatalogueTests
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
             Calls++;
-            Assert(request.Method == HttpMethod.Get && request.RequestUri == SharedDlcCatalogue.PublishedUri, "Public metadata GET only");
+            Assert(request.Method == HttpMethod.Get && (request.RequestUri == SharedDlcCatalogue.PublishedUri || request.RequestUri == SharedDlcCatalogue.PublishedHubsUri), "Public metadata GET only");
             Assert(request.Headers.Authorization == null, "No account token sent");
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body) });
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(request.RequestUri == SharedDlcCatalogue.PublishedHubsUri ? "{\"schemaVersion\":1,\"titles\":[]}" : body) });
         }
     }
     public static void Run()
@@ -59,10 +59,14 @@ public static class DlcCatalogueTests
             var handler = new Handler(Sample); using var http = new HttpClient(handler);
             catalogue.RefreshAsync(http,cache,CancellationToken.None).GetAwaiter().GetResult();
             catalogue.RefreshAsync(http,cache,CancellationToken.None).GetAwaiter().GetResult();
-            Assert(handler.Calls == 1, "Recent cache avoids repeat network requests");
+            Assert(handler.Calls == 2, "Recent cache avoids repeat network requests");
+            Assert(catalogue.LastRefreshSucceeded && catalogue.LastSuccessfulRefresh.HasValue, "Successful refresh status recorded");
+            Assert(catalogue.Find("2001700854","XboxOne") != null, "Hub survives ordinary catalogue refresh");
+            catalogue.RefreshAsync(http,cache,CancellationToken.None,true).GetAwaiter().GetResult();
+            Assert(handler.Calls == 4, "Force refresh bypasses both recent caches");
             var invalid = new Handler("{}"); using var invalidHttp = new HttpClient(invalid);
             catalogue.RefreshAsync(invalidHttp,cache,CancellationToken.None,true).GetAwaiter().GetResult();
-            Assert(catalogue.Find("42","XboxOne") != null, "Malformed response keeps cached mapping");
+            Assert(catalogue.Find("42","XboxOne") != null && !catalogue.LastRefreshSucceeded, "Malformed response keeps cached mapping and reports failure");
         }
         finally { if (Directory.Exists(Path.GetDirectoryName(cache))) Directory.Delete(Path.GetDirectoryName(cache)!,true); }
         Console.WriteLine("PASS: Verified DLC groups, edition and ID guards, atomic invalid-update rejection, unauthenticated public reads and offline cache.");

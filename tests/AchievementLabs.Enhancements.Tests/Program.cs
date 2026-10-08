@@ -17,7 +17,7 @@ static class Test
  static void Submit(Window d)=>Click(Desc<Button>(d).Single(b=>(b.Content as string)=="Unlock / retry selected"));
  public static void Main(string[] args)
  {
-  if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();GameDetailsTests.Run();QueueToolTests.Run();return;}
+  if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();return;}
   if(args.Contains("--playtime")){PlaytimeTests.Run();return;}
   if(args.Contains("--auto-token")){AutomaticTokenTests.Run();return;}
   if(args.Contains("--export")){ExportTests.Run();return;}
@@ -43,7 +43,13 @@ static class Test
    Assert(Desc<ComboBox>(window).Any(c=>c.Name=="AchievementPackFilter"),"Pack filter in real window");
    Assert(Desc<ListBox>(window).Any(l=>l.Name=="AchievementLabsAchievementList"),"Named real achievement list");
    Assert(Desc<Button>(window).Any(b=>(b.Content as string)=="Select multiple…"),"Batch button in real window");
-   Assert(Desc<Button>(window).Count(b=>b.Name=="ExportAllAchievements")==2,"Export all buttons in achievement and profile views");
+      Assert(Desc<Button>(window).Count(b=>b.Name=="ExportAllAchievements")==1,"Single permanent Settings export button");
+   Assert(Desc<Button>(window).Single(b=>b.Name=="ExportAllAchievements").Parent is StackPanel,"Export lives in Settings tile");
+   Assert(Desc<Button>(window).Single(b=>b.Name=="RefreshDlcCatalogueNow").IsEnabled,"Public catalogue refresh available disconnected");
+   Assert(Desc<Expander>(window).Any(e=>Equals(e.Header,"Debug")),"Debug section in Settings");
+   Assert(Desc<Avalonia.Controls.Shapes.Path>(window).Any(c=>c.Name=="AchievementPageMythicIcon"),"Mythic icon in actual achievement page header");
+   Assert(Desc<CheckBox>(window).Any(c=>c.Name=="MythicIconSetting"),"Mythic setting present");
+   Assert(Desc<CheckBox>(window).Any(c=>c.Name=="CompletedDlcSetting"),"DLC colour setting present");
    Assert(Desc<StackPanel>(window).Count(b=>b.Name=="XboxRecordedPlaytime")==1,"Xbox-recorded playtime panel attached to spoofer");
    Assert(Desc<Button>(window).Single(b=>b.Name=="RefreshXboxPlaytime").IsEnabled==false,"Playtime disabled without connected account");
    Assert(Desc<StackPanel>(window).Count(b=>b.Name=="AutomaticEventToken")==1,"Automatic token controls attached to Settings");
@@ -69,7 +75,7 @@ static class Test
     var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic;
     var model=window.GetType().GetField("model",flags)!.GetValue(window)!;
     var gameProperty=model.GetType().GetProperty("SelectedGame",flags)!;
-    var syntheticGame=System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(gameProperty.PropertyType);
+    var syntheticGame=new AchievementLabs.Desktop.Game("572802557","Call of Duty: Ghosts","XboxOne",0,91,0);
     var gameId=gameProperty.PropertyType.GetProperty("TitleId")??gameProperty.PropertyType.GetProperty("Id");
     Assert(gameId!=null,"Actual game exposes title identifier");
     gameId!.SetValue(syntheticGame,"572802557");gameProperty.SetValue(model,syntheticGame);

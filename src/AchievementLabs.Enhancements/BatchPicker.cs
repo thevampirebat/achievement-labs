@@ -18,7 +18,7 @@ public static class BatchPicker
     static object? Game(object model) => Prop(model, "SelectedGame");
     static bool Legacy(object model, object game) => Yes(model.GetType().GetMethod("UsesLegacyEndpoint", Flags)?.Invoke(null, new[] { game }));
     public static bool CanOpen(object model) => Yes(Prop(model,"CanQuery")) && Yes(Field(model,"liveAchievements")) && Game(model) is object game && !Legacy(model, game);
-    public static bool CanUnlockSelected(object model) => CanOpen(model) && Prop(model,"SelectedAchievement") is object row && IneligibleReason(model,row)==null;
+    public static bool CanUnlockSelected(object model) => CanOpen(model) && Prop(model,"SelectedAchievement") is object row && !AchievementView.IsCollapsed(model,row) && IneligibleReason(model,row)==null;
     public static string? IneligibleReason(object model, object row)
     {
         string? id = Prop(row,"Id") as string;
@@ -41,7 +41,6 @@ public static class BatchPicker
         if (model == null) return;
         try
         {
-            ExportAllView.Attach(owner,model);
             PlaytimeView.Attach(owner,model);
             PresenceDiagnostics.Attach(owner,model);
             EventTokenView.Attach(owner,model);
@@ -74,7 +73,7 @@ public static class BatchPicker
     static async Task ShowPicker(Window owner,object model)
     {
         object game = Game(model)!;
-        object[] rows = (Prop(model,"VisibleAchievements") as IEnumerable)?.Cast<object>().ToArray() ?? Array.Empty<object>();
+        object[] rows = ((Prop(model,"BatchAchievements") ?? Prop(model,"VisibleAchievements")) as IEnumerable)?.Cast<object>().ToArray() ?? Array.Empty<object>();
         string title = Prop(game,"Name")?.ToString() ?? "Current game";
         var dialog = new Window {
             Title="Select achievements — " + title, Width=700,Height=650,MinWidth=480,MinHeight=380,

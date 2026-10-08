@@ -18,11 +18,20 @@ public sealed partial class DesktopModel
     public Action<string>? SpooferFailure { get; set; }
     public void NotifyWindows(string title, string message) { if (WindowsNotificationsEnabled && !lifetime.IsCancellationRequested) WindowsNotification?.Invoke(title, message); }
     public void TestWindowsNotification() => NotifyWindows("Achievement Labs", "Windows notifications are enabled.");
+    private bool autoRefreshDlc = true, showMythicIcon = true, highlightCompletedDlcs = true, debugExpanded;
+    private string mythicColour = "#70C98A", completedDlcColour = "#183A27";
+    public bool AutoRefreshDlc { get => autoRefreshDlc; set { autoRefreshDlc = value; Changed(); } }
+    public bool ShowMythicIcon { get => showMythicIcon; set { showMythicIcon = value; Changed(); RefreshLibraryPresentation(); } }
+    public bool HighlightCompletedDlcs { get => highlightCompletedDlcs; set { highlightCompletedDlcs = value; Changed(); RefreshLibraryPresentation(); } }
+    public bool DebugExpanded { get => debugExpanded; set { debugExpanded = value; Changed(); } }
+    public string MythicColour { get => mythicColour; set { mythicColour = value ?? ""; Changed(); RefreshLibraryPresentation(); } }
+    public string CompletedDlcColour { get => completedDlcColour; set { completedDlcColour = value ?? ""; Changed(); RefreshLibraryPresentation(); } }
+    public void ResetCompletionColours() { MythicColour = "#70C98A"; CompletedDlcColour = "#183A27"; }
     private CatalogFinding[] findings = [];
     private string catalogSummary = "Choose an Events folder in Settings, then inspect its catalog.";
     public bool IsSettings => page == "Settings";
     public bool IsDiagnostics => page == "Diagnostics";
-    public bool CanDisconnect => !TotalsRunning && !PresenceRunning && !QueueActive && !busy && !WorkflowBusy && session != null;
+    public bool CanDisconnect => !CompletionScanRunning && !TotalsRunning && !PresenceRunning && !QueueActive && !busy && !WorkflowBusy && session != null;
     public string EventsDirectory { get => eventsDirectory; set { eventsDirectory = value; Changed(); } }
     public string SessionPath { get => sessionPath; set { sessionPath = value; Changed(); } }
     public bool RegionOverride { get => regionOverride; set { regionOverride = value; Changed(); } }
@@ -33,14 +42,14 @@ public sealed partial class DesktopModel
     {
         try { librarySort = AchievementLabs.Core.LibrarySortPreferences.Load(librarySortPath); Changed(nameof(LibrarySort)); Changed(nameof(VisibleGames)); }
         catch { Notice = "Saved library sort could not be read."; }
-        try { var value = await preferencesStore.LoadAsync(lifetime.Token); EventsDirectory = value.EventsDirectory; SessionPath = value.SessionPath; RegionOverride = value.RegionOverride; MintAccent = value.MintAccent; UnlockAllEnabled = value.UnlockAllEnabled; OAuthProfile = value.OAuthProfile; FakeSignature = value.FakeSignature; PrivacyMode = value.PrivacyMode; AutoSpoof = value.AutoSpoof; AutoLaunchXboxApp = value.AutoLaunchXboxApp; LaunchXboxAppHidden = value.LaunchXboxAppHidden; WindowsNotificationsEnabled = value.WindowsNotificationsEnabled; NotifySpooferStops = value.NotifySpooferStops; await LoadSavedEventTokenAsync();
+        try { var value = await preferencesStore.LoadAsync(lifetime.Token); EventsDirectory = value.EventsDirectory; SessionPath = value.SessionPath; RegionOverride = value.RegionOverride; MintAccent = value.MintAccent; UnlockAllEnabled = value.UnlockAllEnabled; OAuthProfile = value.OAuthProfile; FakeSignature = value.FakeSignature; PrivacyMode = value.PrivacyMode; AutoSpoof = value.AutoSpoof; AutoLaunchXboxApp = value.AutoLaunchXboxApp; LaunchXboxAppHidden = value.LaunchXboxAppHidden; WindowsNotificationsEnabled = value.WindowsNotificationsEnabled; NotifySpooferStops = value.NotifySpooferStops; AutoRefreshDlc = value.AutoRefreshDlc; ShowMythicIcon = value.ShowMythicIcon; HighlightCompletedDlcs = value.HighlightCompletedDlcs; MythicColour = value.MythicColour; CompletedDlcColour = value.CompletedDlcColour; await LoadSavedEventTokenAsync();
             if (AutoLaunchXboxApp) System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(@"shell:appsFolder\Microsoft.GamingApp_8wekyb3d8bbwe!Microsoft.Xbox.App") { UseShellExecute = true, WindowStyle = LaunchXboxAppHidden ? System.Diagnostics.ProcessWindowStyle.Hidden : System.Diagnostics.ProcessWindowStyle.Normal }); }
         catch (OperationCanceledException) { }
         catch { Notice = "Native settings could not be read. Defaults are in use; save only after reviewing them."; }
     }
     public async Task SavePreferencesAsync()
     {
-        try { await preferencesStore.SaveAsync(new() { EventsDirectory = EventsDirectory, SessionPath = SessionPath, RegionOverride = RegionOverride, MintAccent = MintAccent, UnlockAllEnabled = UnlockAllEnabled, OAuthProfile = OAuthProfile, FakeSignature = FakeSignature, PrivacyMode = PrivacyMode, AutoSpoof = AutoSpoof, AutoLaunchXboxApp = AutoLaunchXboxApp, LaunchXboxAppHidden = LaunchXboxAppHidden, WindowsNotificationsEnabled = WindowsNotificationsEnabled, NotifySpooferStops = NotifySpooferStops }, lifetime.Token); Notice = "Native settings saved. Connection changes apply on the next connection."; }
+        try { await preferencesStore.SaveAsync(new() { EventsDirectory = EventsDirectory, SessionPath = SessionPath, RegionOverride = RegionOverride, MintAccent = MintAccent, UnlockAllEnabled = UnlockAllEnabled, OAuthProfile = OAuthProfile, FakeSignature = FakeSignature, PrivacyMode = PrivacyMode, AutoSpoof = AutoSpoof, AutoLaunchXboxApp = AutoLaunchXboxApp, LaunchXboxAppHidden = LaunchXboxAppHidden, WindowsNotificationsEnabled = WindowsNotificationsEnabled, NotifySpooferStops = NotifySpooferStops, AutoRefreshDlc = AutoRefreshDlc, ShowMythicIcon = ShowMythicIcon, HighlightCompletedDlcs = HighlightCompletedDlcs, MythicColour = ValidColour(MythicColour, "#70C98A"), CompletedDlcColour = ValidColour(CompletedDlcColour, "#183A27") }, lifetime.Token); Notice = "Native settings saved. Connection changes apply on the next connection."; }
         catch (OperationCanceledException) { }
         catch { Notice = "Could not save settings. Check that both paths are absolute and the settings folder is writable."; }
     }

@@ -12,6 +12,11 @@ public sealed class SharedDlcCatalogue
     static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     public static SharedDlcCatalogue Current { get; } = Bundled();
     public static readonly Uri PublishedUri = new("https://raw.githubusercontent.com/thevampirebat/achievement-labs/main/catalog/achievement-packs.json");
+    public static readonly Uri PublishedHubsUri = new("https://raw.githubusercontent.com/thevampirebat/achievement-labs/main/catalog/achievement-hubs.json");
+    public int Count => titles.Length;
+    public DateTimeOffset? LastSuccessfulRefresh { get; private set; }
+    public string LastRefreshStatus { get; private set; } = "Bundled catalogue loaded";
+    public bool LastRefreshSucceeded { get; private set; }
     private Title[] titles = [];
     private readonly SemaphoreSlim refreshGate = new(1, 1);
 
@@ -75,22 +80,35 @@ public sealed class SharedDlcCatalogue
         await refreshGate.WaitAsync(ct);
         try
         {
-            if (File.Exists(cachePath))
+            LastRefreshSucceeded = true;
+            bool downloaded = false;
+            var hubPath = Path.Combine(Path.GetDirectoryName(cachePath)!, "shared-achievement-hubs.json");
+            foreach (var (uri, path) in new[] { (PublishedUri, cachePath), (PublishedHubsUri, hubPath) })
+            {
+                if (File.Exists(path))
+                    try
+                    {
+                        Merge(await File.ReadAllTextAsync(path, ct));
+                        var written = new DateTimeOffset(File.GetLastWriteTimeUtc(path));
+                        if (LastSuccessfulRefresh == null || written > LastSuccessfulRefresh) LastSuccessfulRefresh = written;
+                        if (!force && written > DateTimeOffset.UtcNow.AddHours(-24)) continue;
+                    }
+                    catch (Exception e) when (e is IOException or JsonException or InvalidDataException or UnauthorizedAccessException) { }
                 try
                 {
-                    Merge(await File.ReadAllTextAsync(cachePath, ct));
-                    if (!force && File.GetLastWriteTimeUtc(cachePath) > DateTime.UtcNow.AddHours(-24)) return;
+                    var json = await http.GetStringAsync(uri, ct);
+                    Merge(json);
+                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                    await File.WriteAllTextAsync(path + ".tmp", json, ct);
+                    File.Move(path + ".tmp", path, true);
+                    LastSuccessfulRefresh = DateTimeOffset.UtcNow; downloaded = true;
                 }
-                catch (Exception e) when (e is IOException or JsonException or InvalidDataException) { }
-            try
-            {
-                var json = await http.GetStringAsync(PublishedUri, ct); Merge(json);
-                Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
-                await File.WriteAllTextAsync(cachePath + ".tmp", json, ct);
-                File.Move(cachePath + ".tmp", cachePath, true);
+                catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+                catch (Exception e) when (e is HttpRequestException or OperationCanceledException or IOException or JsonException or InvalidDataException or UnauthorizedAccessException)
+                { LastRefreshSucceeded = false; }
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-            catch (Exception e) when (e is HttpRequestException or OperationCanceledException or IOException or JsonException or InvalidDataException) { }
+            LastRefreshStatus = !LastRefreshSucceeded ? "Refresh incomplete; valid cached or bundled sections retained"
+                : downloaded ? "Catalogue refreshed" : "Cached catalogue is up to date";
         }
         finally { refreshGate.Release(); }
     }

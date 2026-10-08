@@ -10,7 +10,7 @@ namespace AchievementLabs.MultiSelect;
 public sealed class AchievementExport
 {
     public sealed record Game(string Id,string Name,string Platform,int ExpectedScore);
-    public sealed record Row(string Id,string Name,string Description,string Status,string Score,string UnlockedAt,string ServiceConfigId);
+    public sealed record Row(string Id,string Name,string Description,string Status,string Score,string UnlockedAt,string ServiceConfigId,bool LegacyProgressVerified = false);
     public sealed record Saved(int Version,string Account,Game Game,DateTimeOffset ScannedAt,Row[] Rows);
     public sealed record Progress(int Done,int Total,int Saved,int Skipped,int Failed,string Message);
     public sealed record Result(int Saved,int Skipped,int Failed,bool Paused,string Folder);
@@ -26,7 +26,15 @@ public sealed class AchievementExport
     static string S(JsonElement e,string name)=>Text(Get(e,name));
     static string Continuation(JsonElement e)=>S(Get(e,"pagingInfo"),"continuationToken") is string s && s.Length>0?s:S(e,"continuationToken");
     static bool ValidId(string s)=>s.Length>0 && s.All(char.IsAsciiDigit);
-    public static bool Legacy(Game g)=>g.Platform.Split(", ",StringSplitOptions.RemoveEmptyEntries).Any(d=>new[]{"Xbox360","Mobile","WindowsPhone","Win8","Windows8"}.Contains(d,StringComparer.OrdinalIgnoreCase));
+    public static bool Legacy(Game g)=>GfwlTitles.Supports(g.Id) || g.Platform.Split(", ",StringSplitOptions.RemoveEmptyEntries).Any(d=>new[]{"Xbox360","Mobile","WindowsPhone","Win8","Windows8"}.Contains(d,StringComparer.OrdinalIgnoreCase));
+    public static bool LegacyUnlocked(JsonElement achievement)
+    {
+        var unlocked = Get(achievement, "unlocked");
+        if (unlocked.ValueKind is JsonValueKind.True or JsonValueKind.False) return unlocked.GetBoolean();
+        var online = Get(achievement, "unlockedOnline");
+        if (online.ValueKind == JsonValueKind.True) return true; // False means not earned online; offline progress may still exist.
+        return DateTimeOffset.TryParse(S(achievement,"timeUnlocked"),out var when) && when.Year >= 2005;
+    }
     async Task<JsonDocument> Read(string url,string version,CancellationToken token)
     {
         for(int attempt=0;;attempt++)
@@ -76,7 +84,7 @@ public sealed class AchievementExport
         {
             string url=$"https://achievements.xboxlive.com/users/xuid({Uri.EscapeDataString(xuid)})/{(legacy?"titleachievements":"achievements")}?titleId={Uri.EscapeDataString(game.Id)}&maxItems=1000";
             if(next.Length>0)url+="&continuationToken="+Uri.EscapeDataString(next);
-            using var doc=await Read(url,legacy?"3":"4",token);var root=doc.RootElement;var items=Get(root,"achievements");
+            using var doc=await Read(url,legacy?"1":"4",token);var root=doc.RootElement;var items=Get(root,"achievements");
             if(items.ValueKind!=JsonValueKind.Array)throw new InvalidDataException("Xbox did not return an achievement list.");
             foreach(var a in items.EnumerateArray())
             {
@@ -88,7 +96,7 @@ public sealed class AchievementExport
                     throw new InvalidDataException("Achievement title associations do not match the requested game.");
                 string unlocked=legacy?S(a,"timeUnlocked"):S(Get(a,"progression"),"timeUnlocked");
                 string state=S(a,"progressState");
-                if(legacy)state=DateTimeOffset.TryParse(unlocked,out var when)&&when.Year>1970?"Achieved":"NotStarted";
+                if(legacy)state=LegacyUnlocked(a)?"Achieved":"NotStarted";
                 string score=S(a,"gamerscore");var rewards=Get(a,"rewards");
                 if(rewards.ValueKind==JsonValueKind.Array)foreach(var r in rewards.EnumerateArray())if(S(r,"type").Equals("Gamerscore",StringComparison.OrdinalIgnoreCase))score=S(r,"value");
                 string description=state=="Achieved"?S(a,"description"):S(a,"lockedDescription");if(description.Length==0)description=S(a,"description");
@@ -98,6 +106,32 @@ public sealed class AchievementExport
             }
             next=Continuation(root);if(next.Length>0 && !seen.Add(next))throw new InvalidDataException("Xbox repeated an achievement page.");
         }while(next.Length>0);
+        if (legacy && rows.Count > 0)
+        {
+            // titleachievements is the definition catalogue. Read the user's earned list separately.
+            seen.Clear(); next = "";
+            do
+            {
+                string url=$"https://achievements.xboxlive.com/users/xuid({Uri.EscapeDataString(xuid)})/achievements?titleId={Uri.EscapeDataString(game.Id)}&maxItems=1000";
+                if(next.Length>0)url+="&continuationToken="+Uri.EscapeDataString(next);
+                using var earned=await Read(url,"1",token);
+                var items=Get(earned.RootElement,"achievements");
+                if(items.ValueKind!=JsonValueKind.Array)throw new InvalidDataException("Xbox did not return legacy account progress.");
+                foreach(var a in items.EnumerateArray())
+                {
+                    string id=S(a,"id"), titleId=S(a,"titleId");
+                    if(titleId.Length>0 && titleId!=game.Id)throw new InvalidDataException("Earned achievement belongs to another title.");
+                    if(!rows.TryGetValue(id,out var definition))throw new InvalidDataException("Earned achievement has no matching definition ID.");
+                    // Presence in this earned-only endpoint proves an offline unlock even without a timestamp.
+                    if(Get(a,"unlocked").ValueKind==JsonValueKind.False)throw new InvalidDataException("Earned endpoint returned an explicitly locked achievement.");
+                    rows[id]=definition with { Status="Unlocked", UnlockedAt=S(a,"timeUnlocked"),
+                        Description=S(a,"description").Length>0?S(a,"description"):definition.Description };
+                }
+                next=Continuation(earned.RootElement);
+                if(next.Length>0 && !seen.Add(next))throw new InvalidDataException("Xbox repeated a legacy progress page.");
+            } while(next.Length>0);
+            foreach(var id in rows.Keys.ToArray())rows[id]=rows[id] with { LegacyProgressVerified=true };
+        }
         if(rows.Count==0 && game.ExpectedScore>0)throw new InvalidDataException("Empty achievement response for a game with gamerscore; left pending.");
         return rows.Values.ToArray();
     }
@@ -111,7 +145,7 @@ public sealed class AchievementExport
         try
         {
             var s=JsonSerializer.Deserialize<Saved>(File.ReadAllText(path));
-            return s is {Version:1,Rows:not null,Game:not null} && s.Account==account && s.Game.Id==id && s.Rows.All(r=>r!=null && !string.IsNullOrWhiteSpace(r.Id)) && s.Rows.Select(r=>r.Id).Distinct().Count()==s.Rows.Length?s:null;
+            return s is {Version:1,Rows:not null,Game:not null} && s.Account==account && s.Game.Id==id && s.Rows.All(r=>r!=null && !string.IsNullOrWhiteSpace(r.Id)) && s.Rows.Select(r=>r.Id).Distinct().Count()==s.Rows.Length && (!Legacy(s.Game) || s.Rows.All(r=>r.LegacyProgressVerified))?s:null;
         }
         catch(Exception e) when(e is IOException or JsonException or UnauthorizedAccessException){return null;}
     }
@@ -170,7 +204,8 @@ public sealed class AchievementExport
         {
             // Completed titles survive cancellation, authentication failures and restarts.
             await WriteCsv(folder,saved.Values);
-            await Atomic(Path.Combine(folder,"scan-errors.csv"),string.Join("\r\n",failures));
+            var debug = Path.Combine(folder, "debug"); Directory.CreateDirectory(debug);
+            await Atomic(Path.Combine(debug,"scan-errors.csv"),string.Join("\r\n",failures));
         }
         return new(added,skipped,failed,paused,folder);
     }

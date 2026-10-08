@@ -3,7 +3,7 @@ namespace AchievementLabs.Desktop;
 public sealed partial class DesktopModel
 {
     private string platformFilter = "All", titleLookup = "";
-    public string[] PlatformFilters { get; } = ["All", "Xbox One/Series", "PC", "Xbox 360", "Win32", "Windows 8/Legacy", "Incomplete Games"];
+    public string[] PlatformFilters { get; } = ["All", "Xbox One/Series", "PC", "GFWL", "Xbox 360", "Win32", "Windows 8/Legacy", "Incomplete Games"];
     private string librarySort = "A-Z";
     private readonly string librarySortPath = AchievementLabs.Core.AchievementLabsPaths.LocalFile("library-sort.txt");
     public string[] LibrarySortOptions { get; } = ["A-Z", "Z-A", "Last Played"];
@@ -26,11 +26,11 @@ public sealed partial class DesktopModel
     public bool CanQuery => !QueueActive && !busy && session != null;
     public bool CanExport => achievements.Length > 0;
     public static bool HasDevice(Game game, string device) => game.Platform.Split('/', StringSplitOptions.TrimEntries).Contains(device, StringComparer.OrdinalIgnoreCase);
-    public static bool UsesLegacyEndpoint(Game game) => new[] { "Xbox360", "Mobile", "WindowsPhone", "Win8", "Windows8" }.Any(d => HasDevice(game, d));
+    public static bool UsesLegacyEndpoint(Game game) => AchievementLabs.MultiSelect.GfwlTitles.Supports(game.Id) || new[] { "Xbox360", "Mobile", "WindowsPhone", "Win8", "Windows8" }.Any(d => HasDevice(game, d));
     public static bool MatchesPlatform(Game game, string filter) => filter switch
     {
         "Xbox One/Series" => HasDevice(game, "XboxOne") || HasDevice(game, "XboxSeries"),
-        "PC" => HasDevice(game, "PC"), "Xbox 360" => HasDevice(game, "Xbox360"), "Win32" => HasDevice(game, "Win32"),
+        "PC" => HasDevice(game, "PC") || AchievementLabs.MultiSelect.GfwlTitles.Supports(game.Id), "GFWL" => AchievementLabs.MultiSelect.GfwlTitles.Supports(game.Id), "Xbox 360" => HasDevice(game, "Xbox360") && !AchievementLabs.MultiSelect.GfwlTitles.IsExclusive(game.Id), "Win32" => HasDevice(game, "Win32"),
         "Windows 8/Legacy" => UsesLegacyEndpoint(game), "Incomplete Games" => game.ProgressKnown && game.Completed < game.Total, _ => true
     };
     public async Task LookupTitleAsync()
@@ -77,7 +77,8 @@ public sealed partial class DesktopModel
     {
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
         await sharedLibraryTotals.RefreshAsync(http, AchievementLabs.Core.AchievementLabsPaths.LocalFile("shared-library-totals.json"), ct);
-        await AchievementLabs.MultiSelect.SharedDlcCatalogue.Current.RefreshAsync(http, AchievementLabs.Core.AchievementLabsPaths.LocalFile("shared-achievement-packs.json"), ct);
+        if (AutoRefreshDlc && !dlcRefreshRunning) await AchievementLabs.MultiSelect.SharedDlcCatalogue.Current.RefreshAsync(http, AchievementLabs.Core.AchievementLabsPaths.LocalFile("shared-achievement-packs.json"), ct);
+        if (!dlcRefreshRunning) UpdateDlcCatalogueStatus();
         TotalsStatus = $"Shared totals available for {sharedLibraryTotals.Count} titles. Fill missing totals checks the remaining titles.";
     }
     private CancellationTokenSource? totalsCancellation;
@@ -201,7 +202,7 @@ public sealed partial class DesktopModel
     {
         static string Quote(string text) => "\"" + text.Replace("\"", "\"\"") + "\"";
         var rows = new List<string> { "Title ID,Title,Achievement ID,Achievement,Description,Status,Gamerscore" };
-        foreach (var a in VisibleAchievements)
+        foreach (var a in BatchAchievements)
             rows.Add(string.Join(",", new[] { SelectedGame?.Id ?? "", SelectedGame?.Name ?? "", a.Id, a.Name, a.Description, a.Status, a.ScoreKnown ? a.Score.ToString() : "" }.Select(Quote)));
         await File.WriteAllLinesAsync(path, rows, new UTF8Encoding(true), lifetime.Token);
         Notice = $"Exported {rows.Count - 1} visible achievements.";
