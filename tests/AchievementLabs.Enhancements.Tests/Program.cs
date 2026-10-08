@@ -47,6 +47,7 @@ static class Test
    Assert(Desc<Button>(window).Single(b=>b.Name=="ExportAllAchievements").Parent is StackPanel,"Export lives in Settings tile");
    Assert(Desc<Button>(window).Single(b=>b.Name=="RefreshDlcCatalogueNow").IsEnabled,"Public catalogue refresh available disconnected");
    Assert(Desc<Expander>(window).Any(e=>Equals(e.Header,"Debug")),"Debug section in Settings");
+   Assert(Desc<Avalonia.Controls.Shapes.Path>(window).Any(c=>c.Name=="AchievementPageMythicIcon"),"Mythic icon in actual achievement page header");
    Assert(Desc<CheckBox>(window).Any(c=>c.Name=="MythicIconSetting"),"Mythic setting present");
    Assert(Desc<CheckBox>(window).Any(c=>c.Name=="CompletedDlcSetting"),"DLC colour setting present");
    Assert(Desc<StackPanel>(window).Count(b=>b.Name=="XboxRecordedPlaytime")==1,"Xbox-recorded playtime panel attached to spoofer");

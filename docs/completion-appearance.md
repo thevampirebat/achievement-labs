@@ -11,3 +11,7 @@ Existing bulk exports are imported automatically for the connected account. Use 
 Confirmed GFWL Title IDs are labelled GFWL (PC). Shared Xbox 360/GFWL achievement lists keep their shared identity. Original device identifiers still select the appropriate Xbox API endpoint.
 
 Settings > Debug contains report links, verified-totals export, event catalogue inspection and local replacement tests. New bulk-export error reports use the export's debug/scan-errors.csv path; existing files are not deleted or relocated.
+
+The achievement page shows the same Mythic-style indicator beside its achievement count and respects the saved icon toggle and colour. Fable III PC (1297287434) is labelled GFWL; the Xbox 360 edition (1297287382) remains separate.
+
+Legacy progress is read from both the definition catalogue and the separate earned-achievements endpoint using contract 1, then joined by exact achievement ID. Offline earned records do not require a timestamp. An unavailable earned list fails the read rather than publishing zero unlocks. A response below the known legacy library count retains that count and marks unconfirmed rows unavailable. Old legacy bulk-export checkpoints are reread once to obtain verified earned progress.

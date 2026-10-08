@@ -88,7 +88,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         (a.Name.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Description.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Id == Search)).ToArray();
     public Achievement[] VisibleAchievements => (Achievement[])AchievementLabs.MultiSelect.AchievementView.Transform(FilteredAchievementRows(), this);
     public Achievement[] BatchAchievements => (Achievement[])AchievementLabs.MultiSelect.AchievementView.Transform(FilteredAchievementRows(), this, false);
-    public Game? SelectedGame { get => selectedGame; private set { selectedGame = value; Changed(); } }
+    public Game? SelectedGame { get => selectedGame; private set { selectedGame = value == null ? null : WithLibraryPresentation(value); Changed(); } }
     public Game? SelectedLibraryGame { get => selectedLibraryGame; set { selectedLibraryGame = value; Changed(); Changed(nameof(HasLibrarySelection)); } }
     public bool HasLibrarySelection => SelectedLibraryGame != null;
     public Achievement? SelectedAchievement { get => selectedAchievement; set { selectedAchievement = value; Changed(); Changed(nameof(HasSelection)); NotifyActions(); } }
@@ -179,8 +179,13 @@ public sealed partial class DesktopModel : Observable, IDisposable
             Achievement[] loaded;
             if (UsesLegacyEndpoint(game))
             {
-                var response = await Task.Run(() => api.GetAchievementsFor360TitleAsync(xuid, game.Id), lifetime.Token);
-                loaded = response?.achievements.Select(a => new Achievement(a.id.ToString(), a.name, a.description, a.gamerscore, a.unlocked ?? a.unlockedOnline ?? (DateTime.TryParse(a.timeUnlocked, out var unlocked) && unlocked.Year >= 2005))).ToArray() ?? throw new InvalidDataException();
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+                http.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", session.Authorization);
+                http.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Language", "en-GB");
+                var reader = new AchievementLabs.MultiSelect.AchievementExport(http, xuid);
+                var rows = await reader.Achievements(new(game.Id, game.Name, game.Platform.Replace(" / ", ", "), game.Score), lifetime.Token);
+                loaded = rows.Select(a => new Achievement(a.Id, a.Name, a.Description,
+                    int.TryParse(a.Score, out var score) ? score : 0, a.Status == "Unlocked", a.Status is "Unlocked" or "Locked")).ToArray();
             }
             else
             {
@@ -190,13 +195,17 @@ public sealed partial class DesktopModel : Observable, IDisposable
                 await LoadActionMetadataAsync(response, game.Id, version);
             }
             if (version != selectionVersion || lifetime.IsCancellationRequested) return;
+            bool progressComplete = CanReplaceAchievementProgress(game, loaded);
+            if (!progressComplete) loaded = loaded.Select(a => a.Unlocked ? a : a with { ProgressKnown = false }).ToArray();
             achievements = loaded;
-            RememberCompletion(game, loaded.Select(a => new AchievementLabs.MultiSelect.CompletionMarkers.Row(a.Id, a.Name, a.Unlocked, a.ProgressKnown)).ToArray());
-            var updated = game with { Completed = loaded.Count(a => a.Unlocked), Total = loaded.Length, Score = loaded.Where(a => a.Unlocked).Sum(a => a.Score), ProgressKnown = loaded.All(a => a.ProgressKnown) };
+            if (progressComplete) RememberCompletion(game, loaded.Select(a => new AchievementLabs.MultiSelect.CompletionMarkers.Row(a.Id, a.Name, a.Unlocked, a.ProgressKnown)).ToArray());
+            var updated = WithLibraryPresentation(progressComplete
+                ? game with { Completed = loaded.Count(a => a.Unlocked), Total = loaded.Length, Score = loaded.Where(a => a.Unlocked).Sum(a => a.Score), ProgressKnown = loaded.All(a => a.ProgressKnown) }
+                : game with { Total = loaded.Length > 0 ? loaded.Length : game.Total });
             RememberLibraryTotal(updated.Id, updated.Total);
             SelectedGame = updated;
             Games = Games.Select(g => g.Id == updated.Id ? updated : g).ToArray();
-            Refresh(); Notice = $"Loaded {loaded.Length} achievements for {game.Name}.";
+            Refresh(); Notice = progressComplete ? $"Loaded {loaded.Length} achievements for {game.Name}." : "Xbox returned incomplete achievement progress. Known library counts were retained; unconfirmed rows show Not available. Refresh to retry.";
             _ = LoadGamePlaytimeAsync(updated, version);
         }
         catch (OperationCanceledException) { }

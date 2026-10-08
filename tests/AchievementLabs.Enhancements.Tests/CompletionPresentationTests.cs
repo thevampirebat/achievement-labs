@@ -16,6 +16,14 @@ public static class CompletionPresentationTests
         Assert(!AchievementExport.LegacyUnlocked(lockedLegacy.RootElement), "Explicit locked flag overrides timestamp");
         Assert(AchievementExport.LegacyUnlocked(earnedLegacy.RootElement), "Explicit unlocked flag is authoritative");
         Assert(!AchievementExport.LegacyUnlocked(placeholderLegacy.RootElement), "Placeholder timestamp alone never proves an unlock");
+        using var offlineTimestamp = JsonDocument.Parse("""{"unlockedOnline":false,"timeUnlocked":"2026-01-01T00:00:00Z"}""");
+        Assert(AchievementExport.LegacyUnlocked(offlineTimestamp.RootElement), "Online false alone never discards offline timestamp progress");
+        Assert(GfwlTitles.Label("1297287434","Xbox360") == "GFWL (PC)", "Fable III PC is an exact GFWL Title ID");
+        Assert(GfwlTitles.Label("1297287382","Xbox360") == "Xbox360", "Fable III console remains Xbox 360");
+        var knownLegacy = new AchievementLabs.Desktop.Game("1297287434","Fable III","Xbox360",2,3,30);
+        AchievementLabs.Desktop.Achievement[] incomplete = [new("69","First","",10,false),new("70","Second","",20,false),new("71","Third","",30,false)];
+        Assert(!DesktopModel.CanReplaceAchievementProgress(knownLegacy,incomplete), "Definition-only response cannot zero known library progress");
+        Assert(DesktopModel.CanReplaceAchievementProgress(knownLegacy,[incomplete[0] with {Unlocked=true},incomplete[1] with {Unlocked=true},incomplete[2]]), "Matching earned count accepts account progress");
         var title = new SharedDlcCatalogue.Title("70", ["XboxOne"], "https://example.com/verified", [
             new("Base game", "base", [new("1","First"),new("2","Second")]),
             new("Expansion", "dlc", [new("3","Third")])]);
@@ -50,6 +58,12 @@ public static class CompletionPresentationTests
             ShowMythicIcon=false,HighlightCompletedDlcs=false,AutoRefreshDlc=false,MythicColour="#AA1122",CompletedDlcColour="#223344"}))!;
         Assert(!preferences.ShowMythicIcon && !preferences.HighlightCompletedDlcs && !preferences.AutoRefreshDlc &&
             preferences.MythicColour=="#AA1122" && preferences.CompletedDlcColour=="#223344", "Appearance and auto-refresh choices persist");
+        typeof(DesktopModel).GetProperty("SelectedGame")!.SetValue(model, model.Games.Single());
+        Assert(model.SelectedGame!.MythicVisible, "Achievement page receives the same completion marker as Library");
+        model.ShowMythicIcon=false;
+        Assert(!model.SelectedGame.MythicVisible, "Achievement page respects icon opt-out immediately");
+        model.ShowMythicIcon=true; model.MythicColour="#123456";
+        Assert(model.SelectedGame.MythicVisible && model.SelectedGame.MythicColour==DesktopModel.ValidColour("#123456",""), "Achievement page respects custom icon colour");
         // Collapse does not remove achievements from exports or batch selection, and search reveals matches.
         var game = new AchievementLabs.Desktop.Game("70","Test","XboxOne",2,3,1000);
         typeof(DesktopModel).GetProperty("SelectedGame")!.SetValue(model,game);

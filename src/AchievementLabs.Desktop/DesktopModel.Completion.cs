@@ -43,6 +43,7 @@ public sealed partial class DesktopModel
     }
     private void RefreshLibraryPresentation()
     {
+        if (SelectedGame != null) SelectedGame = WithLibraryPresentation(SelectedGame);
         if (games.Length == 0) return;
         var selectedId = SelectedLibraryGame?.Id;
         games = games.Select(WithLibraryPresentation).ToArray(); SaveCompletionCache();
@@ -75,6 +76,9 @@ public sealed partial class DesktopModel
         }
         catch { CompletionStatus = "Completion indicators updated, but their cache could not be saved."; }
     }
+    public static bool CanReplaceAchievementProgress(Game game, Achievement[] rows)
+        => rows.Length > 0 && rows.All(a => a.ProgressKnown) &&
+            (!UsesLegacyEndpoint(game) || !game.ProgressKnown || rows.Count(a => a.Unlocked) >= game.Completed);
     private void RememberCompletion(Game game, CompletionMarkers.Row[] rows)
     {
         var old = completionProgress.GetValueOrDefault(game.Id);
@@ -125,7 +129,7 @@ public sealed partial class DesktopModel
                 var current = completionProgress.GetValueOrDefault(saved.Game.Id);
                 if (current != null && current.CheckedAt >= saved.ScannedAt) continue;
                 bool LegacyPlaceholder(AchievementExport.Row r) => AchievementExport.Legacy(saved.Game) &&
-                    r.Status == "Unlocked" && (!DateTimeOffset.TryParse(r.UnlockedAt,out var when) || when.Year < 2005);
+                    r.Status == "Unlocked" && !r.LegacyProgressVerified && (!DateTimeOffset.TryParse(r.UnlockedAt,out var when) || when.Year < 2005);
                 var progress = saved.Rows.Select(r => new CompletionMarkers.Row(r.Id, r.Name,
                     r.Status == "Unlocked" && !LegacyPlaceholder(r),
                     (r.Status is "Unlocked" or "Locked") && !LegacyPlaceholder(r))).ToArray();

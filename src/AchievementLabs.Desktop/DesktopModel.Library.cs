@@ -26,7 +26,7 @@ public sealed partial class DesktopModel
     public bool CanQuery => !QueueActive && !busy && session != null;
     public bool CanExport => achievements.Length > 0;
     public static bool HasDevice(Game game, string device) => game.Platform.Split('/', StringSplitOptions.TrimEntries).Contains(device, StringComparer.OrdinalIgnoreCase);
-    public static bool UsesLegacyEndpoint(Game game) => new[] { "Xbox360", "Mobile", "WindowsPhone", "Win8", "Windows8" }.Any(d => HasDevice(game, d));
+    public static bool UsesLegacyEndpoint(Game game) => AchievementLabs.MultiSelect.GfwlTitles.Supports(game.Id) || new[] { "Xbox360", "Mobile", "WindowsPhone", "Win8", "Windows8" }.Any(d => HasDevice(game, d));
     public static bool MatchesPlatform(Game game, string filter) => filter switch
     {
         "Xbox One/Series" => HasDevice(game, "XboxOne") || HasDevice(game, "XboxSeries"),

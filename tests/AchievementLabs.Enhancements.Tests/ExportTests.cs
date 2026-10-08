@@ -28,7 +28,7 @@ static class ExportTests
     if(u.Contains("titlehub"))return Json("{\"titles\":["+Title("1")+","+Title("2","Xbox360")+"]}");
     if(u.Contains("titleId=2"))
     {
-      Check(u.Contains("titleachievements"),"Legacy route");Check(r.Headers.GetValues("x-xbl-contract-version").Single()=="3","Legacy contract");
+      Check(r.Headers.GetValues("x-xbl-contract-version").Single()=="1","Legacy progress contract");
       return fail?Json("{}",HttpStatusCode.BadRequest):Json("{\"achievements\":[{\"id\":5,\"titleId\":2,\"name\":\"Legacy\",\"gamerscore\":20,\"timeUnlocked\":\"2026-02-01T00:00:00Z\"}]}");
     }
     Check(r.Headers.GetValues("x-xbl-contract-version").Single()=="4","Modern contract");
@@ -59,6 +59,22 @@ static class ExportTests
    h.Reply=_=>Json("{}",HttpStatusCode.Unauthorized);
    try{await engine.Run(folder,true,_=>{},CancellationToken.None);throw new Exception("Authentication failure ignored");}catch(UnauthorizedAccessException){}
    Check(File.ReadAllText(Path.Combine(result.Folder,"all-achievements.csv")).Contains("Legacy"),"Auth failure preserves previous data");
+   // Definition-only legacy responses must be overlaid by the earned list, including paginated offline unlocks.
+   int earnedPages=0;
+   h.Reply=r=>
+   {
+    Check(r.Headers.GetValues("x-xbl-contract-version").Single()=="1","Both legacy reads use contract 1");
+    if(r.RequestUri!.AbsolutePath.EndsWith("titleachievements"))return Json("""{"achievements":[{"id":69,"titleId":1297287434,"name":"First","gamerscore":10,"unlocked":false,"timeUnlocked":"2002-11-15T00:00:00Z"},{"id":70,"titleId":1297287434,"name":"Second","gamerscore":20,"unlocked":false},{"id":71,"titleId":1297287434,"name":"Third","gamerscore":30,"unlocked":false}]}""");
+    return ++earnedPages==1?Json("""{"achievements":[{"id":69,"titleId":1297287434,"unlocked":true,"unlockedOnline":false,"timeUnlocked":"2002-11-15T00:00:00Z"}],"pagingInfo":{"continuationToken":"offline+2"}}"""):
+      Json("""{"achievements":[{"id":70,"titleId":1297287434,"unlocked":true,"unlockedOnline":true,"timeUnlocked":"2026-01-01T00:00:00Z"}]}""");
+   };
+   var legacyRows=await engine.Achievements(new("1297287434","Fable III","Xbox360",0),CancellationToken.None);
+   Check(legacyRows.Count(r=>r.Status=="Unlocked")==2 && legacyRows.Single(r=>r.Id=="71").Status=="Locked","Earned IDs overlay definitions without shifting or inventing unlocks");
+   Check(earnedPages==2 && legacyRows.All(r=>r.LegacyProgressVerified),"Paginated offline unlocks are verified without requiring timestamps");
+   h.Reply=r=>r.RequestUri!.AbsolutePath.EndsWith("titleachievements")?Json("""{"achievements":[{"id":69,"titleId":1297287434,"name":"First","unlocked":false}]}"""):Json("{}",HttpStatusCode.Unauthorized);
+   try{await engine.Achievements(new("1297287434","Fable III","Xbox360",0),CancellationToken.None);throw new Exception("Failed earned read accepted as all locked");}catch(UnauthorizedAccessException){}
+   h.Reply=r=>r.RequestUri!.AbsolutePath.EndsWith("titleachievements")?Json("""{"achievements":[{"id":69,"titleId":1297287434,"name":"First","unlocked":false}]}"""):Json("""{"achievements":[{"id":69,"titleId":1297287382,"unlocked":true}]}""");
+   try{await engine.Achievements(new("1297287434","Fable III","Xbox360",0),CancellationToken.None);throw new Exception("Wrong edition earned list accepted");}catch(InvalidDataException){}
    int pages=0;h.Reply=_=>Json(pages++==0?"{\"titles\":["+Title("1")+"],\"pagingInfo\":{\"continuationToken\":\"next\"}}":"{\"titles\":["+Title("2")+"]}");
    Check((await engine.Games(CancellationToken.None)).Length==2,"Game history paginated");
    Console.WriteLine("PASS: read-only bulk export, title matching, modern/legacy routes, both paginations, progress, CSV escaping, resume, refresh, corrupt checkpoints, pause, account isolation, wrong-title/empty-response rejection, rate-limit retry and auth failure preservation.");
