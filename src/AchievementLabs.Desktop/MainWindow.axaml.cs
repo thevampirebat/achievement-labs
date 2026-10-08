@@ -257,6 +257,12 @@ public partial class MainWindow : Window
     private async void RefreshLibrary(object? s, RoutedEventArgs e) => await model.RefreshLibraryAsync();
     private async void LookupTitle(object? s, RoutedEventArgs e) { try { await model.LookupTitleAsync(); } catch (OperationCanceledException) { } }
     private async void RefreshAchievements(object? s, RoutedEventArgs e) { try { await model.RefreshAchievementsAsync(); } catch (OperationCanceledException) { } }
+    private async void OpenBulkAchievementExport(object? sender, RoutedEventArgs e)
+    {
+        if (!model.CanQuery) return;
+        try { await AchievementLabs.MultiSelect.ExportAllView.Show(this, model); }
+        catch (Exception ex) { model.Notice = "Export could not start: " + ex.Message; }
+    }
     private async void ExportCsv(object? s, RoutedEventArgs e)
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title = "Export visible achievements", SuggestedFileName = "achievements.csv", DefaultExtension = "csv", FileTypeChoices = [new FilePickerFileType("CSV") { Patterns = ["*.csv"] }] });
