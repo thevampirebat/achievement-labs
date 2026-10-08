@@ -43,7 +43,10 @@ static class Test
    Assert(Desc<ComboBox>(window).Any(c=>c.Name=="AchievementPackFilter"),"Pack filter in real window");
    Assert(Desc<ListBox>(window).Any(l=>l.Name=="AchievementLabsAchievementList"),"Named real achievement list");
    Assert(Desc<Button>(window).Any(b=>(b.Content as string)=="Select multiple…"),"Batch button in real window");
-   Assert(Desc<Button>(window).Count(b=>b.Name=="ExportAllAchievements")==2,"Export all buttons in achievement and profile views");
+   Assert(Desc<Button>(window).Count(b=>b.Name=="ExportAllAchievements")==1,"One permanent bulk export button");
+   var exportButton=Desc<Button>(window).Single(b=>b.Name=="ExportAllAchievements");
+   Assert(!exportButton.IsEnabled,"Bulk export disabled without connected account");
+   Assert(exportButton.Parent is StackPanel exportPanel && Desc<TextBlock>(exportPanel).Any(b=>b.Text=="Achievement exports"),"Bulk export belongs to Settings export tile");
    Assert(Desc<StackPanel>(window).Count(b=>b.Name=="XboxRecordedPlaytime")==1,"Xbox-recorded playtime panel attached to spoofer");
    Assert(Desc<Button>(window).Single(b=>b.Name=="RefreshXboxPlaytime").IsEnabled==false,"Playtime disabled without connected account");
    Assert(Desc<StackPanel>(window).Count(b=>b.Name=="AutomaticEventToken")==1,"Automatic token controls attached to Settings");
