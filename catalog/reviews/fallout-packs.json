@@ -1,0 +1,315 @@
+{
+  "titles": [
+    {
+      "titleId": "1112737749",
+      "title": "Fallout 3",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 72,
+      "totalGamerscore": 1550,
+      "unclassified": 0,
+      "method": "Unique exact Xbox achievement names, descriptions and gamerscore matched against corresponding TrueAchievements edition. Whitespace trimmed only. No list-position or ID-range inference. Account progress omitted.",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/fallout-3/achievements"
+        },
+        {
+          "name": "Operation: Anchorage (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 4,
+          "gamerscore": 100,
+          "source": "https://www.trueachievements.com/game/Fallout-3/dlc/Operation-Anchorage"
+        },
+        {
+          "name": "The Pitt (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 4,
+          "gamerscore": 100,
+          "source": "https://www.trueachievements.com/game/Fallout-3/dlc/The-Pitt"
+        },
+        {
+          "name": "Broken Steel (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 6,
+          "gamerscore": 150,
+          "source": "https://www.trueachievements.com/game/Fallout-3/dlc/Broken-Steel"
+        },
+        {
+          "name": "Point Lookout (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 4,
+          "gamerscore": 100,
+          "source": "https://www.trueachievements.com/game/Fallout-3/dlc/Point-Lookout"
+        },
+        {
+          "name": "Mothership Zeta (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 4,
+          "gamerscore": 100,
+          "source": "https://www.trueachievements.com/game/Fallout-3/dlc/Mothership-Zeta"
+        }
+      ]
+    },
+    {
+      "titleId": "1256782258",
+      "title": "Fallout 4",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 84,
+      "totalGamerscore": 1600,
+      "unclassified": 0,
+      "method": "Unique exact Xbox achievement names, descriptions and gamerscore matched against corresponding TrueAchievements edition. Whitespace trimmed only. No list-position or ID-range inference. Account progress omitted.",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/fallout-4/achievements"
+        },
+        {
+          "name": "Automatron (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 100,
+          "source": "https://www.trueachievements.com/game/Fallout-4/dlc/Automatron"
+        },
+        {
+          "name": "Wasteland Workshop (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 3,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Fallout-4/dlc/Wasteland-Workshop"
+        },
+        {
+          "name": "Far Harbor (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 180,
+          "source": "https://www.trueachievements.com/game/Fallout-4/dlc/Far-Harbor"
+        },
+        {
+          "name": "Contraptions Workshop (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 3,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Fallout-4/dlc/Contraptions-Workshop"
+        },
+        {
+          "name": "Vault-Tec Workshop (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 3,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Fallout-4/dlc/Vault-Tec-Workshop"
+        },
+        {
+          "name": "Nuka-World (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 170,
+          "source": "https://www.trueachievements.com/game/Fallout-4/dlc/Nuka-World"
+        }
+      ]
+    },
+    {
+      "titleId": "2146688994",
+      "title": "Fallout 4 (PC)",
+      "platforms": [
+        "PC"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 84,
+      "totalGamerscore": 1600,
+      "unclassified": 0,
+      "method": "Unique exact Xbox achievement names, descriptions and gamerscore matched against corresponding TrueAchievements edition. Whitespace trimmed only. No list-position or ID-range inference. Account progress omitted.",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/fallout-4-windows/achievements"
+        },
+        {
+          "name": "Automatron (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 100,
+          "source": "https://www.trueachievements.com/game/Fallout-4-Windows/dlc/Automatron"
+        },
+        {
+          "name": "Wasteland Workshop (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 3,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Fallout-4-Windows/dlc/Wasteland-Workshop"
+        },
+        {
+          "name": "Far Harbor (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 180,
+          "source": "https://www.trueachievements.com/game/Fallout-4-Windows/dlc/Far-Harbor"
+        },
+        {
+          "name": "Contraptions Workshop (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 3,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Fallout-4-Windows/dlc/Contraptions-Workshop"
+        },
+        {
+          "name": "Vault-Tec Workshop (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 3,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Fallout-4-Windows/dlc/Vault-Tec-Workshop"
+        },
+        {
+          "name": "Nuka World (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 170,
+          "source": "https://www.trueachievements.com/game/Fallout-4-Windows/dlc/Nuka-World"
+        }
+      ]
+    },
+    {
+      "titleId": "1112737760",
+      "title": "Fallout: New Vegas",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 75,
+      "totalGamerscore": 1655,
+      "unclassified": 0,
+      "method": "Unique exact names and gamerscore matched against the Xbox 360 TA list. All 75 requirements independently checked using reviewed present-to-past tense verb changes, whitespace and terminal punctuation. Two explicit wording differences: Recruit any/a companion; Discover/You Discovered 125 locations. No positions or ID ranges used.",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/fallout-new-vegas/achievements"
+        },
+        {
+          "name": "Dead Money (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 140,
+          "source": "https://www.trueachievements.com/game/Fallout-New-Vegas/dlc/Dead-Money"
+        },
+        {
+          "name": "Honest Hearts (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 140,
+          "source": "https://www.trueachievements.com/game/Fallout-New-Vegas/dlc/Honest-Hearts"
+        },
+        {
+          "name": "Old World Blues (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 125,
+          "source": "https://www.trueachievements.com/game/Fallout-New-Vegas/dlc/Old-World-Blues"
+        },
+        {
+          "name": "Lonesome Road (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 125,
+          "source": "https://www.trueachievements.com/game/Fallout-New-Vegas/dlc/Lonesome-Road"
+        },
+        {
+          "name": "Gun Runners Arsenal (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 125,
+          "source": "https://www.trueachievements.com/game/Fallout-New-Vegas/dlc/Gun-Runners-Arsenal"
+        }
+      ],
+      "reviewedWordingDifferences": 75,
+      "corroboratingSources": [
+        "https://www.exophase.com/game/fallout-new-vegas-xbox-360/achievements/",
+        "https://www.trueachievements.com/game/fallout-new-vegas/walkthrough"
+      ]
+    },
+    {
+      "titleId": "332913499",
+      "title": "Fallout 76",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 72,
+      "totalGamerscore": 1580,
+      "unclassified": 0,
+      "method": "Unique exact Xbox achievement names, descriptions and gamerscore matched against corresponding TrueAchievements edition. Whitespace trimmed only. No list-position or ID-range inference. Account progress omitted.",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/fallout-76/achievements"
+        },
+        {
+          "name": "Wastelanders (Title update)",
+          "kind": "update",
+          "achievementCount": 10,
+          "gamerscore": 255,
+          "source": "https://www.trueachievements.com/game/Fallout-76/dlc/Wastelanders"
+        },
+        {
+          "name": "Steel Reign (Title update)",
+          "kind": "update",
+          "achievementCount": 3,
+          "gamerscore": 55,
+          "source": "https://www.trueachievements.com/game/Fallout-76/dlc/Steel-Reign"
+        },
+        {
+          "name": "The Pitt (Title update)",
+          "kind": "update",
+          "achievementCount": 3,
+          "gamerscore": 90,
+          "source": "https://www.trueachievements.com/game/Fallout-76/dlc/The-Pitt"
+        },
+        {
+          "name": "Atlantic City - Boardwalk Paradise (Title update)",
+          "kind": "update",
+          "achievementCount": 3,
+          "gamerscore": 90,
+          "source": "https://www.trueachievements.com/game/Fallout-76/dlc/Atlantic-City"
+        },
+        {
+          "name": "Atlantic City - America's Playground (Title update)",
+          "kind": "update",
+          "achievementCount": 3,
+          "gamerscore": 90,
+          "source": "https://www.trueachievements.com/game/Fallout-76/dlc/Atlantic-City-Americas-Playground"
+        }
+      ]
+    }
+  ]
+}

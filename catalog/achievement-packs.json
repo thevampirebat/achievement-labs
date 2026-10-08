@@ -2529,6 +2529,1798 @@
           ]
         }
       ]
+    },
+    {
+      "titleId": "1112737749",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "source": "https://www.trueachievements.com/game/fallout-3/achievements",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievements": [
+            {
+              "id": "1",
+              "name": "Vault 101 Citizenship Award"
+            },
+            {
+              "id": "2",
+              "name": "The G.O.A.T. Whisperer"
+            },
+            {
+              "id": "3",
+              "name": "Escape!"
+            },
+            {
+              "id": "4",
+              "name": "Following in His Footsteps"
+            },
+            {
+              "id": "5",
+              "name": "Galaxy News Radio"
+            },
+            {
+              "id": "6",
+              "name": "Scientific Pursuits"
+            },
+            {
+              "id": "7",
+              "name": "Tranquility Lane"
+            },
+            {
+              "id": "8",
+              "name": "The Waters of Life"
+            },
+            {
+              "id": "9",
+              "name": "Picking up the Trail"
+            },
+            {
+              "id": "10",
+              "name": "Rescue from Paradise"
+            },
+            {
+              "id": "11",
+              "name": "Finding the Garden of Eden"
+            },
+            {
+              "id": "12",
+              "name": "The American Dream"
+            },
+            {
+              "id": "13",
+              "name": "Take it Back!"
+            },
+            {
+              "id": "14",
+              "name": "Big Trouble in Big Town"
+            },
+            {
+              "id": "15",
+              "name": "The Superhuman Gambit"
+            },
+            {
+              "id": "16",
+              "name": "The Wasteland Survival Guide"
+            },
+            {
+              "id": "17",
+              "name": "Those!"
+            },
+            {
+              "id": "18",
+              "name": "The Nuka-Cola Challenge"
+            },
+            {
+              "id": "19",
+              "name": "Head of State"
+            },
+            {
+              "id": "20",
+              "name": "The Replicated Man"
+            },
+            {
+              "id": "21",
+              "name": "Blood Ties"
+            },
+            {
+              "id": "22",
+              "name": "Oasis"
+            },
+            {
+              "id": "23",
+              "name": "The Power of the Atom"
+            },
+            {
+              "id": "24",
+              "name": "Tenpenny Tower"
+            },
+            {
+              "id": "25",
+              "name": "Strictly Business"
+            },
+            {
+              "id": "26",
+              "name": "You Gotta Shoot 'Em in the Head"
+            },
+            {
+              "id": "27",
+              "name": "Stealing Independence"
+            },
+            {
+              "id": "28",
+              "name": "Trouble on the Homefront"
+            },
+            {
+              "id": "29",
+              "name": "Agatha's Song"
+            },
+            {
+              "id": "30",
+              "name": "Reilly's Rangers"
+            },
+            {
+              "id": "31",
+              "name": "Reaver"
+            },
+            {
+              "id": "32",
+              "name": "Mercenary"
+            },
+            {
+              "id": "33",
+              "name": "Protector"
+            },
+            {
+              "id": "34",
+              "name": "Harbinger of War"
+            },
+            {
+              "id": "35",
+              "name": "Pinnacle of Survival"
+            },
+            {
+              "id": "36",
+              "name": "Ambassador of Peace"
+            },
+            {
+              "id": "37",
+              "name": "Scourge of Humanity"
+            },
+            {
+              "id": "38",
+              "name": "Paradigm of Humanity"
+            },
+            {
+              "id": "39",
+              "name": "Last, Best Hope of Humanity"
+            },
+            {
+              "id": "40",
+              "name": "Weaponsmith"
+            },
+            {
+              "id": "41",
+              "name": "Doesn't Play Well with Others"
+            },
+            {
+              "id": "42",
+              "name": "Slayer of Beasts"
+            },
+            {
+              "id": "43",
+              "name": "Silver-Tongued Devil"
+            },
+            {
+              "id": "44",
+              "name": "Data Miner"
+            },
+            {
+              "id": "45",
+              "name": "Keys are for Cowards"
+            },
+            {
+              "id": "46",
+              "name": "One-Man Scouting Party"
+            },
+            {
+              "id": "47",
+              "name": "Psychotic Prankster"
+            },
+            {
+              "id": "48",
+              "name": "The Bigger They Are…"
+            },
+            {
+              "id": "49",
+              "name": "Yes, I Play with Dolls"
+            },
+            {
+              "id": "50",
+              "name": "Vault-Tec C.E.O."
+            }
+          ]
+        },
+        {
+          "name": "Operation: Anchorage (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "51",
+              "name": "Aiding the Outcasts"
+            },
+            {
+              "id": "52",
+              "name": "The Guns of Anchorage"
+            },
+            {
+              "id": "53",
+              "name": "Paving the Way"
+            },
+            {
+              "id": "54",
+              "name": "Operation: Anchorage"
+            }
+          ]
+        },
+        {
+          "name": "The Pitt (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "55",
+              "name": "Into The Pitt"
+            },
+            {
+              "id": "56",
+              "name": "Unsafe Working Conditions"
+            },
+            {
+              "id": "57",
+              "name": "Free Labor"
+            },
+            {
+              "id": "58",
+              "name": "Mill Worker"
+            }
+          ]
+        },
+        {
+          "name": "Broken Steel (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "59",
+              "name": "Death From Above"
+            },
+            {
+              "id": "60",
+              "name": "Shock Value"
+            },
+            {
+              "id": "61",
+              "name": "Who Dares Wins"
+            },
+            {
+              "id": "62",
+              "name": "Devil"
+            },
+            {
+              "id": "63",
+              "name": "True Mortal"
+            },
+            {
+              "id": "64",
+              "name": "Messiah"
+            }
+          ]
+        },
+        {
+          "name": "Point Lookout (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "65",
+              "name": "The Local Flavor"
+            },
+            {
+              "id": "66",
+              "name": "Walking With Spirits"
+            },
+            {
+              "id": "67",
+              "name": "A Meeting of the Minds"
+            },
+            {
+              "id": "68",
+              "name": "Bog Walker"
+            }
+          ]
+        },
+        {
+          "name": "Mothership Zeta (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "69",
+              "name": "Not of This World"
+            },
+            {
+              "id": "70",
+              "name": "Among the Stars"
+            },
+            {
+              "id": "71",
+              "name": "This Galaxy Ain't Big Enough…"
+            },
+            {
+              "id": "72",
+              "name": "Alien Archivist"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "titleId": "1256782258",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "source": "https://www.trueachievements.com/game/fallout-4/achievements",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievements": [
+            {
+              "id": "1",
+              "name": "War Never Changes"
+            },
+            {
+              "id": "2",
+              "name": "When Freedom Calls"
+            },
+            {
+              "id": "3",
+              "name": "Unlikely Valentine"
+            },
+            {
+              "id": "4",
+              "name": "Reunions"
+            },
+            {
+              "id": "5",
+              "name": "Dangerous Minds"
+            },
+            {
+              "id": "6",
+              "name": "Hunter/Hunted"
+            },
+            {
+              "id": "7",
+              "name": "The Molecular Level"
+            },
+            {
+              "id": "8",
+              "name": "The Nuclear Option"
+            },
+            {
+              "id": "9",
+              "name": "Institutionalized"
+            },
+            {
+              "id": "10",
+              "name": "Mankind-Redefined"
+            },
+            {
+              "id": "11",
+              "name": "Powering Up"
+            },
+            {
+              "id": "12",
+              "name": "Nuclear Family"
+            },
+            {
+              "id": "13",
+              "name": "The First Step"
+            },
+            {
+              "id": "14",
+              "name": "Taking Independence"
+            },
+            {
+              "id": "15",
+              "name": "Old Guns"
+            },
+            {
+              "id": "16",
+              "name": "Semper Invicta"
+            },
+            {
+              "id": "17",
+              "name": "Blind Betrayal"
+            },
+            {
+              "id": "18",
+              "name": "Ad Victoriam"
+            },
+            {
+              "id": "19",
+              "name": "Tradecraft"
+            },
+            {
+              "id": "20",
+              "name": "Underground Undercover"
+            },
+            {
+              "id": "21",
+              "name": "Rockets' Red Glare"
+            },
+            {
+              "id": "22",
+              "name": "Sanctuary"
+            },
+            {
+              "id": "23",
+              "name": "Community Organizer"
+            },
+            {
+              "id": "24",
+              "name": "Benevolent Leader"
+            },
+            {
+              "id": "25",
+              "name": "Gun-For-Hire"
+            },
+            {
+              "id": "26",
+              "name": "Mercenary"
+            },
+            {
+              "id": "27",
+              "name": "Scavver"
+            },
+            {
+              "id": "28",
+              "name": "What's Yours Is Mine"
+            },
+            {
+              "id": "29",
+              "name": "RobCo's Worst Nightmare"
+            },
+            {
+              "id": "30",
+              "name": "Armed and Dangerous"
+            },
+            {
+              "id": "31",
+              "name": "Wasteland D.I.Y."
+            },
+            {
+              "id": "32",
+              "name": "Never Go It Alone"
+            },
+            {
+              "id": "33",
+              "name": "Lovable"
+            },
+            {
+              "id": "34",
+              "name": "Fix-Er-Upper"
+            },
+            {
+              "id": "35",
+              "name": "Future Retro"
+            },
+            {
+              "id": "36",
+              "name": "…The Harder They Fall"
+            },
+            {
+              "id": "37",
+              "name": "Ranger Corps"
+            },
+            {
+              "id": "38",
+              "name": "Print's Not Dead"
+            },
+            {
+              "id": "39",
+              "name": "Prankster's Return"
+            },
+            {
+              "id": "40",
+              "name": "Masshole"
+            },
+            {
+              "id": "41",
+              "name": "Animal Control"
+            },
+            {
+              "id": "42",
+              "name": "Homerun!"
+            },
+            {
+              "id": "43",
+              "name": "Touchdown!"
+            },
+            {
+              "id": "44",
+              "name": "They're Not Dolls…"
+            },
+            {
+              "id": "45",
+              "name": "…They're Action Figures"
+            },
+            {
+              "id": "46",
+              "name": "Born Survivor"
+            },
+            {
+              "id": "47",
+              "name": "Commonwealth Citizen"
+            },
+            {
+              "id": "48",
+              "name": "Unstoppable Wanderer"
+            },
+            {
+              "id": "49",
+              "name": "Legend Of The Wastes"
+            },
+            {
+              "id": "50",
+              "name": "Prepared for the Future"
+            }
+          ]
+        },
+        {
+          "name": "Automatron (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "51",
+              "name": "Mechanical Menace"
+            },
+            {
+              "id": "52",
+              "name": "Headhunting"
+            },
+            {
+              "id": "53",
+              "name": "Restoring Order"
+            },
+            {
+              "id": "54",
+              "name": "Robot Hunter"
+            },
+            {
+              "id": "55",
+              "name": "The Most Toys"
+            }
+          ]
+        },
+        {
+          "name": "Wasteland Workshop (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "59",
+              "name": "Docile"
+            },
+            {
+              "id": "60",
+              "name": "Instigator"
+            },
+            {
+              "id": "61",
+              "name": "Trapper"
+            }
+          ]
+        },
+        {
+          "name": "Far Harbor (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "62",
+              "name": "Far From Home"
+            },
+            {
+              "id": "63",
+              "name": "Where You Belong"
+            },
+            {
+              "id": "64",
+              "name": "The Way Life Should Be"
+            },
+            {
+              "id": "65",
+              "name": "Cleansing The Land"
+            },
+            {
+              "id": "66",
+              "name": "Close To Home"
+            },
+            {
+              "id": "67",
+              "name": "The Islander's Almanac"
+            },
+            {
+              "id": "68",
+              "name": "Hooked"
+            },
+            {
+              "id": "69",
+              "name": "New England Vacationer"
+            },
+            {
+              "id": "70",
+              "name": "Push Back The Fog"
+            },
+            {
+              "id": "71",
+              "name": "Just Add Saltwater"
+            }
+          ]
+        },
+        {
+          "name": "Contraptions Workshop (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "72",
+              "name": "Show Off"
+            },
+            {
+              "id": "73",
+              "name": "Time Out"
+            },
+            {
+              "id": "74",
+              "name": "Mass Production"
+            }
+          ]
+        },
+        {
+          "name": "Vault-Tec Workshop (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "75",
+              "name": "Oversight"
+            },
+            {
+              "id": "76",
+              "name": "Better Living Underground"
+            },
+            {
+              "id": "77",
+              "name": "Vault Dweller"
+            }
+          ]
+        },
+        {
+          "name": "Nuka-World (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "78",
+              "name": "Raiding for a Living"
+            },
+            {
+              "id": "79",
+              "name": "Diebrarian"
+            },
+            {
+              "id": "80",
+              "name": "Beverageer"
+            },
+            {
+              "id": "81",
+              "name": "Hostile Takeover"
+            },
+            {
+              "id": "82",
+              "name": "All Sugared Up"
+            },
+            {
+              "id": "83",
+              "name": "Eyes on the Prize"
+            },
+            {
+              "id": "84",
+              "name": "Taken for a Ride"
+            },
+            {
+              "id": "85",
+              "name": "The Grand Tour"
+            },
+            {
+              "id": "86",
+              "name": "Home Sweet Home"
+            },
+            {
+              "id": "87",
+              "name": "Power Play"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "titleId": "2146688994",
+      "platforms": [
+        "PC"
+      ],
+      "source": "https://www.trueachievements.com/game/fallout-4-windows/achievements",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievements": [
+            {
+              "id": "1",
+              "name": "War Never Changes"
+            },
+            {
+              "id": "2",
+              "name": "When Freedom Calls"
+            },
+            {
+              "id": "3",
+              "name": "Unlikely Valentine"
+            },
+            {
+              "id": "4",
+              "name": "Reunions"
+            },
+            {
+              "id": "5",
+              "name": "Dangerous Minds"
+            },
+            {
+              "id": "6",
+              "name": "Hunter/Hunted"
+            },
+            {
+              "id": "7",
+              "name": "The Molecular Level"
+            },
+            {
+              "id": "8",
+              "name": "The Nuclear Option"
+            },
+            {
+              "id": "9",
+              "name": "Institutionalized"
+            },
+            {
+              "id": "10",
+              "name": "Mankind-Redefined"
+            },
+            {
+              "id": "11",
+              "name": "Powering Up"
+            },
+            {
+              "id": "12",
+              "name": "Nuclear Family"
+            },
+            {
+              "id": "13",
+              "name": "The First Step"
+            },
+            {
+              "id": "14",
+              "name": "Taking Independence"
+            },
+            {
+              "id": "15",
+              "name": "Old Guns"
+            },
+            {
+              "id": "16",
+              "name": "Semper Invicta"
+            },
+            {
+              "id": "17",
+              "name": "Blind Betrayal"
+            },
+            {
+              "id": "18",
+              "name": "Ad Victoriam"
+            },
+            {
+              "id": "19",
+              "name": "Tradecraft"
+            },
+            {
+              "id": "20",
+              "name": "Underground Undercover"
+            },
+            {
+              "id": "21",
+              "name": "Rockets' Red Glare"
+            },
+            {
+              "id": "22",
+              "name": "Sanctuary"
+            },
+            {
+              "id": "23",
+              "name": "Community Organizer"
+            },
+            {
+              "id": "24",
+              "name": "Benevolent Leader"
+            },
+            {
+              "id": "25",
+              "name": "Gun-For-Hire"
+            },
+            {
+              "id": "26",
+              "name": "Mercenary"
+            },
+            {
+              "id": "27",
+              "name": "Scavver"
+            },
+            {
+              "id": "28",
+              "name": "What's Yours Is Mine"
+            },
+            {
+              "id": "29",
+              "name": "RobCo's Worst Nightmare"
+            },
+            {
+              "id": "30",
+              "name": "Armed and Dangerous"
+            },
+            {
+              "id": "31",
+              "name": "Wasteland D.I.Y."
+            },
+            {
+              "id": "32",
+              "name": "Never Go It Alone"
+            },
+            {
+              "id": "33",
+              "name": "Lovable"
+            },
+            {
+              "id": "34",
+              "name": "Fix-Er-Upper"
+            },
+            {
+              "id": "35",
+              "name": "Future Retro"
+            },
+            {
+              "id": "36",
+              "name": "…The Harder They Fall"
+            },
+            {
+              "id": "37",
+              "name": "Ranger Corps"
+            },
+            {
+              "id": "38",
+              "name": "Print's Not Dead"
+            },
+            {
+              "id": "39",
+              "name": "Prankster's Return"
+            },
+            {
+              "id": "40",
+              "name": "Masshole"
+            },
+            {
+              "id": "41",
+              "name": "Animal Control"
+            },
+            {
+              "id": "42",
+              "name": "Homerun!"
+            },
+            {
+              "id": "43",
+              "name": "Touchdown!"
+            },
+            {
+              "id": "44",
+              "name": "They're Not Dolls…"
+            },
+            {
+              "id": "45",
+              "name": "…They're Action Figures"
+            },
+            {
+              "id": "46",
+              "name": "Born Survivor"
+            },
+            {
+              "id": "47",
+              "name": "Commonwealth Citizen"
+            },
+            {
+              "id": "48",
+              "name": "Unstoppable Wanderer"
+            },
+            {
+              "id": "49",
+              "name": "Legend Of The Wastes"
+            },
+            {
+              "id": "50",
+              "name": "Prepared for the Future"
+            }
+          ]
+        },
+        {
+          "name": "Automatron (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "51",
+              "name": "Mechanical Menace"
+            },
+            {
+              "id": "52",
+              "name": "Headhunting"
+            },
+            {
+              "id": "53",
+              "name": "Restoring Order"
+            },
+            {
+              "id": "54",
+              "name": "Robot Hunter"
+            },
+            {
+              "id": "55",
+              "name": "The Most Toys"
+            }
+          ]
+        },
+        {
+          "name": "Wasteland Workshop (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "56",
+              "name": "Docile"
+            },
+            {
+              "id": "57",
+              "name": "Instigator"
+            },
+            {
+              "id": "58",
+              "name": "Trapper"
+            }
+          ]
+        },
+        {
+          "name": "Far Harbor (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "59",
+              "name": "Far From Home"
+            },
+            {
+              "id": "60",
+              "name": "Where You Belong"
+            },
+            {
+              "id": "61",
+              "name": "The Way Life Should Be"
+            },
+            {
+              "id": "62",
+              "name": "Cleansing The Land"
+            },
+            {
+              "id": "63",
+              "name": "Close To Home"
+            },
+            {
+              "id": "64",
+              "name": "The Islander's Almanac"
+            },
+            {
+              "id": "65",
+              "name": "Hooked"
+            },
+            {
+              "id": "66",
+              "name": "New England Vacationer"
+            },
+            {
+              "id": "67",
+              "name": "Push Back The Fog"
+            },
+            {
+              "id": "68",
+              "name": "Just Add Saltwater"
+            }
+          ]
+        },
+        {
+          "name": "Contraptions Workshop (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "69",
+              "name": "Show Off"
+            },
+            {
+              "id": "70",
+              "name": "Time Out"
+            },
+            {
+              "id": "71",
+              "name": "Mass Production"
+            }
+          ]
+        },
+        {
+          "name": "Vault-Tec Workshop (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "72",
+              "name": "Oversight"
+            },
+            {
+              "id": "73",
+              "name": "Better Living Underground"
+            },
+            {
+              "id": "74",
+              "name": "Vault Dweller"
+            }
+          ]
+        },
+        {
+          "name": "Nuka World (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "75",
+              "name": "Raiding for a Living"
+            },
+            {
+              "id": "76",
+              "name": "Diebrarian"
+            },
+            {
+              "id": "77",
+              "name": "Beverageer"
+            },
+            {
+              "id": "78",
+              "name": "Hostile Takeover"
+            },
+            {
+              "id": "79",
+              "name": "All Sugared Up"
+            },
+            {
+              "id": "80",
+              "name": "Eyes on the Prize"
+            },
+            {
+              "id": "81",
+              "name": "Taken for a Ride"
+            },
+            {
+              "id": "82",
+              "name": "The Grand Tour"
+            },
+            {
+              "id": "83",
+              "name": "Home Sweet Home"
+            },
+            {
+              "id": "84",
+              "name": "Power Play"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "titleId": "1112737760",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "source": "https://www.trueachievements.com/game/fallout-new-vegas/achievements",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievements": [
+            {
+              "id": "1",
+              "name": "New Kid"
+            },
+            {
+              "id": "2",
+              "name": "Up and Comer"
+            },
+            {
+              "id": "3",
+              "name": "The Boss"
+            },
+            {
+              "id": "4",
+              "name": "Ol' Buddy Ol' Pal"
+            },
+            {
+              "id": "5",
+              "name": "The Whole Gang's Here"
+            },
+            {
+              "id": "6",
+              "name": "Crafty"
+            },
+            {
+              "id": "7",
+              "name": "Mod Machine"
+            },
+            {
+              "id": "8",
+              "name": "Walker of the Mojave"
+            },
+            {
+              "id": "9",
+              "name": "Master of the Mojave"
+            },
+            {
+              "id": "10",
+              "name": "Globe Trotter"
+            },
+            {
+              "id": "11",
+              "name": "You Run Barter Town"
+            },
+            {
+              "id": "12",
+              "name": "Blast Mastery"
+            },
+            {
+              "id": "13",
+              "name": "Love the Bomb"
+            },
+            {
+              "id": "14",
+              "name": "Lead Dealer"
+            },
+            {
+              "id": "15",
+              "name": "No Tumbler Fumbler"
+            },
+            {
+              "id": "16",
+              "name": "Stim-ply Amazing"
+            },
+            {
+              "id": "17",
+              "name": "New Vegas Samurai"
+            },
+            {
+              "id": "18",
+              "name": "Jury Rigger"
+            },
+            {
+              "id": "19",
+              "name": "Hack the Mojave"
+            },
+            {
+              "id": "20",
+              "name": "Artful Pocketer"
+            },
+            {
+              "id": "21",
+              "name": "Outstanding Orator"
+            },
+            {
+              "id": "22",
+              "name": "Desert Survivalist"
+            },
+            {
+              "id": "23",
+              "name": "Old-Tyme Brawler"
+            },
+            {
+              "id": "24",
+              "name": "Know When to Fold Them"
+            },
+            {
+              "id": "25",
+              "name": "One Armed Bandit"
+            },
+            {
+              "id": "26",
+              "name": "Little Wheel"
+            },
+            {
+              "id": "27",
+              "name": "Double Down"
+            },
+            {
+              "id": "28",
+              "name": "Caravan Master"
+            },
+            {
+              "id": "29",
+              "name": "The Courier Who Broke the Bank"
+            },
+            {
+              "id": "30",
+              "name": "Hardcore"
+            },
+            {
+              "id": "31",
+              "name": "Ain't That a Kick in the Head"
+            },
+            {
+              "id": "32",
+              "name": "They Went That-a-Way"
+            },
+            {
+              "id": "33",
+              "name": "Ring-a-Ding-Ding"
+            },
+            {
+              "id": "34",
+              "name": "The House Always Wins"
+            },
+            {
+              "id": "35",
+              "name": "For the Republic"
+            },
+            {
+              "id": "36",
+              "name": "Render Unto Caesar"
+            },
+            {
+              "id": "37",
+              "name": "Wild Card"
+            },
+            {
+              "id": "38",
+              "name": "All or Nothing"
+            },
+            {
+              "id": "39",
+              "name": "Veni, Vidi, Vici"
+            },
+            {
+              "id": "40",
+              "name": "Eureka!"
+            },
+            {
+              "id": "41",
+              "name": "No Gods, No Masters"
+            },
+            {
+              "id": "42",
+              "name": "Come Fly With Me"
+            },
+            {
+              "id": "43",
+              "name": "Talent Pool"
+            },
+            {
+              "id": "44",
+              "name": "Return to Sender"
+            },
+            {
+              "id": "45",
+              "name": "Arizona Killer"
+            },
+            {
+              "id": "46",
+              "name": "You'll Know It When It Happens"
+            },
+            {
+              "id": "47",
+              "name": "G.I. Blues"
+            },
+            {
+              "id": "48",
+              "name": "That Lucky Old Sun"
+            },
+            {
+              "id": "49",
+              "name": "Volare!"
+            },
+            {
+              "id": "50",
+              "name": "The Legend of the Star"
+            }
+          ]
+        },
+        {
+          "name": "Dead Money (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "51",
+              "name": "Assemble Your Crew"
+            },
+            {
+              "id": "52",
+              "name": "Cash Out"
+            },
+            {
+              "id": "53",
+              "name": "Having a Ball"
+            },
+            {
+              "id": "54",
+              "name": "Safety Deposit Box"
+            },
+            {
+              "id": "55",
+              "name": "Sierra Souvenir Aficionado"
+            }
+          ]
+        },
+        {
+          "name": "Honest Hearts (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "56",
+              "name": "May my Hand Forget its Skill"
+            },
+            {
+              "id": "57",
+              "name": "In a Foreign Land"
+            },
+            {
+              "id": "58",
+              "name": "O Daughter of Babylon"
+            },
+            {
+              "id": "59",
+              "name": "When We Remembered Zion"
+            },
+            {
+              "id": "60",
+              "name": "Restore Our Fortunes"
+            }
+          ]
+        },
+        {
+          "name": "Old World Blues (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "61",
+              "name": "Cardiac Arrest!"
+            },
+            {
+              "id": "62",
+              "name": "Making Friends"
+            },
+            {
+              "id": "63",
+              "name": "Make Up Your Mind"
+            },
+            {
+              "id": "64",
+              "name": "Outsmarted"
+            },
+            {
+              "id": "65",
+              "name": "Spinal-Tapped!"
+            }
+          ]
+        },
+        {
+          "name": "Lonesome Road (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "66",
+              "name": "ED-Ecated"
+            },
+            {
+              "id": "67",
+              "name": "Condemned to repeat it"
+            },
+            {
+              "id": "68",
+              "name": "Hometown Hero"
+            },
+            {
+              "id": "69",
+              "name": "Rocket's Red Glare"
+            },
+            {
+              "id": "70",
+              "name": "Warhead Hunter"
+            }
+          ]
+        },
+        {
+          "name": "Gun Runners Arsenal (Add-on)",
+          "kind": "dlc",
+          "achievements": [
+            {
+              "id": "71",
+              "name": "Curios and Relics"
+            },
+            {
+              "id": "72",
+              "name": "Master of the Arsenal"
+            },
+            {
+              "id": "73",
+              "name": "Up to the Challenge"
+            },
+            {
+              "id": "74",
+              "name": "Combat Veteran "
+            },
+            {
+              "id": "75",
+              "name": "Pros Only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "titleId": "332913499",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "source": "https://www.trueachievements.com/game/fallout-76/achievements",
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievements": [
+            {
+              "id": "1",
+              "name": "Reclamation Day!"
+            },
+            {
+              "id": "2",
+              "name": "First Contact"
+            },
+            {
+              "id": "3",
+              "name": "Final Departure"
+            },
+            {
+              "id": "4",
+              "name": "Second Helpings"
+            },
+            {
+              "id": "5",
+              "name": "Into the Fire"
+            },
+            {
+              "id": "6",
+              "name": "Recruitment Blues"
+            },
+            {
+              "id": "7",
+              "name": "Heart of the Enemy"
+            },
+            {
+              "id": "8",
+              "name": "Key to the Past"
+            },
+            {
+              "id": "9",
+              "name": "Coming to Fruition"
+            },
+            {
+              "id": "10",
+              "name": "Bunker Buster"
+            },
+            {
+              "id": "11",
+              "name": "One of Us"
+            },
+            {
+              "id": "12",
+              "name": "Officer on Deck"
+            },
+            {
+              "id": "13",
+              "name": "Happy C.A.M.P.er"
+            },
+            {
+              "id": "14",
+              "name": "We Must Rebuild"
+            },
+            {
+              "id": "15",
+              "name": "Appalachian HOA"
+            },
+            {
+              "id": "16",
+              "name": "Mistress of Mystery"
+            },
+            {
+              "id": "17",
+              "name": "Personal Matters"
+            },
+            {
+              "id": "18",
+              "name": "Queen of the Hunt"
+            },
+            {
+              "id": "19",
+              "name": "Monster Mash"
+            },
+            {
+              "id": "20",
+              "name": "Scorched Earth"
+            },
+            {
+              "id": "21",
+              "name": "Breach and Clear"
+            },
+            {
+              "id": "22",
+              "name": "Never Go it Alone!"
+            },
+            {
+              "id": "23",
+              "name": "Second Skin"
+            },
+            {
+              "id": "24",
+              "name": "A Fighting Chance"
+            },
+            {
+              "id": "25",
+              "name": "Fallout Forever"
+            },
+            {
+              "id": "26",
+              "name": "LITerally"
+            },
+            {
+              "id": "27",
+              "name": "Ground Zero"
+            },
+            {
+              "id": "28",
+              "name": "Perked Up"
+            },
+            {
+              "id": "29",
+              "name": "Gimme Gimme!"
+            },
+            {
+              "id": "30",
+              "name": "Code Cruncher"
+            },
+            {
+              "id": "31",
+              "name": "Monet of Murder"
+            },
+            {
+              "id": "32",
+              "name": "Tested Mettle"
+            },
+            {
+              "id": "33",
+              "name": "A Real Challenger"
+            },
+            {
+              "id": "34",
+              "name": "Field Medic"
+            },
+            {
+              "id": "35",
+              "name": "Moneybags"
+            },
+            {
+              "id": "36",
+              "name": "Retro Now"
+            },
+            {
+              "id": "37",
+              "name": "Giant Slayer"
+            },
+            {
+              "id": "38",
+              "name": "Pioneer Scout"
+            },
+            {
+              "id": "39",
+              "name": "Bounty Hunter"
+            },
+            {
+              "id": "40",
+              "name": "Kill or Be Killed"
+            },
+            {
+              "id": "41",
+              "name": "Good Grief!"
+            },
+            {
+              "id": "42",
+              "name": "Pest Control"
+            },
+            {
+              "id": "43",
+              "name": "Junker Funk"
+            },
+            {
+              "id": "44",
+              "name": "Photo Bomber"
+            },
+            {
+              "id": "45",
+              "name": "Ain't He the Cutest?"
+            },
+            {
+              "id": "46",
+              "name": "Shwag"
+            },
+            {
+              "id": "47",
+              "name": "Wild West Virginian"
+            },
+            {
+              "id": "48",
+              "name": "Appalachian Trailblazer"
+            },
+            {
+              "id": "49",
+              "name": "American Hero"
+            },
+            {
+              "id": "50",
+              "name": "I Am Become Death"
+            }
+          ]
+        },
+        {
+          "name": "Wastelanders (Title update)",
+          "kind": "update",
+          "achievements": [
+            {
+              "id": "51",
+              "name": "Wayward Child"
+            },
+            {
+              "id": "52",
+              "name": "Overdue Reunions"
+            },
+            {
+              "id": "53",
+              "name": "Go for the Gold"
+            },
+            {
+              "id": "54",
+              "name": "A Golden Future"
+            },
+            {
+              "id": "55",
+              "name": "Wish Upon A Star"
+            },
+            {
+              "id": "56",
+              "name": "Behind the Curtain"
+            },
+            {
+              "id": "57",
+              "name": "A Solid Foundation"
+            },
+            {
+              "id": "58",
+              "name": "Friends in Low Places"
+            },
+            {
+              "id": "59",
+              "name": "Gold Rush"
+            },
+            {
+              "id": "60",
+              "name": "The New Fort Knox"
+            }
+          ]
+        },
+        {
+          "name": "Steel Reign (Title update)",
+          "kind": "update",
+          "achievements": [
+            {
+              "id": "61",
+              "name": "Steel Brethren"
+            },
+            {
+              "id": "62",
+              "name": "Smooth Operator"
+            },
+            {
+              "id": "63",
+              "name": "Gold Star Crafter"
+            }
+          ]
+        },
+        {
+          "name": "The Pitt (Title update)",
+          "kind": "update",
+          "achievements": [
+            {
+              "id": "64",
+              "name": "Welcome To The Pitt"
+            },
+            {
+              "id": "65",
+              "name": "Seeking Refuge"
+            },
+            {
+              "id": "66",
+              "name": "Troglodiced"
+            }
+          ]
+        },
+        {
+          "name": "Atlantic City - Boardwalk Paradise (Title update)",
+          "kind": "update",
+          "achievements": [
+            {
+              "id": "67",
+              "name": "America’s Playground"
+            },
+            {
+              "id": "68",
+              "name": "Rip and Tear"
+            },
+            {
+              "id": "69",
+              "name": "The House Always Wins"
+            }
+          ]
+        },
+        {
+          "name": "Atlantic City - America's Playground (Title update)",
+          "kind": "update",
+          "achievements": [
+            {
+              "id": "70",
+              "name": "Community Service"
+            },
+            {
+              "id": "71",
+              "name": "Devil's Bargain"
+            },
+            {
+              "id": "72",
+              "name": "Weed Killer"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
