@@ -41,7 +41,6 @@ public static class BatchPicker
         if (model == null) return;
         try
         {
-            ExportAllView.Attach(owner,model);
             PlaytimeView.Attach(owner,model);
             PresenceDiagnostics.Attach(owner,model);
             EventTokenView.Attach(owner,model);

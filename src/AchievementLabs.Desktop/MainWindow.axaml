@@ -201,6 +201,12 @@
    </Grid>
    <ScrollViewer Grid.Row="1" IsVisible="{Binding IsSettings}">
     <StackPanel Spacing="18" MaxWidth="760" HorizontalAlignment="Stretch">
+     <Border Classes="panel" Padding="24"><StackPanel Spacing="12">
+      <TextBlock Text="Achievement exports" FontSize="22"/>
+      <TextBlock Text="Export every game and its achievements from the connected Xbox account. Track progress, pause and resume, or skip titles already saved." Classes="muted" TextWrapping="Wrap"/>
+      <Button Content="Export all achievements…" Click="ExportAllAchievements" IsEnabled="{Binding CanQuery}" HorizontalAlignment="Left"/>
+      <TextBlock Text="Connect your Xbox account and finish any active account operation to start an export." Classes="muted" TextWrapping="Wrap"/>
+     </StackPanel></Border>
      <Border Classes="panel" Padding="24"><StackPanel Spacing="16">
       <TextBlock Text="Workspace" FontSize="22"/>
       <TextBlock Text="Events folder"/>
