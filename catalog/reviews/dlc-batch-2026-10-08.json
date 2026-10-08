@@ -1,0 +1,2304 @@
+{
+  "titles": [
+    {
+      "titleId": "1112737763",
+      "title": "Dishonored",
+      "sourceHeading": "Dishonored Achievements",
+      "platforms": [
+        "Xbox360"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 80,
+      "totalGamerscore": 1640,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 63,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "Thief",
+          "source": "https://www.trueachievements.com/a168817/thief-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Versatile",
+          "source": "https://www.trueachievements.com/a168818/versatile-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Ghost",
+          "source": "https://www.trueachievements.com/a168819/ghost-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Shadow",
+          "source": "https://www.trueachievements.com/a168820/shadow-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "Mostly Flesh and Steel",
+          "source": "https://www.trueachievements.com/a168821/mostly-flesh-and-steel-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Dishonored/achievements"
+        },
+        {
+          "name": "Dunwall City Trials (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Dishonored/dlc/Dunwall-City-Trials"
+        },
+        {
+          "name": "The Knife of Dunwall (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 220,
+          "source": "https://www.trueachievements.com/game/Dishonored/dlc/The-Knife-of-Dunwall"
+        },
+        {
+          "name": "The Brigmore Witches (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 220,
+          "source": "https://www.trueachievements.com/game/Dishonored/dlc/The-Brigmore-Witches"
+        }
+      ]
+    },
+    {
+      "titleId": "1100121502",
+      "title": "Dishonored® Definitive Edition",
+      "sourceHeading": "Dishonored Definitive Edition Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 80,
+      "totalGamerscore": 1640,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 71,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "4",
+          "name": "Thief",
+          "source": "https://www.trueachievements.com/a203635/thief-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "Versatile",
+          "source": "https://www.trueachievements.com/a203636/versatile-achievement"
+        },
+        {
+          "xboxAchievementId": "8",
+          "name": "Mostly Flesh and Steel",
+          "source": "https://www.trueachievements.com/a203639/mostly-flesh-and-steel-achievement"
+        },
+        {
+          "xboxAchievementId": "9",
+          "name": "Wall of Sparks",
+          "source": "https://www.trueachievements.com/a203640/wall-of-sparks-achievement"
+        },
+        {
+          "xboxAchievementId": "10",
+          "name": "Rogue",
+          "source": "https://www.trueachievements.com/a203641/rogue-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 80,
+          "gamerscore": 1640,
+          "source": "https://www.trueachievements.com/game/Dishonored-Definitive-Edition/achievements"
+        }
+      ]
+    },
+    {
+      "titleId": "1627819535",
+      "title": "Dishonored® Definitive Edition (PC)",
+      "sourceHeading": "Dishonored Definitive Edition (Windows) Achievements",
+      "platforms": [
+        "PC"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 80,
+      "totalGamerscore": 1640,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 80,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "Thief",
+          "source": "https://www.trueachievements.com/a347850/thief-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Versatile",
+          "source": "https://www.trueachievements.com/a347851/versatile-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Ghost",
+          "source": "https://www.trueachievements.com/a347852/ghost-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Shadow",
+          "source": "https://www.trueachievements.com/a347853/shadow-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "Mostly Flesh and Steel",
+          "source": "https://www.trueachievements.com/a347854/mostly-flesh-and-steel-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 80,
+          "gamerscore": 1640,
+          "source": "https://www.trueachievements.com/game/Dishonored-Definitive-Edition-Windows/achievements"
+        }
+      ]
+    },
+    {
+      "titleId": "618537566",
+      "title": "The Outer Worlds",
+      "sourceHeading": "The Outer Worlds Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 68,
+      "totalGamerscore": 1390,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 67,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "The Outer Worlds",
+          "source": "https://www.trueachievements.com/a286485/the-outer-worlds-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Hard",
+          "source": "https://www.trueachievements.com/a286486/hard-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Supernova",
+          "source": "https://www.trueachievements.com/a286487/supernova-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Best Friend",
+          "source": "https://www.trueachievements.com/a286483/best-friend-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "The Harder They Fall",
+          "source": "https://www.trueachievements.com/a286482/the-harder-they-fall-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 48,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/The-Outer-Worlds/achievements"
+        },
+        {
+          "name": "Peril on Gorgon (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 195,
+          "source": "https://www.trueachievements.com/game/The-Outer-Worlds/dlc/Peril-on-Gorgon"
+        },
+        {
+          "name": "Murder on Eridanos (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 195,
+          "source": "https://www.trueachievements.com/game/The-Outer-Worlds/dlc/Murder-on-Eridanos"
+        }
+      ]
+    },
+    {
+      "titleId": "1675176110",
+      "title": "The Outer Worlds",
+      "sourceHeading": "The Outer Worlds (Windows) Achievements",
+      "platforms": [
+        "PC"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 68,
+      "totalGamerscore": 1390,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 67,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "The Outer Worlds",
+          "source": "https://www.trueachievements.com/a286540/the-outer-worlds-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Hard",
+          "source": "https://www.trueachievements.com/a286541/hard-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Supernova",
+          "source": "https://www.trueachievements.com/a286542/supernova-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Best Friend",
+          "source": "https://www.trueachievements.com/a286543/best-friend-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "The Harder They Fall",
+          "source": "https://www.trueachievements.com/a286544/the-harder-they-fall-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 48,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/The-Outer-Worlds/achievements"
+        },
+        {
+          "name": "Peril on Gorgon (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 195,
+          "source": "https://www.trueachievements.com/game/The-Outer-Worlds-Windows/dlc/Peril-on-Gorgon"
+        },
+        {
+          "name": "Murder on Eridanos (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 195,
+          "source": "https://www.trueachievements.com/game/The-Outer-Worlds-Windows/dlc/Murder-on-Eridanos"
+        }
+      ]
+    },
+    {
+      "titleId": "1777341064",
+      "title": "The Outer Worlds: Spacer's Choice Edition",
+      "sourceHeading": "The Outer Worlds: Spacer's Choice Edition Achievements",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 68,
+      "totalGamerscore": 1000,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 67,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "The Outer Worlds",
+          "source": "https://www.trueachievements.com/a385188/the-outer-worlds-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Hard",
+          "source": "https://www.trueachievements.com/a385189/hard-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Supernova",
+          "source": "https://www.trueachievements.com/a385190/supernova-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Best Friend",
+          "source": "https://www.trueachievements.com/a385191/best-friend-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "The Harder They Fall",
+          "source": "https://www.trueachievements.com/a385192/the-harder-they-fall-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 68,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/The-Outer-Worlds/achievements"
+        }
+      ]
+    },
+    {
+      "titleId": "1721383054",
+      "title": "The Outer Worlds: Spacer’s Choice Edition",
+      "sourceHeading": "The Outer Worlds: Spacer's Choice Edition (Windows) Achievements",
+      "platforms": [
+        "PC"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 68,
+      "totalGamerscore": 1000,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 67,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "The Outer Worlds",
+          "source": "https://www.trueachievements.com/a385768/the-outer-worlds-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Hard",
+          "source": "https://www.trueachievements.com/a385769/hard-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Supernova",
+          "source": "https://www.trueachievements.com/a385770/supernova-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Best Friend",
+          "source": "https://www.trueachievements.com/a385771/best-friend-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "The Harder They Fall",
+          "source": "https://www.trueachievements.com/a385772/the-harder-they-fall-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 68,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/The-Outer-Worlds/achievements"
+        }
+      ]
+    },
+    {
+      "titleId": "1297287173",
+      "title": "Alan Wake",
+      "sourceHeading": "Alan Wake Achievements",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 67,
+      "totalGamerscore": 1500,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 67,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "Follow the Light",
+          "source": "https://www.trueachievements.com/a60475/follow-the-light-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Nordic Walking",
+          "source": "https://www.trueachievements.com/a60473/nordic-walking-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Bright Falls' Finest",
+          "source": "https://www.trueachievements.com/a60472/bright-falls-finest-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Boob Tube",
+          "source": "https://www.trueachievements.com/a60437/boob-tube-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "Under a Thin Layer of Skin",
+          "source": "https://www.trueachievements.com/a60471/under-a-thin-layer-of-skin-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Alan-Wake/achievements"
+        },
+        {
+          "name": "The Signal (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Alan-Wake/dlc/The-Signal"
+        },
+        {
+          "name": "The Writer (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 9,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Alan-Wake/dlc/The-Writer"
+        }
+      ]
+    },
+    {
+      "titleId": "1693830737",
+      "title": "Alan Wake 2",
+      "sourceHeading": "Alan Wake 2 Achievements",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 88,
+      "totalGamerscore": 1360,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 66,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Alan-Wake-2/achievements"
+        },
+        {
+          "name": "Night Springs (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 12,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Alan-Wake-2/dlc/Night-Springs"
+        },
+        {
+          "name": "Lake House (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 160,
+          "source": "https://www.trueachievements.com/game/Alan-Wake-2/dlc/Lake-House"
+        }
+      ]
+    },
+    {
+      "titleId": "1792749432",
+      "title": "Alan Wake Remastered",
+      "sourceHeading": "Alan Wake Remastered Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 67,
+      "totalGamerscore": 1500,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 66,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "Follow the Light",
+          "source": "https://www.trueachievements.com/a338936/follow-the-light-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Nordic Walking",
+          "source": "https://www.trueachievements.com/a338937/nordic-walking-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Bright Falls' Finest",
+          "source": "https://www.trueachievements.com/a338938/bright-falls-finest-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Boob Tube",
+          "source": "https://www.trueachievements.com/a338939/boob-tube-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "Under a Thin Layer of Skin",
+          "source": "https://www.trueachievements.com/a338940/under-a-thin-layer-of-skin-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 67,
+          "gamerscore": 1500,
+          "source": "https://www.trueachievements.com/game/Alan-Wake-Remastered/achievements"
+        }
+      ]
+    },
+    {
+      "titleId": "1045960524",
+      "title": "Metro Exodus",
+      "sourceHeading": "Metro Exodus Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 68,
+      "totalGamerscore": 1500,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 68,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "90",
+          "name": "Brakeman",
+          "source": "https://www.trueachievements.com/a268737/brakeman-achievement"
+        },
+        {
+          "xboxAchievementId": "91",
+          "name": "Exodus",
+          "source": "https://www.trueachievements.com/a268738/exodus-achievement"
+        },
+        {
+          "xboxAchievementId": "92",
+          "name": "Aurora",
+          "source": "https://www.trueachievements.com/a268739/aurora-achievement"
+        },
+        {
+          "xboxAchievementId": "93",
+          "name": "Regatta",
+          "source": "https://www.trueachievements.com/a268740/regatta-achievement"
+        },
+        {
+          "xboxAchievementId": "94",
+          "name": "Railwayman",
+          "source": "https://www.trueachievements.com/a268741/railwayman-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 49,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus/achievements"
+        },
+        {
+          "name": "Ranger Update (Title update)",
+          "kind": "update",
+          "achievementCount": 3,
+          "gamerscore": 100,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus/dlc/Ranger-Update"
+        },
+        {
+          "name": "The Two Colonels (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus/dlc/The-Two-Colonels"
+        },
+        {
+          "name": "Sam's Story (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus/dlc/Sams-Story"
+        }
+      ]
+    },
+    {
+      "titleId": "1660733075",
+      "title": "Metro Exodus (Windows)",
+      "sourceHeading": "Metro Exodus (Windows) Achievements",
+      "platforms": [
+        "PC"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 68,
+      "totalGamerscore": 1500,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 68,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "Brakeman",
+          "source": "https://www.trueachievements.com/a275903/brakeman-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Exodus",
+          "source": "https://www.trueachievements.com/a275904/exodus-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Aurora",
+          "source": "https://www.trueachievements.com/a275905/aurora-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Regatta",
+          "source": "https://www.trueachievements.com/a275906/regatta-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "Railwayman",
+          "source": "https://www.trueachievements.com/a275907/railwayman-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 52,
+          "gamerscore": 1100,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus-Windows/achievements"
+        },
+        {
+          "name": "The Two Colonels (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus-Windows/dlc/The-Two-Colonels"
+        },
+        {
+          "name": "Sam's Story (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus-Windows/dlc/Sams-Story"
+        }
+      ]
+    },
+    {
+      "titleId": "1844460632",
+      "title": "Metro Exodus Enhanced Edition",
+      "sourceHeading": "Metro Exodus Enhanced Edition (Windows) Achievements",
+      "platforms": [
+        "PC"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 68,
+      "totalGamerscore": 1500,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 68,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "Brakeman",
+          "source": "https://www.trueachievements.com/a327261/brakeman-achievement"
+        },
+        {
+          "xboxAchievementId": "2",
+          "name": "Exodus",
+          "source": "https://www.trueachievements.com/a327262/exodus-achievement"
+        },
+        {
+          "xboxAchievementId": "3",
+          "name": "Aurora",
+          "source": "https://www.trueachievements.com/a327263/aurora-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Regatta",
+          "source": "https://www.trueachievements.com/a327264/regatta-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "Railwayman",
+          "source": "https://www.trueachievements.com/a327265/railwayman-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 52,
+          "gamerscore": 1100,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus-Enhanced-Edition/achievements"
+        },
+        {
+          "name": "The Two Colonels (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus-Enhanced-Edition/dlc/The-Two-Colonels"
+        },
+        {
+          "name": "Sam's Story (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Metro-Exodus-Enhanced-Edition/dlc/Sams-Story"
+        }
+      ]
+    },
+    {
+      "titleId": "1046363979",
+      "title": "Rise of the Tomb Raider",
+      "sourceHeading": "Rise of the Tomb Raider Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 143,
+      "totalGamerscore": 2250,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 66,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider/achievements"
+        },
+        {
+          "name": "Endurance Mode (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 34,
+          "gamerscore": 500,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider/dlc/Endurance-Mode"
+        },
+        {
+          "name": "Baba Yaga: The Temple of the Witch (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 22,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider/dlc/Baba-Yaga"
+        },
+        {
+          "name": "Cold Darkness Awakened (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider/dlc/Cold-Darkness-Awakened"
+        },
+        {
+          "name": "20 Year Celebration (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 11,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider/dlc/20-Year-Celebration"
+        }
+      ]
+    },
+    {
+      "titleId": "1397819427",
+      "title": "Rise of the Tomb Raider",
+      "sourceHeading": "Rise of the Tomb Raider (Xbox 360) Achievements",
+      "platforms": [
+        "Xbox360"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 85,
+      "totalGamerscore": 1750,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider-Xbox-360/achievements"
+        },
+        {
+          "name": "Endurance Mode (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider-Xbox-360/dlc/Endurance-Mode"
+        },
+        {
+          "name": "Baba Yaga: The Temple of the Witch (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 15,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider-Xbox-360/dlc/Baba-Yaga"
+        },
+        {
+          "name": "Cold Darkness Awakened (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider-Xbox-360/dlc/Cold-Darkness-Awakened"
+        }
+      ]
+    },
+    {
+      "titleId": "434412541",
+      "title": "Rise of the Tomb Raider",
+      "sourceHeading": "Rise of the Tomb Raider (Windows) Achievements",
+      "platforms": [
+        "PC"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 143,
+      "totalGamerscore": 2250,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 66,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider-Win-10/achievements"
+        },
+        {
+          "name": "Endurance Mode (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 34,
+          "gamerscore": 500,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider-Win-10/dlc/Endurance-Mode"
+        },
+        {
+          "name": "Baba Yaga: The Temple of the Witch (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 22,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider-Win-10/dlc/Baba-Yaga"
+        },
+        {
+          "name": "Cold Darkness Awakened (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider-Win-10/dlc/Cold-Darkness-Awakened"
+        },
+        {
+          "name": "20 Year Celebration (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 11,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Rise-of-the-Tomb-Raider-Win-10/dlc/20-Year-Celebration"
+        }
+      ]
+    },
+    {
+      "titleId": "913783821",
+      "title": "Shadow of the Tomb Raider",
+      "sourceHeading": "Shadow of the Tomb Raider Achievements",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 99,
+      "totalGamerscore": 1690,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 63,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Shadow-of-the-Tomb-Raider/achievements"
+        },
+        {
+          "name": "The Forge (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 95,
+          "source": "https://www.trueachievements.com/game/Shadow-of-the-Tomb-Raider/dlc/The-Forge"
+        },
+        {
+          "name": "The Pillar (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 95,
+          "source": "https://www.trueachievements.com/game/Shadow-of-the-Tomb-Raider/dlc/The-Pillar"
+        },
+        {
+          "name": "The Nightmare (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 95,
+          "source": "https://www.trueachievements.com/game/Shadow-of-the-Tomb-Raider/dlc/The-Nightmare"
+        },
+        {
+          "name": "The Price of Survival (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 95,
+          "source": "https://www.trueachievements.com/game/Shadow-of-the-Tomb-Raider/dlc/The-Price-of-Survival"
+        },
+        {
+          "name": "The Serpent's Heart (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 95,
+          "source": "https://www.trueachievements.com/game/Shadow-of-the-Tomb-Raider/dlc/The-Serpents-Heart"
+        },
+        {
+          "name": "The Grand Caiman (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 95,
+          "source": "https://www.trueachievements.com/game/Shadow-of-the-Tomb-Raider/dlc/The-Grand-Caiman"
+        },
+        {
+          "name": "The Path Home (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 6,
+          "gamerscore": 120,
+          "source": "https://www.trueachievements.com/game/Shadow-of-the-Tomb-Raider/dlc/The-Path-Home"
+        }
+      ]
+    },
+    {
+      "titleId": "1799887933",
+      "title": "The Witcher 3: Wild Hunt",
+      "sourceHeading": "The Witcher 3: Wild Hunt Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 78,
+      "totalGamerscore": 2000,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 52,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/The-Witcher-3-Wild-Hunt/achievements"
+        },
+        {
+          "name": "Title Update (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/The-Witcher-3-Wild-Hunt/dlc/Title-Update"
+        },
+        {
+          "name": "Hearts of Stone (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 12,
+          "gamerscore": 450,
+          "source": "https://www.trueachievements.com/game/The-Witcher-3-Wild-Hunt/dlc/Hearts-of-Stone"
+        },
+        {
+          "name": "Blood and Wine (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 13,
+          "gamerscore": 500,
+          "source": "https://www.trueachievements.com/game/The-Witcher-3-Wild-Hunt/dlc/Blood-and-Wine"
+        }
+      ]
+    },
+    {
+      "titleId": "556718860",
+      "title": "Assassin's Creed IV Black Flag",
+      "sourceHeading": "Assassin's Creed IV: Black Flag Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 60,
+      "totalGamerscore": 1250,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 5,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "65",
+          "name": "Liberation Day",
+          "source": "https://www.trueachievements.com/a183274/liberation-day-achievement"
+        },
+        {
+          "xboxAchievementId": "66",
+          "name": "Seeds of independence",
+          "source": "https://www.trueachievements.com/a183275/seeds-of-independence-achievement"
+        },
+        {
+          "xboxAchievementId": "67",
+          "name": "Firepower",
+          "source": "https://www.trueachievements.com/a183276/firepower-achievement"
+        },
+        {
+          "xboxAchievementId": "68",
+          "name": "His Own Medicine",
+          "source": "https://www.trueachievements.com/a183277/his-own-medicine-achievement"
+        },
+        {
+          "xboxAchievementId": "69",
+          "name": "His Word Was “Perhaps”",
+          "source": "https://www.trueachievements.com/a183278/his-word-was-perhaps-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-IV-Black-Flag/achievements"
+        },
+        {
+          "name": "MP Characters Pack #1 Blackbeard’s Wrath (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 4,
+          "gamerscore": 80,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-IV-Black-Flag/dlc/MP-Characters-Pack-1-Blackbeards-Wrath"
+        },
+        {
+          "name": "Freedom Cry (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 6,
+          "gamerscore": 170,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-IV-Black-Flag/dlc/Freedom-Cry"
+        }
+      ]
+    },
+    {
+      "titleId": "964818375",
+      "title": "Assassin's Creed Odyssey",
+      "sourceHeading": "Assassin's Creed Odyssey Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 93,
+      "totalGamerscore": 1850,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/achievements"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 1: The Show Must Go On (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/The-Show-Must-Go-On"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 2: Divine Intervention (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/Divine-Intervention"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 3: The Image of Faith (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/The-Image-of-Faith"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 4: The Daughters of Lalaia (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/The-Daughters-of-Lalaia"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 5: A Poet's Legacy (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/A-Poets-Legacy"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 6: A Brother's Seduction (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/A-Brothers-Seduction"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 7: A Friend Worth Dying For (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/A-Friend-Worth-Dying-For"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 8: The Heir of Memories (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/The-Heir-of-Memories"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 9: One Really, Really Bad Day (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/One-Really-Really-Bad-Day"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 10: Every Story Has an Ending (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/Every-Story-Has-an-Ending"
+        },
+        {
+          "name": "The Lost Tales of Greece - Part 11: Old Flames Burn Brighter (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 10,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/Old-Flames-Burn-Brighter"
+        },
+        {
+          "name": "Mythical Creatures - Part 1: Steropes The Lightning Bringer (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 20,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/Steropes-The-Lightning-Bringer"
+        },
+        {
+          "name": "Mythical Creatures - Part 2: Arges The Bright One (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 20,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/Arges-The-Bright-One"
+        },
+        {
+          "name": "Legacy of the First Blade - Episode 1: Hunted (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 110,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/Legacy-of-the-First-Blade-Episode-1"
+        },
+        {
+          "name": "Legacy of the First Blade - Episode 2: Shadow Heritage (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 110,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/Legacy-of-the-First-Blade-Episode-2"
+        },
+        {
+          "name": "Legacy of the First Blade - Episode 3: Bloodline (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 130,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/Legacy-of-the-First-Blade-Episode-3"
+        },
+        {
+          "name": "The Fate of Atlantis - Episode 1: Fields of Elysium (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 110,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/The-Fate-of-Atlantis-Episode-1"
+        },
+        {
+          "name": "The Fate of Atlantis - Episode 2: Torment of Hades (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 110,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/The-Fate-of-Atlantis-Episode-2"
+        },
+        {
+          "name": "The Fate of Atlantis - Episode 3: Judgment of Atlantis (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 130,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Odyssey/dlc/The-Fate-of-Atlantis-Episode-3"
+        }
+      ]
+    },
+    {
+      "titleId": "502034863",
+      "title": "Assassin's Creed Origins",
+      "sourceHeading": "Assassin's Creed Origins Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 67,
+      "totalGamerscore": 1500,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Origins/achievements"
+        },
+        {
+          "name": "Discovery Tour (Title update)",
+          "kind": "update",
+          "achievementCount": 3,
+          "gamerscore": 30,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Origins/dlc/Discovery-Tour"
+        },
+        {
+          "name": "The Curse of the Pharaohs (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 6,
+          "gamerscore": 260,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Origins/dlc/The-Curse-of-the-Pharaohs"
+        },
+        {
+          "name": "The Hidden Ones (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 210,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Origins/dlc/The-Hidden-Ones"
+        }
+      ]
+    },
+    {
+      "titleId": "1560034050",
+      "title": "Assassin's Creed Syndicate",
+      "sourceHeading": "Assassin's Creed Syndicate Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 56,
+      "totalGamerscore": 1300,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 1,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "52",
+          "name": "A well-kept secret",
+          "source": "https://www.trueachievements.com/a210157/a-wellkept-secret-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 49,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Syndicate/achievements"
+        },
+        {
+          "name": "Jack The Ripper (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 7,
+          "gamerscore": 300,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Syndicate/dlc/Jack-The-Ripper"
+        }
+      ]
+    },
+    {
+      "titleId": "1998461943",
+      "title": "Assassin's Creed Unity",
+      "sourceHeading": "Assassin's Creed Unity Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 57,
+      "totalGamerscore": 1300,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Unity/achievements"
+        },
+        {
+          "name": "Dead Kings (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 7,
+          "gamerscore": 300,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Unity/dlc/Dead-Kings"
+        }
+      ]
+    },
+    {
+      "titleId": "1728105232",
+      "title": "Assassin's Creed Valhalla",
+      "sourceHeading": "Assassin's Creed Valhalla Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 92,
+      "totalGamerscore": 2110,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/achievements"
+        },
+        {
+          "name": "Tombs of the Fallen (Title update)",
+          "kind": "update",
+          "achievementCount": 2,
+          "gamerscore": 20,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/dlc/Tombs-of-the-Fallen"
+        },
+        {
+          "name": "Wrath of the Druids (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 190,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/dlc/Wrath-of-the-Druids"
+        },
+        {
+          "name": "Wrath of the Druids - Double Trouble (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 20,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/dlc/Wrath-of-the-Druids-Double-Trouble"
+        },
+        {
+          "name": "Mastery Challenge (Title update)",
+          "kind": "update",
+          "achievementCount": 2,
+          "gamerscore": 40,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/dlc/Mastery-Challenge"
+        },
+        {
+          "name": "The Siege of Paris (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 9,
+          "gamerscore": 260,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/dlc/The-Siege-of-Paris"
+        },
+        {
+          "name": "Dawn of Ragnarök (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 9,
+          "gamerscore": 260,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/dlc/Dawn-of-Ragnarok"
+        },
+        {
+          "name": "Mastery Challenge Part 2: The Reckoning (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 30,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/dlc/Mastery-Challenge-Part-2-The-Reckoning"
+        },
+        {
+          "name": "The Forgotten Saga (Title update)",
+          "kind": "update",
+          "achievementCount": 9,
+          "gamerscore": 260,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/dlc/The-Forgotten-Saga"
+        },
+        {
+          "name": "Tombs of the Fallen Part 2: Buried Knowledge (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 30,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Valhalla/dlc/Tombs-of-the-Fallen-Pack-2"
+        }
+      ]
+    },
+    {
+      "titleId": "2010328709",
+      "title": "Assassin's Creed® Mirage",
+      "sourceHeading": "Assassin's Creed Mirage Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 61,
+      "totalGamerscore": 1260,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Mirage/achievements"
+        },
+        {
+          "name": "Valley of Memory (Title update)",
+          "kind": "update",
+          "achievementCount": 11,
+          "gamerscore": 260,
+          "source": "https://www.trueachievements.com/game/Assassins-Creed-Mirage/dlc/Valley-of-Memory"
+        }
+      ]
+    },
+    {
+      "titleId": "1367952835",
+      "title": "Far Cry® 4",
+      "sourceHeading": "Far Cry 4 Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 57,
+      "totalGamerscore": 1250,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Far-Cry-4/achievements"
+        },
+        {
+          "name": "Valley of the Yetis (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 7,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Far-Cry-4/dlc/Valley-of-the-Yetis"
+        }
+      ]
+    },
+    {
+      "titleId": "447911394",
+      "title": "Far Cry® 5",
+      "sourceHeading": "Far Cry 5 Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 72,
+      "totalGamerscore": 1695,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Far-Cry-5/achievements"
+        },
+        {
+          "name": "Hours of Darkness (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 7,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Far-Cry-5/dlc/Hours-of-Darkness"
+        },
+        {
+          "name": "Lost on Mars (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 7,
+          "gamerscore": 300,
+          "source": "https://www.trueachievements.com/game/Far-Cry-5/dlc/Lost-on-Mars"
+        },
+        {
+          "name": "Dead Living Zombies (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 7,
+          "gamerscore": 165,
+          "source": "https://www.trueachievements.com/game/Far-Cry-5/dlc/Dead-Living-Zombies"
+        },
+        {
+          "name": "New Game+ (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 30,
+          "source": "https://www.trueachievements.com/game/Far-Cry-5/dlc/New-Game"
+        }
+      ]
+    },
+    {
+      "titleId": "976905576",
+      "title": "Dragon Age™: Inquisition",
+      "sourceHeading": "Dragon Age: Inquisition Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 69,
+      "totalGamerscore": 1570,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Dragon-Age-Inquisition/achievements"
+        },
+        {
+          "name": "Jaws of Hakkon (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 4,
+          "gamerscore": 165,
+          "source": "https://www.trueachievements.com/game/Dragon-Age-Inquisition/dlc/Jaws-of-Hakkon"
+        },
+        {
+          "name": "The Descent (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 4,
+          "gamerscore": 165,
+          "source": "https://www.trueachievements.com/game/Dragon-Age-Inquisition/dlc/The-Descent"
+        },
+        {
+          "name": "Trespasser (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 11,
+          "gamerscore": 240,
+          "source": "https://www.trueachievements.com/game/Dragon-Age-Inquisition/dlc/Trespasser"
+        }
+      ]
+    },
+    {
+      "titleId": "2092220937",
+      "title": "Borderlands 3",
+      "sourceHeading": "Borderlands 3 (Windows) Achievements",
+      "platforms": [
+        "PC"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 81,
+      "totalGamerscore": 2175,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 81,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "3",
+          "name": "You Got Skills",
+          "source": "https://www.trueachievements.com/a474256/you-got-skills-achievement"
+        },
+        {
+          "xboxAchievementId": "4",
+          "name": "Star Bound",
+          "source": "https://www.trueachievements.com/a474257/star-bound-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "Vaulting Your Way To The Top",
+          "source": "https://www.trueachievements.com/a474258/vaulting-your-way-to-the-top-achievement"
+        },
+        {
+          "xboxAchievementId": "6",
+          "name": "Biggest Badass In The Borderlands",
+          "source": "https://www.trueachievements.com/a474259/biggest-badass-in-the-borderlands-achievement"
+        },
+        {
+          "xboxAchievementId": "7",
+          "name": "Bolt-Ons",
+          "source": "https://www.trueachievements.com/a474260/boltons-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 45,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Borderlands-3-Windows/achievements"
+        },
+        {
+          "name": "Season Pass (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 30,
+          "gamerscore": 935,
+          "source": "https://www.trueachievements.com/game/Borderlands-3-Windows/dlc/Season-Pass"
+        },
+        {
+          "name": "Season Pass 2 (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 6,
+          "gamerscore": 240,
+          "source": "https://www.trueachievements.com/game/Borderlands-3-Windows/dlc/Season-Pass-2"
+        }
+      ]
+    },
+    {
+      "titleId": "374621264",
+      "title": "RESIDENT EVIL 2",
+      "sourceHeading": "Resident Evil 2 Achievements",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 44,
+      "totalGamerscore": 1070,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 41,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Resident-Evil-2/achievements"
+        },
+        {
+          "name": "The Ghost Survivors (Title update)",
+          "kind": "update",
+          "achievementCount": 2,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Resident-Evil-2/dlc/The-Ghost-Survivors"
+        },
+        {
+          "name": "Another Survivor (Title update)",
+          "kind": "update",
+          "achievementCount": 1,
+          "gamerscore": 20,
+          "source": "https://www.trueachievements.com/game/Resident-Evil-2/dlc/Another-Survivor"
+        }
+      ]
+    },
+    {
+      "titleId": "2108722049",
+      "title": "Resident Evil Village",
+      "sourceHeading": "Resident Evil Village Achievements",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 56,
+      "totalGamerscore": 1190,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 49,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Resident-Evil-Village/achievements"
+        },
+        {
+          "name": "Winters' Expansion (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 7,
+          "gamerscore": 190,
+          "source": "https://www.trueachievements.com/game/Resident-Evil-Village/dlc/Winters-Expansion"
+        }
+      ]
+    },
+    {
+      "titleId": "1852916479",
+      "title": "Resident Evil 4",
+      "sourceHeading": "Resident Evil 4 Achievements",
+      "platforms": [
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 46,
+      "totalGamerscore": 1180,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 1,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "39",
+          "name": "Trick Shot",
+          "source": "https://www.trueachievements.com/a387658/trick-shot-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 39,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Resident-Evil-4/achievements"
+        },
+        {
+          "name": "Separate Ways (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 7,
+          "gamerscore": 180,
+          "source": "https://www.trueachievements.com/game/Resident-Evil-4/dlc/Separate-Ways"
+        }
+      ]
+    },
+    {
+      "titleId": "1297287144",
+      "title": "Mass Effect",
+      "sourceHeading": "Mass Effect Achievements",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 49,
+      "totalGamerscore": 1200,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 22,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "1",
+          "name": "Medal of Honor",
+          "source": "https://www.trueachievements.com/a10191/medal-of-honor-achievement"
+        },
+        {
+          "xboxAchievementId": "6",
+          "name": "Long Service Medal",
+          "source": "https://www.trueachievements.com/a10186/long-service-medal-achievement"
+        },
+        {
+          "xboxAchievementId": "7",
+          "name": "Distinguished Combat Medal",
+          "source": "https://www.trueachievements.com/a10894/distinguished-combat-medal-achievement"
+        },
+        {
+          "xboxAchievementId": "8",
+          "name": "Medal of Valor",
+          "source": "https://www.trueachievements.com/a10892/medal-of-valor-achievement"
+        },
+        {
+          "xboxAchievementId": "9",
+          "name": "Pistol Expert",
+          "source": "https://www.trueachievements.com/a10184/pistol-expert-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 45,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Mass-Effect/achievements"
+        },
+        {
+          "name": "Bring Down the Sky (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Mass-Effect/dlc/Bring-Down-the-Sky"
+        },
+        {
+          "name": "Pinnacle Station (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 3,
+          "gamerscore": 150,
+          "source": "https://www.trueachievements.com/game/Mass-Effect/dlc/Pinnacle-Station"
+        }
+      ]
+    },
+    {
+      "titleId": "1161889998",
+      "title": "Mass Effect 2",
+      "sourceHeading": "Mass Effect 2 Achievements",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 62,
+      "totalGamerscore": 1355,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-2/achievements"
+        },
+        {
+          "name": "Kasumi - Stolen Memory (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 15,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-2/dlc/Kasumis-Stolen-Memory"
+        },
+        {
+          "name": "Overlord (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 2,
+          "gamerscore": 25,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-2/dlc/Overlord"
+        },
+        {
+          "name": "Lair of the Shadow Broker (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 200,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-2/dlc/Lair-of-the-Shadow-Broker"
+        },
+        {
+          "name": "Cerberus Network (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 15,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-2/dlc/Cerberus-Network"
+        },
+        {
+          "name": "Arrival (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 3,
+          "gamerscore": 100,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-2/dlc/Arrival"
+        }
+      ]
+    },
+    {
+      "titleId": "1161890141",
+      "title": "Mass Effect™ 3",
+      "sourceHeading": "Mass Effect 3 Achievements",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 68,
+      "totalGamerscore": 1550,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-3/achievements"
+        },
+        {
+          "name": "From Ashes (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 2,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-3/dlc/From-Ashes"
+        },
+        {
+          "name": "Leviathan (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 4,
+          "gamerscore": 125,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-3/dlc/Leviathan"
+        },
+        {
+          "name": "Omega (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 3,
+          "gamerscore": 125,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-3/dlc/Omega"
+        },
+        {
+          "name": "Citadel (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 9,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Mass-Effect-3/dlc/Citadel"
+        }
+      ]
+    },
+    {
+      "titleId": "1479758055",
+      "title": "Batman™: Arkham Knight",
+      "sourceHeading": "Batman: Arkham Knight Achievements",
+      "platforms": [
+        "PC",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 113,
+      "totalGamerscore": 2000,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 69,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/achievements"
+        },
+        {
+          "name": "A Matter of Family (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 8,
+          "gamerscore": 150,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/Batgirl-A-Matter-of-Family"
+        },
+        {
+          "name": "Red Hood Story Pack (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/Red-Hood-Story-Pack"
+        },
+        {
+          "name": "Harley Quinn Story Pack (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/Harley-Quinn-Story-Pack"
+        },
+        {
+          "name": "1989 Movie Batmobile Pack (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 40,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/1989-Movie-Batmobile-Pack"
+        },
+        {
+          "name": "2008 Tumbler Batmobile Pack (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 40,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/2008-Tumbler-Batmobile-Pack"
+        },
+        {
+          "name": "GCPD Lockdown (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 30,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/GCPD-Lockdown"
+        },
+        {
+          "name": "Batman Classic TV Series Batmobile Pack (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 40,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/Batman-Classic-TV-Series-Batmobile-Pack"
+        },
+        {
+          "name": "Catwoman's Revenge (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 30,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/Catwomans-Revenge"
+        },
+        {
+          "name": "A Flip of a Coin (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 30,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/A-Flip-of-a-Coin"
+        },
+        {
+          "name": "2016 Batman v Superman Batmobile Pack (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 40,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/2016-Batman-v-Superman-Batmobile-Pack"
+        },
+        {
+          "name": "Title Update (Title update)",
+          "kind": "update",
+          "achievementCount": 7,
+          "gamerscore": 140,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/Title-Update"
+        },
+        {
+          "name": "Season of Infamy: Most Wanted Expansion (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 12,
+          "gamerscore": 160,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/Season-of-Infamy"
+        },
+        {
+          "name": "Original Arkham Batmobile (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 1,
+          "gamerscore": 40,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/Original-Arkham-Batmobile"
+        },
+        {
+          "name": "Crime Fighter Challenge Pack #6 (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 7,
+          "gamerscore": 160,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Knight/dlc/Crime-Fighter-Challenge-Pack-6"
+        }
+      ]
+    },
+    {
+      "titleId": "514006173",
+      "title": "Batman: Return to Arkham - Arkham City",
+      "sourceHeading": "Batman: Return to Arkham - Arkham City Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 70,
+      "totalGamerscore": 1500,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 70,
+          "gamerscore": 1500,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-City-Xbox-One/achievements"
+        }
+      ]
+    },
+    {
+      "titleId": "1464993832",
+      "title": "Batman: Arkham Origins",
+      "sourceHeading": "Batman: Arkham Origins Achievements",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 62,
+      "totalGamerscore": 1300,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Origins/achievements"
+        },
+        {
+          "name": "Initiation (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 2,
+          "gamerscore": 50,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Origins/dlc/Initiation"
+        },
+        {
+          "name": "Cold, Cold Heart (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 10,
+          "gamerscore": 250,
+          "source": "https://www.trueachievements.com/game/Batman-Arkham-Origins/dlc/Cold-Cold-Heart"
+        }
+      ]
+    },
+    {
+      "titleId": "1161890059",
+      "title": "Dragon Age™ 2",
+      "sourceHeading": "Dragon Age II Achievements",
+      "platforms": [
+        "Xbox360",
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 65,
+      "totalGamerscore": 1370,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 60,
+      "requirementWordingDifferenceExamples": [
+        {
+          "xboxAchievementId": "4",
+          "name": "Talented",
+          "source": "https://www.trueachievements.com/a147855/talented-achievement"
+        },
+        {
+          "xboxAchievementId": "5",
+          "name": "Tag Team",
+          "source": "https://www.trueachievements.com/a147860/tag-team-achievement"
+        },
+        {
+          "xboxAchievementId": "6",
+          "name": "That Thing Has Legs",
+          "source": "https://www.trueachievements.com/a147861/that-thing-has-legs-achievement"
+        },
+        {
+          "xboxAchievementId": "7",
+          "name": "Dragon Slayer",
+          "source": "https://www.trueachievements.com/a147862/dragon-slayer-achievement"
+        },
+        {
+          "xboxAchievementId": "8",
+          "name": "Exorcist",
+          "source": "https://www.trueachievements.com/a147863/exorcist-achievement"
+        }
+      ],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 50,
+          "gamerscore": 1000,
+          "source": "https://www.trueachievements.com/game/Dragon-Age-2/achievements"
+        },
+        {
+          "name": "The Exiled Prince (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 130,
+          "source": "https://www.trueachievements.com/game/Dragon-Age-2/dlc/The-Exiled-Prince"
+        },
+        {
+          "name": "Legacy (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 120,
+          "source": "https://www.trueachievements.com/game/Dragon-Age-2/dlc/Legacy-Pack"
+        },
+        {
+          "name": "Mark of the Assassin (Add-on)",
+          "kind": "dlc",
+          "achievementCount": 5,
+          "gamerscore": 120,
+          "source": "https://www.trueachievements.com/game/Dragon-Age-2/dlc/Mark-of-the-Assassin"
+        }
+      ]
+    },
+    {
+      "titleId": "367004125",
+      "title": "BioShock Remastered",
+      "sourceHeading": "BioShock Remastered Achievements",
+      "platforms": [
+        "XboxOne",
+        "XboxSeries"
+      ],
+      "reviewedAt": "2026-10-08",
+      "exportSha256": "5a83655800761e5626f52f2a611593db473239c14a4eddd867be4269c7473c9a",
+      "totalAchievementCount": 63,
+      "totalGamerscore": 1200,
+      "unclassified": 0,
+      "method": "Display-only pack membership matched by unique exact achievement name and gamerscore within the corresponding platform/edition. Descriptions were compared separately; differing locked/unlocked wording does not change a unique name-and-score match. All base and pack counts and gamerscore reconciled. No list positions or achievement-ID ranges used. Xbox IDs and names preserved; event data and account progress omitted.",
+      "requirementWordingDifferenceCount": 0,
+      "requirementWordingDifferenceExamples": [],
+      "packs": [
+        {
+          "name": "Base game",
+          "kind": "base",
+          "achievementCount": 63,
+          "gamerscore": 1200,
+          "source": "https://www.trueachievements.com/game/BioShock-Xbox-One/achievements"
+        }
+      ]
+    }
+  ],
+  "deferred": []
+}
