@@ -75,7 +75,7 @@ static class Test
     var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic;
     var model=window.GetType().GetField("model",flags)!.GetValue(window)!;
     var gameProperty=model.GetType().GetProperty("SelectedGame",flags)!;
-    var syntheticGame=System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(gameProperty.PropertyType);
+    var syntheticGame=new AchievementLabs.Desktop.Game("572802557","Call of Duty: Ghosts","XboxOne",0,91,0);
     var gameId=gameProperty.PropertyType.GetProperty("TitleId")??gameProperty.PropertyType.GetProperty("Id");
     Assert(gameId!=null,"Actual game exposes title identifier");
     gameId!.SetValue(syntheticGame,"572802557");gameProperty.SetValue(model,syntheticGame);
