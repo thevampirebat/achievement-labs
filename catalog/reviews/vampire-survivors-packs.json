@@ -1,0 +1,160 @@
+{
+  "titleId": "1695638358",
+  "reviewedAt": "2026-10-08",
+  "exportSha256": "5abc4409d9e4960eee9bb445baf72099e5e3d7a35792c9e59f8f908480ee4db2",
+  "baseAchievementCount": 140,
+  "baseGamerscore": 1200,
+  "totalAchievementCount": 283,
+  "totalGamerscore": 1935,
+  "unclassified": 0,
+  "method": "Matched Xbox IDs from the supplied export to same-edition TA groups using unique names, requirements and gamerscore. No list-position or achievement-ID-range inference. Catalogue retains Xbox names. No account progress or identifiers included.",
+  "corroboratingSources": [
+    "https://www.xboxachievements.com/game/vampire-survivors/achievement/273441-tirajis.html",
+    "https://www.xboxachievements.com/game/vampire-survivors/achievement/279817-spiritoso.html",
+    "https://www.xboxachievements.com/game/vampire-survivors/achievement/extra-v-pale-diamond-incursion.html"
+  ],
+  "reviewedDifferences": [
+    {
+      "xboxAchievementId": "42",
+      "xboxName": "Tirajisú",
+      "sourceName": "Tiragisú",
+      "sourceUrl": "https://www.trueachievements.com/a374181/tiragisu-achievement",
+      "method": "Reviewed name difference; unique exact requirement and gamerscore, corroborated by XboxAchievements"
+    },
+    {
+      "xboxAchievementId": "159",
+      "xboxName": "Spiritoso",
+      "sourceName": "Boo Roo Boolle",
+      "sourceUrl": "https://www.trueachievements.com/a380061/boo-roo-boolle-achievement",
+      "method": "Reviewed name difference; unique exact requirement and gamerscore, corroborated by XboxAchievements"
+    },
+    {
+      "xboxAchievementId": "235",
+      "xboxName": "EXTRA: V - Pale Diamond Incursion",
+      "sourceName": "EXTRA: V - Pale Diamond Incursion",
+      "sourceUrl": "https://www.trueachievements.com/a602277/extra-v--pale-diamond-incursion-achievement",
+      "method": "Reviewed description difference; unique exact name and gamerscore, Xbox wording corroborated by XboxAchievements"
+    }
+  ],
+  "packs": [
+    {
+      "name": "Tiny Update",
+      "kind": "update",
+      "achievementCount": 2,
+      "gamerscore": 15,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Tiny-Update"
+    },
+    {
+      "name": "Legacy of the Moonspell",
+      "kind": "dlc",
+      "achievementCount": 17,
+      "gamerscore": 95,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Legacy-of-the-Moonspell"
+    },
+    {
+      "name": "The Chaotic One",
+      "kind": "update",
+      "achievementCount": 3,
+      "gamerscore": 20,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/The-Chaotic-One"
+    },
+    {
+      "name": "Tides of the Foscari",
+      "kind": "dlc",
+      "achievementCount": 21,
+      "gamerscore": 105,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Tides-of-the-Foscari"
+    },
+    {
+      "name": "The Whimsy One",
+      "kind": "update",
+      "achievementCount": 1,
+      "gamerscore": 5,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/The-Whimsy-One"
+    },
+    {
+      "name": "Overwhelming Update",
+      "kind": "update",
+      "achievementCount": 4,
+      "gamerscore": 20,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Overwhelming-Update"
+    },
+    {
+      "name": "Mt.Moonspell Map",
+      "kind": "dlc",
+      "achievementCount": 1,
+      "gamerscore": 5,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Mt-Moonspell-Map"
+    },
+    {
+      "name": "Lake Foscari Map",
+      "kind": "dlc",
+      "achievementCount": 1,
+      "gamerscore": 5,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Lake-Foscari-Map"
+    },
+    {
+      "name": "Whiteout",
+      "kind": "update",
+      "achievementCount": 6,
+      "gamerscore": 30,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Whiteout"
+    },
+    {
+      "name": "Space 54",
+      "kind": "update",
+      "achievementCount": 8,
+      "gamerscore": 40,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Space-54"
+    },
+    {
+      "name": "Laborratory",
+      "kind": "update",
+      "achievementCount": 7,
+      "gamerscore": 35,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Laborratory"
+    },
+    {
+      "name": "Darkasso",
+      "kind": "update",
+      "achievementCount": 9,
+      "gamerscore": 45,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Darkasso"
+    },
+    {
+      "name": "The Coop",
+      "kind": "update",
+      "achievementCount": 8,
+      "gamerscore": 40,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/The-Coop"
+    },
+    {
+      "name": "v1.14 Update",
+      "kind": "update",
+      "achievementCount": 15,
+      "gamerscore": 75,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/v1-14-Update"
+    },
+    {
+      "name": "v1.15 Update",
+      "kind": "update",
+      "achievementCount": 10,
+      "gamerscore": 50,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/v1-15-Update"
+    },
+    {
+      "name": "Legacy of the Moonspell Update",
+      "kind": "dlc",
+      "achievementCount": 7,
+      "gamerscore": 35,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Legacy-of-the-Moonspell-Update"
+    },
+    {
+      "name": "Legacy of the Bloodmoon",
+      "kind": "dlc",
+      "achievementCount": 23,
+      "gamerscore": 115,
+      "source": "https://www.trueachievements.com/game/Vampire-Survivors/dlc/Legacy-Of-The-Bloodmoon"
+    }
+  ]
+}
