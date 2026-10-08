@@ -257,7 +257,7 @@ public partial class MainWindow : Window
     private async void RefreshLibrary(object? s, RoutedEventArgs e) => await model.RefreshLibraryAsync();
     private async void LookupTitle(object? s, RoutedEventArgs e) { try { await model.LookupTitleAsync(); } catch (OperationCanceledException) { } }
     private async void RefreshAchievements(object? s, RoutedEventArgs e) { try { await model.RefreshAchievementsAsync(); } catch (OperationCanceledException) { } }
-    private async void ExportAllAchievements(object? sender, RoutedEventArgs e)
+    private async void OpenBulkAchievementExport(object? sender, RoutedEventArgs e)
     {
         if (!model.CanQuery) return;
         try { await AchievementLabs.MultiSelect.ExportAllView.Show(this, model); }
