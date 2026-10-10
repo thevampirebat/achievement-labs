@@ -619,6 +619,7 @@ namespace AchievementLabs.Desktop.Workflows
                     }
                 }
 
+                token.ThrowIfCancellationRequested();
                 _state.RemainingDelaySeconds = 0;
                 // Unlock the achievement
                 Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>

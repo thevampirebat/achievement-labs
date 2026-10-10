@@ -178,7 +178,7 @@ public partial class MainWindow : Window
         if (file?.TryGetLocalPath() is { } path) await model.ExportProfileGamesAsync(path);
     }
     private void ShowQueues(object? s, RoutedEventArgs e) => model.OpenQueues();
-    private async void StartQueueSpoofing(object? s, RoutedEventArgs e) => await model.StartQueueSpoofingAsync();
+    private async void StartQueuePresence(object? s, RoutedEventArgs e) => await model.StartQueueSpoofingAsync();
     private async void RunXboxQueue(object? s, RoutedEventArgs e) => await model.RunXboxQueueAsync();
     private async void RunSteamQueue(object? s, RoutedEventArgs e) => await model.RunSteamQueueAsync();
     private void ShowLegacy(object? s, RoutedEventArgs e) => model.OpenLegacy();
