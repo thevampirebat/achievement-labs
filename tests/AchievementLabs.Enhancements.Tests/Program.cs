@@ -60,6 +60,12 @@ static class Test
    Assert(Equals(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Content,"Open Auto Unlock"),"Game shortcut label matches destination");
    Assert(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Parent is Grid, "Game shortcut sits in filter toolbar");
    Assert(Desc<SelectableTextBlock>(window).Any(), "Game titles support text selection");
+   Assert(!Desc<Button>(window).Any(b=>b.Name=="StartQueueSpoofing"), "Queue start spoofing control removed");
+   Assert(Desc<CheckBox>(window).Any(b=>b.Name=="StopQueueOnSpoofFailure"), "Spoof failure stop option on queue page");
+   Assert(Desc<CheckBox>(window).Any(b=>b.Name=="NotifyQueueCompletion"), "Queue completion notification option present");
+   var queueOptions=Desc<WrapPanel>(window).Single(b=>b.Name=="QueueUnlockOptions");
+   Assert(Desc<CheckBox>(queueOptions).Count()==5, "All five queue toggles share one wrapping row");
+   Assert(Desc<CheckBox>(queueOptions).Any(b=>b.Name=="StopQueueOnSpoofFailure") && Desc<CheckBox>(queueOptions).Any(b=>b.Name=="NotifyQueueCompletion"), "Spoofer and completion toggles share the existing options row");
    Assert(Desc<Button>(window).Any(b=>Equals(b.Content,"Save queue delays")), "Manual delay save present");
    Assert(Desc<CheckBox>(window).Any(b=>Equals(b.Content,"Stop on unlock failure")), "Failure stop toggle present");
    Assert(Desc<Button>(window).Count(b=>b.Name=="RemoveQueueAchievements")==1,"Queue removal attached");

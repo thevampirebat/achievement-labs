@@ -75,18 +75,56 @@ public static class QueuePresenceTokenTests
         try
         {
             var store = new DesktopPreferencesStore(path);
-            store.SaveAsync(new() { WindowsNotificationsEnabled = false, NotifySpooferStops = false }).GetAwaiter().GetResult();
+            store.SaveAsync(new() { WindowsNotificationsEnabled = false, NotifySpooferStops = false, StopAutoUnlockOnSpoofFailure = true, NotifyAutoUnlockCompletion = false }).GetAwaiter().GetResult();
             var loaded = store.LoadAsync().GetAwaiter().GetResult();
-            Assert(!loaded.WindowsNotificationsEnabled && !loaded.NotifySpooferStops, "Notification preferences persist");
+            Assert(!loaded.WindowsNotificationsEnabled && !loaded.NotifySpooferStops && loaded.StopAutoUnlockOnSpoofFailure && !loaded.NotifyAutoUnlockCompletion, "Notification preferences persist");
             File.WriteAllText(path, "{}");
             loaded = store.LoadAsync().GetAwaiter().GetResult();
-            Assert(loaded.WindowsNotificationsEnabled && loaded.NotifySpooferStops, "Old settings receive notification defaults");
+            Assert(loaded.WindowsNotificationsEnabled && loaded.NotifySpooferStops && !loaded.StopAutoUnlockOnSpoofFailure && loaded.NotifyAutoUnlockCompletion, "Old settings receive notification defaults");
         }
         finally { File.Delete(path); }
+        model.NotifySpooferStops = false;
+        model.StopAutoUnlockOnSpoofFailure = true;
+        var queue = model.XboxQueue;
+        var cancellation = new CancellationTokenSource();
+        typeof(AutoUnlockerViewModel).GetField("_cancellationTokenSource", flags)!.SetValue(queue, cancellation);
+        queue.IsRunning = true;
+        complete.Invoke(model, new object?[] { "Heartbeat HTTP 401", true });
+        Assert(!cancellation.IsCancellationRequested, "Manual spoof stop leaves queue running");
+        model.StopAutoUnlockOnSpoofFailure = false;
+        complete.Invoke(model, new object?[] { "Heartbeat HTTP 401", false });
+        Assert(!cancellation.IsCancellationRequested, "Disabled stop option leaves queue running");
+        model.StopAutoUnlockOnSpoofFailure = true;
+        complete.Invoke(model, new object?[] { "Heartbeat HTTP 401", false });
+        Assert(cancellation.IsCancellationRequested && queue.StatusText.Contains("spoofing failed"), "Spoof failure cancels queue independently of notification toggles");
+        queue.IsRunning = false;
+        cancellation.Dispose();
+        typeof(AutoUnlockerViewModel).GetField("_cancellationTokenSource", flags)!.SetValue(queue, null);
+        var completionState = new AutoUnlockState { GameName = "Synthetic game", CurrentIndex = 1, Queue = new() { new() { Completed = true } } };
+        typeof(AutoUnlockerViewModel).GetField("_state", flags)!.SetValue(queue, completionState);
+        int completionNotices = 0;
+        model.AutoUnlockCompleted = _ => completionNotices++;
+        queue.NotifyQueueCompletion();
+        Assert(completionNotices == 1 && native.Count == 3 && native.Last().Contains("1/1"), "Completed queue routes in-app and native notifications");
+        model.NotifyAutoUnlockCompletion = false;
+        queue.NotifyQueueCompletion();
+        Assert(completionNotices == 1 && native.Count == 3, "Completion toggle suppresses both notifications");
+        model.NotifyAutoUnlockCompletion = true;
+        completionState.CurrentIndex = 0;
+        queue.NotifyQueueCompletion();
+        Assert(completionNotices == 1, "Partial queues never notify completion");
+        completionState.CurrentIndex = 1;
+        using (var stopped = new CancellationTokenSource())
+        {
+            stopped.Cancel();
+            typeof(AutoUnlockerViewModel).GetField("_cancellationTokenSource", flags)!.SetValue(queue, stopped);
+            queue.NotifyQueueCompletion();
+            Assert(completionNotices == 1, "Cancelled queue never notifies completion");
+        }
         model.NotifySpooferStops = true;
         model.Dispose();
         complete.Invoke(model, new object?[] { "Heartbeat failed", false });
-        Assert(native.Count == 2 && inApp == 2, "Closing the app suppresses stop alerts");
+        Assert(native.Count == 3 && inApp == 2, "Closing the app suppresses stop alerts");
         Console.WriteLine("PASS: spoofer stop classification, native notification routing, toggles and preference persistence. No live requests or Windows notifications.");
     }
     public static void Run()
