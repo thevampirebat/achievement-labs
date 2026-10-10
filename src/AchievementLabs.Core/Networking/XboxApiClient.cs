@@ -830,7 +830,7 @@ public class XboxApiClient : IDisposable
             .Concat(response.Content.Headers)
             .ToDictionary(header => header.Key, header => string.Join(", ", header.Value));
 
-        EventCollectorResponse.EnsureNoRejection((int)response.StatusCode, responseBody);
+        AchievementLabs.Core.EventCollectorResponse.EnsureNoRejection((int)response.StatusCode, responseBody);
 
         return new EventUnlockResult
         {
