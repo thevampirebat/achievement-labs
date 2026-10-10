@@ -47,6 +47,28 @@ public static class QueuePresenceTokenTests
             return Task.FromResult(response);
         }
     }
+    private static void CollectorResponseChecks()
+    {
+        var accepted = EventCollectorResponse.Read("{\"acc\":1,\"rej\":0}");
+        Assert(accepted.Accepted == 1 && accepted.Rejected == 0, "Collector counters retained");
+        EventCollectorResponse.EnsureNoRejection(200, "{\"acc\":1,\"rej\":0}");
+        foreach (var text in new[] { "{\"acc\":0,\"rej\":1}", "{\"acc\":1,\"rej\":1}",
+            "{\"efi\":{\"private-tenant\":\"all\"}}", "{\"efi\":{\"private-tenant\":[0]}}",
+            "{\"TokenCrackingFailure\":true}" })
+        {
+            bool rejected = false;
+            try { EventCollectorResponse.EnsureNoRejection(200, text); }
+            catch (InvalidDataException ex) { rejected = ex.Message.Contains("HTTP 200") && !ex.Message.Contains("private-tenant"); }
+            Assert(rejected, "HTTP 200 cannot hide explicit collector rejection");
+        }
+        foreach (var text in new[] { "", "not-json", "null", "[]", "{\"acc\":\"private-token\",\"rej\":null}", "{\"acc\":-1}", "{\"acc\":1e100}" })
+        {
+            EventCollectorResponse.EnsureNoRejection(200, text);
+            Assert(!EventCollectorResponse.Read(text).Summary.Contains("private-token"), "Malformed or unknown response never exposes raw strings");
+        }
+        EventCollectorResponse.EnsureNoRejection(401, "{\"acc\":0}");
+        Console.WriteLine("PASS: HTTP-success collector rejection, partial rejection, safe counters, unknown bodies and transport-auth precedence. Synthetic responses only.");
+    }
     private static void SpooferNotificationChecks()
     {
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -129,6 +151,7 @@ public static class QueuePresenceTokenTests
     }
     public static void Run()
     {
+        CollectorResponseChecks();
         SharedTotalsTests.Run();
         BundledCatalogTests.Run();
         SpooferNotificationChecks();
