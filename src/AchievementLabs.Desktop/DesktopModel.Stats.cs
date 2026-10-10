@@ -19,7 +19,8 @@ public sealed partial class DesktopModel
     public string PresenceTitleId { get => presenceTitleId; set { presenceTitleId = value ?? ""; Changed(); } }
     public bool PresenceRunning => presenceCancellation != null;
     public bool CanLookupSpoofTitle => !busy && session != null;
-    public bool CanStartPresence => !busy && session != null && !PresenceRunning;
+    private bool presenceStarting;
+    public bool CanStartPresence => !busy && session != null && !PresenceRunning && !presenceStarting;
     public string SpoofTitleName { get => spoofTitleName; private set { spoofTitleName = value; Changed(); } }
     public string SpoofTitleDetails { get => spoofTitleDetails; private set { spoofTitleDetails = value; Changed(); } }
     public string? SpoofTitleImageUrl { get => spoofTitleImageUrl; private set { spoofTitleImageUrl = value; Changed(); } }
@@ -39,7 +40,10 @@ public sealed partial class DesktopModel
     private void CompletePresence(string? failure, bool cancelled)
     {
         SpoofingStatus = failure != null && !cancelled ? "Spoofing stopped unexpectedly" : "Spoofing stopped";
-        if (failure == null || cancelled || lifetime.IsCancellationRequested || !NotifySpooferStops) return;
+        if (failure == null || cancelled || lifetime.IsCancellationRequested) return;
+        if (StopAutoUnlockOnSpoofFailure && xboxQueue?.IsRunning == true)
+            xboxQueue.StopForSpoofFailure(failure);
+        if (!NotifySpooferStops) return;
         var message = $"{ActiveSpoofTitle}: {failure}";
         SpooferFailure?.Invoke(message);
         NotifyWindows("Spoofer stopped", message);
@@ -74,10 +78,24 @@ public sealed partial class DesktopModel
     public async Task StartPresenceAsync()
     {
         if (!CanStartPresence || client == null || session == null || !uint.TryParse(PresenceTitleId, out var id) || id == 0) return;
-        var presenceAuthorization = await AchievementLabs.Core.XboxPcAppAuthorizationReader.TryReadAsync(lifetime.Token);
+        var activeSession = session;
+        string? presenceAuthorization;
+        presenceStarting = true; Changed(nameof(CanStartPresence));
+        try { presenceAuthorization = await AchievementLabs.Core.XboxPcAppAuthorizationReader.TryReadAsync(lifetime.Token); }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { return; }
+        catch
+        {
+            ActiveSpoofTitle = $"Xbox title · {id}";
+            CompletePresence("Could not read the Xbox PC app authorization.", false);
+            return;
+        }
+        finally { presenceStarting = false; Changed(nameof(CanStartPresence)); }
+        if (lifetime.IsCancellationRequested || session != activeSession || PresenceRunning) return;
         if (string.IsNullOrWhiteSpace(presenceAuthorization))
         {
             StatsOutput = "Could not read the Xbox PC app authorization. Open and sign in to the Xbox app, then try again.";
+            ActiveSpoofTitle = $"Xbox title · {id}";
+            CompletePresence(StatsOutput, false);
             return;
         }
         using var api = new XboxApiClient(presenceAuthorization, RegionOverride);

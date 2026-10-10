@@ -21,6 +21,7 @@ public partial class MainWindow : Window
         var notifications = new WindowNotificationManager(this) { Position = NotificationPosition.TopRight, MaxItems = 3 };
         model.QueueTokenRefresh = ct => model.RefreshQueueEventTokenAsync(this, ct);
         model.AutoUnlockFailure = message => { notifications.Show(new Notification("Unlock failed", message, NotificationType.Error, TimeSpan.FromSeconds(10))); model.NotifyWindows("Unlock failed", message); };
+        model.AutoUnlockCompleted = message => notifications.Show(new Notification("Auto unlock complete", message, NotificationType.Success, TimeSpan.FromSeconds(10)));
         model.SpooferFailure = message => notifications.Show(new Notification("Spoofer stopped", message, NotificationType.Error, TimeSpan.FromSeconds(10)));
         model.WindowsNotification = (title, message) =>
         {
@@ -177,6 +178,7 @@ public partial class MainWindow : Window
         if (file?.TryGetLocalPath() is { } path) await model.ExportProfileGamesAsync(path);
     }
     private void ShowQueues(object? s, RoutedEventArgs e) => model.OpenQueues();
+    private async void StartQueueSpoofing(object? s, RoutedEventArgs e) => await model.StartQueueSpoofingAsync();
     private async void RunXboxQueue(object? s, RoutedEventArgs e) => await model.RunXboxQueueAsync();
     private async void RunSteamQueue(object? s, RoutedEventArgs e) => await model.RunSteamQueueAsync();
     private void ShowLegacy(object? s, RoutedEventArgs e) => model.OpenLegacy();

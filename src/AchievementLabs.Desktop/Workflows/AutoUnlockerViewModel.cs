@@ -477,6 +477,22 @@ namespace AchievementLabs.Desktop.Workflows
             await StartAutoUnlockProcess();
         }
 
+        public Action<string>? CompletionNotification { get; set; }
+        public void StopForSpoofFailure(string reason)
+        {
+            if (!IsRunning) return;
+            _cancellationTokenSource?.Cancel();
+            StatusText = $"Auto unlock stopped because spoofing failed: {reason}. Click Start to resume.";
+            if (_state != null) { _state.IsRunning = false; _state.Save(); }
+        }
+        public void NotifyQueueCompletion()
+        {
+            if (_state == null || _state.Queue.Count == 0 || _state.CurrentIndex < _state.Queue.Count
+                || _cancellationTokenSource?.IsCancellationRequested == true) return;
+            var failed = _state.Queue.Count(e => !e.Completed);
+            CompletionNotification?.Invoke($"{_state.GameName}: {_state.Queue.Count - failed}/{_state.Queue.Count} achievements unlocked"
+                + (failed == 0 ? "." : $"; {failed} failed."));
+        }
         private async Task StartAutoUnlockProcess()
         {
             if (_state == null) return;
@@ -687,6 +703,7 @@ namespace AchievementLabs.Desktop.Workflows
                 }
             }
 
+            token.ThrowIfCancellationRequested();
             // All done
             Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
             {
@@ -695,6 +712,7 @@ namespace AchievementLabs.Desktop.Workflows
                 NextUnlockText = "Next Unlock: N/A";
                 TimeRemainingText = "Time Until Next: N/A";
                 UpdateProgressText();
+                NotifyQueueCompletion();
                 _snackbarService.Show("Complete",
                     "All queued achievements have been processed.",
                     NoticeAppearance.Success, new NoticeIcon(NoticeSymbol.Checkmark24), _snackbarDuration);
