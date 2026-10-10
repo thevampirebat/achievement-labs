@@ -67,14 +67,6 @@ public sealed partial class DesktopModel
         EventTokenStatus = "Queue refreshed the event token for the connected Xbox account.";
         return true;
     }
-    public Task StartQueueSpoofingAsync()
-    {
-        var titleId = xboxQueue?.IsRunning == true ? xboxQueue.ActiveTitleId : XboxQueue.TitleId;
-        if (!uint.TryParse(titleId, out var id) || id == 0)
-        { Notice = "Enter a valid title ID or load a queue before starting spoofing."; return Task.CompletedTask; }
-        PresenceTitleId = id.ToString();
-        return StartPresenceAsync();
-    }
     public async Task RunXboxQueueAsync()
     {
         if (QueueActive && !XboxQueue.IsRunning) return;

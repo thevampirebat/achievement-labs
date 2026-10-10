@@ -60,8 +60,7 @@ static class Test
    Assert(Equals(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Content,"Open Auto Unlock"),"Game shortcut label matches destination");
    Assert(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Parent is Grid, "Game shortcut sits in filter toolbar");
    Assert(Desc<SelectableTextBlock>(window).Any(), "Game titles support text selection");
-   Assert(Desc<Button>(window).Count(b=>b.Name=="StartQueueSpoofing")==1, "Queue has its own start spoofing control");
-   Assert(!Desc<Button>(window).Single(b=>b.Name=="StartQueueSpoofing").IsEnabled, "Disconnected queue spoofing is disabled");
+   Assert(!Desc<Button>(window).Any(b=>b.Name=="StartQueueSpoofing"), "Queue start spoofing control removed");
    Assert(Desc<CheckBox>(window).Any(b=>b.Name=="StopQueueOnSpoofFailure"), "Spoof failure stop option on queue page");
    Assert(Desc<CheckBox>(window).Any(b=>b.Name=="NotifyQueueCompletion"), "Queue completion notification option present");
    Assert(Desc<Button>(window).Any(b=>Equals(b.Content,"Save queue delays")), "Manual delay save present");
