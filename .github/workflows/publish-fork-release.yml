@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-v1.0.3-fork.7
+  group: publish-v1.0.6-fork.1
   cancel-in-progress: false
 
 jobs:
@@ -22,10 +22,10 @@ jobs:
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: v1.0.3-fork.7
-      SOURCE_SHA: 6850aad4462ffdb7665690a5228515b1985794f0
-      BUILD_SHA: 30ccab505604551ead17b320f60fd65cd2cae507
-      BUILD_RUN: '38084726140'
+      RELEASE_TAG: v1.0.6-fork.1
+      SOURCE_SHA: 62959133cc62c2173d2a9f6bab275ee0f1aff107
+      BUILD_SHA: ff26e1e4474af3454feae5d6b16604eea7a4f201
+      BUILD_RUN: '38305285213'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,16 +50,19 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          import hashlib
+          import hashlib, json
           folder = Path('release-download')
           expected = (folder / 'SHA256.txt').read_text(encoding='utf-8-sig').split()[0].lower()
-          assert hashlib.sha256((folder / 'AchievementLabs.exe').read_bytes()).hexdigest() == expected, 'Executable checksum mismatch'
+          exe = (folder / 'AchievementLabs.exe').read_bytes()
+          assert hashlib.sha256(exe).hexdigest() == expected, 'Executable checksum mismatch'
+          metadata = json.loads((folder / 'update.json').read_text(encoding='utf-8-sig'))
+          assert metadata['version'] == '1.0.6.1' and metadata['bytes'] == len(exe) and metadata['sha256'].lower() == expected, 'Update metadata mismatch'
           PY
           printf '\nRelease source: %s\nTested build source: %s (identical source tree)\n' "$SOURCE_SHA" "$BUILD_SHA" >> release-download/BUILD-INFO.txt
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft > release-state.txt 2>/dev/null; then
             test "$(cat release-state.txt)" = true
           else
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs — Queue Notifications and Compact Layout (fork.7)' --notes-file docs/releases/v1.0.3-fork.7.md --draft
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs 1.0.6 — All Fork Upgrades (fork.1)' --notes-file docs/releases/v1.0.6-fork.1.md --draft
           fi
-          gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" release-download/AchievementLabs.exe release-download/SHA256.txt release-download/BUILD-INFO.txt --clobber
+          gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" release-download/AchievementLabs.exe release-download/SHA256.txt release-download/BUILD-INFO.txt release-download/update.json --clobber
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
