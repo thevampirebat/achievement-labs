@@ -42,7 +42,9 @@ public static class BundledCatalogTests
                 achievements++;
             }
         }
-        Assert(achievements > 15000 && payloads >= achievements, "Full enabled catalogue validated");
+        Assert(achievements >= 15725 && payloads >= achievements, "Full enabled catalogue validated");
+        var sonic = client.GetTitleAsync("129325438", CancellationToken.None).GetAwaiter().GetResult();
+        Assert(sonic.AchievementIds.Length == 48, "Previously validated Sonic Forces recipes retained");
         var sevenDays = client.GetTitleAsync("60633334", CancellationToken.None).GetAwaiter().GetResult();
         Assert(sevenDays.AchievementIds.Length == 43, "All 43 Xbox One 7 Days to Die mappings available");
         var quantum = client.GetTitleAsync("333628240", CancellationToken.None).GetAwaiter().GetResult();
