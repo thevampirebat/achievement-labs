@@ -18,6 +18,7 @@ public sealed class EventCatalogClient : IDisposable
     private readonly BundledEventCatalog? bundled;
     public EventCatalogClient() { }
     public EventCatalogClient(bool useBundledCatalog) { if (useBundledCatalog) bundled = BundledEventCatalog.Instance; }
+    public string[] BundledTitleIds => bundled?.LocalTitleIds ?? [];
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     public Task<EventCatalogStatus> GetCatalogAsync(CancellationToken ct) => bundled != null ? ReadBundledStatus(ct) : SendAsync<EventCatalogStatus>(HttpMethod.Get, "catalog", null, ct);
