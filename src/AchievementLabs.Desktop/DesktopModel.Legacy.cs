@@ -108,6 +108,7 @@ public sealed partial class DesktopModel
     }
     public async Task AddXbox360GameAsync(string titleId, string? titleName = null)
     {
+        if (!CanModifyXbox360Profile) { GpdAddStatus = LookupOutput = Xbox360SigningStatus; return; }
         if (busy) return;
         if (pendingXbox360Edits.Count > 0)
         {
@@ -302,6 +303,7 @@ public sealed partial class DesktopModel
     });
     public void SetXbox360Achievement()
     {
+        if (!CanModifyXbox360Profile) { Notice = Xbox360SigningStatus; return; }
         var selected = SelectedXbox360Achievement;
         if (selected == null) return;
         DateTimeOffset? timestamp = null;
@@ -337,6 +339,7 @@ public sealed partial class DesktopModel
     }
     public async Task SaveXbox360EditsAsync()
     {
+        if (!CanModifyXbox360Profile) { Notice = Xbox360SigningStatus; return; }
         if (busy || pendingXbox360Edits.Count == 0) return;
         var edits = pendingXbox360Edits.Values.ToArray();
         var path = loadedXbox360Profile;
