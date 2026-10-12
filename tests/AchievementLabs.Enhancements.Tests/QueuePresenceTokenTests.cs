@@ -47,6 +47,45 @@ public static class QueuePresenceTokenTests
             return Task.FromResult(response);
         }
     }
+    private static void Xbox360SigningProviderChecks()
+    {
+        Assert(!AchievementLabs.Services.Xbox360.Xbox360ConSigner.SigningAvailable, "Absent source-private signing dependency stays unavailable");
+        var path = Path.Combine(Path.GetTempPath(), "labs-untouched-profile-" + Guid.NewGuid() + ".bin");
+        try
+        {
+            var original = new byte[] { 1, 2, 3, 4 }; File.WriteAllBytes(path, original);
+            bool rejected = false;
+            try { AchievementLabs.Services.Xbox360.Xbox360ConSigner.SignFile(path); }
+            catch (NotSupportedException) { rejected = true; }
+            Assert(rejected && File.ReadAllBytes(path).SequenceEqual(original), "Signing unavailable fails before touching a file");
+            using var model = new DesktopModel();
+            Assert(!model.CanModifyXbox360Profile && !model.CanSaveXbox360Edits, "Signing-dependent editor actions disabled");
+        }
+        finally { File.Delete(path); }
+        Console.WriteLine("PASS: absent signing dependency leaves files untouched and signing-dependent actions disabled. No account/USB data used.");
+    }
+    private static void CollectorResponseChecks()
+    {
+        var accepted = EventCollectorResponse.Read("{\"acc\":1,\"rej\":0}");
+        Assert(accepted.Accepted == 1 && accepted.Rejected == 0, "Collector counters retained");
+        EventCollectorResponse.EnsureNoRejection(200, "{\"acc\":1,\"rej\":0}");
+        foreach (var text in new[] { "{\"acc\":0,\"rej\":1}", "{\"acc\":1,\"rej\":1}",
+            "{\"efi\":{\"private-tenant\":\"all\"}}", "{\"efi\":{\"private-tenant\":[0]}}",
+            "{\"TokenCrackingFailure\":true}" })
+        {
+            bool rejected = false;
+            try { EventCollectorResponse.EnsureNoRejection(200, text); }
+            catch (InvalidDataException ex) { rejected = ex.Message.Contains("HTTP 200") && !ex.Message.Contains("private-tenant"); }
+            Assert(rejected, "HTTP 200 cannot hide explicit collector rejection");
+        }
+        foreach (var text in new[] { "", "not-json", "null", "[]", "{\"acc\":\"private-token\",\"rej\":null}", "{\"acc\":-1}", "{\"acc\":1e100}" })
+        {
+            EventCollectorResponse.EnsureNoRejection(200, text);
+            Assert(!EventCollectorResponse.Read(text).Summary.Contains("private-token"), "Malformed or unknown response never exposes raw strings");
+        }
+        EventCollectorResponse.EnsureNoRejection(401, "{\"acc\":0}");
+        Console.WriteLine("PASS: HTTP-success collector rejection, partial rejection, safe counters, unknown bodies and transport-auth precedence. Synthetic responses only.");
+    }
     private static void SpooferNotificationChecks()
     {
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -129,6 +168,8 @@ public static class QueuePresenceTokenTests
     }
     public static void Run()
     {
+        Xbox360SigningProviderChecks();
+        CollectorResponseChecks();
         SharedTotalsTests.Run();
         BundledCatalogTests.Run();
         SpooferNotificationChecks();

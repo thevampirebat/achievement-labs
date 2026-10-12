@@ -95,6 +95,7 @@ public sealed partial class DesktopModel
                     var definition = source[id];
                     try
                     {
+                        var transportDetails = new List<string>();
                         if (useEvents)
                         {
                             var response = await eventCatalog.GetPayloadsAsync(game.Id, id, account.Xuid, lifetime.Token);
@@ -109,6 +110,7 @@ public sealed partial class DesktopModel
                                     if (EventTokenRequired != null) await EventTokenRequired();
                                     return;
                                 }
+                                transportDetails.Add($"HTTP {result.StatusCode} · {EventCollectorResponse.Read(result.ResponseBody).Summary}");
                                 if (result.StatusCode < 200 || result.StatusCode >= 300)
                                 {
                                     var detail = SummarizeEventError(result.ResponseBody);
@@ -121,7 +123,9 @@ public sealed partial class DesktopModel
                             if (string.IsNullOrWhiteSpace(definition.serviceConfigId) || definition.serviceConfigId == Guid.Empty.ToString()) throw new InvalidDataException("Missing service configuration.");
                             await Task.Run(() => api.UnlockTitleBasedAchievementAsync(definition.serviceConfigId, game.Id, account.Xuid, id, FakeSignature), lifetime.Token);
                         }
-                        ActionReports.Add(new(definition.name, "Request accepted; refresh to verify progress"));
+                        ActionReports.Add(new(definition.name, useEvents
+                            ? string.Join(" | ", transportDetails) + " · Event submitted; achievement unlock is not confirmed. Refresh to verify progress."
+                            : "Request accepted; refresh to verify progress"));
                     }
                     catch (OperationCanceledException) { throw; }
                     catch (Exception ex) { ActionReports.Add(new(definition.name, "Failed · " + ex.Message)); }

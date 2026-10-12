@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AchievementLabs.Core;
 
-/// <summary>The uploaded public 1.0.5 catalogue, kept separate from account data.</summary>
+/// <summary>The uploaded public 1.0.6 catalogue, kept separate from account data.</summary>
 internal sealed class BundledEventCatalog
 {
     private static readonly Lazy<BundledEventCatalog> instance = new(() => new());
@@ -12,23 +12,27 @@ internal sealed class BundledEventCatalog
     private readonly JObject data;
     private readonly Dictionary<string, string> templates = new(StringComparer.Ordinal);
     public EventCatalogStatus Status { get; }
+    private readonly HashSet<string> localTitles;
+    internal string[] LocalTitleIds => localTitles.OrderBy(x => x, StringComparer.Ordinal).ToArray();
     private BundledEventCatalog()
     {
-        using var stream = typeof(BundledEventCatalog).Assembly.GetManifestResourceStream("AchievementLabs.EventCatalog.1.0.5.zip")
+        using var stream = typeof(BundledEventCatalog).Assembly.GetManifestResourceStream("AchievementLabs.EventCatalog.1.0.6.zip")
             ?? throw new InvalidDataException("Bundled event catalogue is missing.");
         using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
         string Read(ZipArchiveEntry entry) { using var reader = new StreamReader(entry.Open()); return reader.ReadToEnd(); }
         data = JObject.Parse(Read(archive.GetEntry("Data.json") ?? throw new InvalidDataException("Catalogue data is missing.")));
         if (data.Properties().Last().Name != "SupportedTitleIDs") throw new InvalidDataException("SupportedTitleIDs must be last.");
-        foreach (var entry in archive.Entries.Where(e => e.Name != "Data.json" && e.Name.EndsWith(".json")))
+        foreach (var entry in archive.Entries.Where(e => e.Name != "Data.json" && e.Name != "PublicStatus.json" && e.Name.EndsWith(".json")))
             templates.Add(Path.GetFileNameWithoutExtension(entry.Name), Read(entry));
         var supported = data["SupportedTitleIDs"]!.Values().Select(x => x.ToString()).ToHashSet(StringComparer.Ordinal);
         var enabled = supported.Where(id => data[id] is JObject block && (bool?)block["Enabled"] != false && templates.ContainsKey(id)).ToArray();
-        Status = new(enabled.Where(id => (bool?)data[id]!["FullySupported"] == true).ToArray(),
-            enabled.Where(id => (bool?)data[id]!["FullySupported"] != true).ToArray(),
-            data.Properties().Where(p => p.Name.All(char.IsDigit) && !enabled.Contains(p.Name)).Select(p => p.Name).ToArray());
+        localTitles = enabled.ToHashSet(StringComparer.Ordinal);
+        var published = JArray.Parse(Read(archive.GetEntry("PublicStatus.json") ?? throw new InvalidDataException("Public catalogue status is missing.")));
+        Status = new(published.Where(row => (string?)row["status"] == "supported").Select(row => row["titleId"]!.ToString()).ToArray(),
+            published.Where(row => (string?)row["status"] == "testing").Select(row => row["titleId"]!.ToString()).ToArray(),
+            published.Where(row => (string?)row["status"] == "coming-soon").Select(row => row["titleId"]!.ToString()).ToArray());
     }
-    public bool Contains(string titleId) => Status.TitleIds.Contains(titleId) || Status.TestingTitleIds!.Contains(titleId);
+    public bool Contains(string titleId) => localTitles.Contains(titleId);
     private readonly ConcurrentDictionary<string, Lazy<Task<string[]>>> validated = new();
     public async Task<EventTitleMapping> TitleAsync(string titleId, CancellationToken ct)
     {

@@ -19,9 +19,12 @@ public static class BundledCatalogTests
         typeof(EventCatalogClient).GetField("http", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(client, new HttpClient(handler));
         var status = client.GetCatalogAsync(CancellationToken.None).GetAwaiter().GetResult();
         var titles = status.TitleIds.Concat(status.TestingTitleIds ?? []).Distinct().ToArray();
-        Assert(titles.Length == 397 && titles.Contains("60633334"), "New snapshot exposes 397 enabled titles including 7 Days to Die");
+        Assert(titles.Length == 410 && titles.Contains("60633334"), "New snapshot exposes 410 enabled titles including 7 Days to Die");
+        Assert(status.TitleIds.Length == 263 && status.TestingTitleIds!.Length == 147 && status.ComingSoonTitleIds.Length == 3, "Published 1.0.6 classifications retained");
+        Assert(status.TestingTitleIds.Contains("60633334") && status.TestingTitleIds.Contains("1745806870"), "Both mapped 7 Days editions labelled Testing");
+        Assert(!client.BundledTitleIds.Contains("136671143") && status.TitleIds.Contains("136671143"), "Public-only recipes remain on catalogue-service fallback");
         int achievements = 0, payloads = 0;
-        foreach (var titleId in titles)
+        foreach (var titleId in client.BundledTitleIds)
         {
             var mapping = client.GetTitleAsync(titleId, CancellationToken.None).GetAwaiter().GetResult();
             foreach (var id in mapping.AchievementIds)
@@ -39,7 +42,9 @@ public static class BundledCatalogTests
                 achievements++;
             }
         }
-        Assert(achievements > 15000 && payloads >= achievements, "Full enabled catalogue validated");
+        Assert(achievements >= 15725 && payloads >= achievements, "Full enabled catalogue validated");
+        var sonic = client.GetTitleAsync("129325438", CancellationToken.None).GetAwaiter().GetResult();
+        Assert(sonic.AchievementIds.Length == 48, "Previously validated Sonic Forces recipes retained");
         var sevenDays = client.GetTitleAsync("60633334", CancellationToken.None).GetAwaiter().GetResult();
         Assert(sevenDays.AchievementIds.Length == 43, "All 43 Xbox One 7 Days to Die mappings available");
         var quantum = client.GetTitleAsync("333628240", CancellationToken.None).GetAwaiter().GetResult();
@@ -52,6 +57,6 @@ public static class BundledCatalogTests
         try { client.GetTitleAsync("60633334", cancel.Token).GetAwaiter().GetResult(); }
         catch (OperationCanceledException) { blocked = true; }
         Assert(blocked && handler.Calls == 0, "Cancellation respected and no network requests made");
-        Console.WriteLine($"PASS: bundled 1.0.5 catalogue: {titles.Length} titles, {achievements} usable achievements and {payloads} strict-JSON payloads; edition guards, invalid-entry rejection and 43 7 Days to Die mappings. No live requests.");
+        Console.WriteLine($"PASS: bundled 1.0.6 catalogue: {titles.Length} advertised titles, {client.BundledTitleIds.Length} local titles, {achievements} usable achievements and {payloads} strict-JSON payloads; edition guards, invalid-entry rejection and 43 7 Days to Die mappings. No live requests.");
     }
 }

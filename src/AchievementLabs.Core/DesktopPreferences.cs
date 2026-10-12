@@ -23,6 +23,7 @@ public sealed record DesktopPreferences
     public string MythicColour { get; init; } = "#70C98A";
     public string CompletedDlcColour { get; init; } = "#183A27";
     public bool MintAccent { get; init; }
+    public bool AutomaticallyCheckUpdates { get; init; } = true;
 }
 public sealed class DesktopPreferencesStore(string path)
 {

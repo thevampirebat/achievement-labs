@@ -56,6 +56,10 @@ public sealed partial class DesktopModel : Observable, IDisposable
     private bool busy;
     private int selectionVersion;
     private readonly Stack<string> pageHistory = [];
+    private IEnumerable<Game> CombinedXboxGames => Games.Concat(Xbox360Games
+        .Where(local => !Games.Any(game => game.Id == Convert.ToUInt32(local.TitleId, 16).ToString()))
+        .Select(local => new Game(Convert.ToUInt32(local.TitleId, 16).ToString(), local.Name,
+            "Xbox360", local.UnlockedCount, local.AchievementCount, local.GamerscoreUnlocked)));
     public Game[] Games
     {
         get => games;
@@ -73,7 +77,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
     {
         get
         {
-            var filtered = Games.Where(g => MatchesPlatform(g, PlatformFilter) && (g.Name.Contains(LibrarySearch, StringComparison.OrdinalIgnoreCase) || g.Id == LibrarySearch.Trim()));
+            var filtered = CombinedXboxGames.Where(g => MatchesPlatform(g, PlatformFilter) && (g.Name.Contains(LibrarySearch, StringComparison.OrdinalIgnoreCase) || g.Id == LibrarySearch.Trim()));
             return LibrarySort switch
             {
                 "Z-A" => filtered.OrderByDescending(g => g.Name, StringComparer.OrdinalIgnoreCase).ThenBy(g => g.Id),
@@ -83,7 +87,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         }
     }
     public string LibrarySearch { get => librarySearch; set { librarySearch = value ?? ""; Changed(); Changed(nameof(VisibleGames)); } }
-    public string GameCount => Games.Length.ToString();
+    public string GameCount => CombinedXboxGames.Count().ToString();
     private Achievement[] FilteredAchievementRows() => achievements.Where(a =>
         (filter == "All" || a.ProgressKnown && (filter == "Unlocked") == a.Unlocked) &&
         (a.Name.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Description.Contains(Search, StringComparison.OrdinalIgnoreCase) || a.Id == Search)).ToArray();
@@ -94,7 +98,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
     public bool HasLibrarySelection => SelectedLibraryGame != null;
     public Achievement? SelectedAchievement { get => selectedAchievement; set { selectedAchievement = value; Changed(); Changed(nameof(HasSelection)); NotifyActions(); } }
     public string Search { get => search; set { search = value ?? ""; Changed(); Refresh(); } }
-    public string PageTitle => page switch { "About" => "About Achievement Labs", "Home" => "Home", "Tools" => "Tools and information", "Queues" => "Auto unlock queues", "Legacy" => "Legacy tools", "SteamLibrary" => "Steam library", "SteamAchievements" => "Steam achievements", "Spoofer" => "Xbox title spoofer", "Epic" => "Epic Games", "Ubisoft" => "Ubisoft Connect", "Stats" => "Stats editor", "Settings" => "Settings", "Diagnostics" => "Event catalog", "Library" => "Xbox library", _ => "Xbox achievements" };
+    public string PageTitle => page switch { "About" => "About Achievement Labs", "Home" => "Home", "Tools" => "Tools and information", "Queues" => "Auto unlock queues", "Legacy" => "Legacy tools", "Gfwl" => "Games for Windows LIVE", "Xbox360Profiles" => "Xbox 360 profiles", "Xbox360ProfileEditor" => "Xbox 360 achievement editor", "SteamLibrary" => "Steam library", "SteamAchievements" => "Steam achievements", "Spoofer" => "Xbox title spoofer", "Epic" => "Epic Games", "Ubisoft" => "Ubisoft Connect", "Stats" => "Stats editor", "Settings" => "Settings", "Diagnostics" => "Event catalog", "Library" => "Xbox library", _ => "Xbox achievements" };
     public bool IsHome => page == "Home";
     public bool IsSpoofer => page == "Spoofer";
     public bool IsAchievements => page == "Achievements";
@@ -124,7 +128,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         if (page == "Achievements" && autoPresenceTask != null) StopPresence();
         SetPage(pageHistory.Pop());
     }
-    private void SetPage(string destination) { page = destination; Changed(nameof(CanGoBack)); Changed(nameof(IsAbout)); Changed(nameof(PageTitle)); Changed(nameof(IsHome)); Changed(nameof(IsSpoofer)); Changed(nameof(IsAchievements)); Changed(nameof(IsLibrary)); Changed(nameof(IsSettings)); Changed(nameof(IsDiagnostics)); Changed(nameof(IsStats)); Changed(nameof(IsPlatform)); Changed(nameof(IsEpic)); Changed(nameof(IsUbisoft)); Changed(nameof(IsSteam)); Changed(nameof(IsSteamLibrary)); Changed(nameof(IsSteamAchievements)); Changed(nameof(IsLegacy)); Changed(nameof(IsQueues)); Changed(nameof(IsTools)); }
+    private void SetPage(string destination) { page = destination; Changed(nameof(CanGoBack)); Changed(nameof(IsAbout)); Changed(nameof(PageTitle)); Changed(nameof(IsHome)); Changed(nameof(IsSpoofer)); Changed(nameof(IsAchievements)); Changed(nameof(IsLibrary)); Changed(nameof(IsSettings)); Changed(nameof(IsDiagnostics)); Changed(nameof(IsStats)); Changed(nameof(IsPlatform)); Changed(nameof(IsEpic)); Changed(nameof(IsUbisoft)); Changed(nameof(IsSteam)); Changed(nameof(IsSteamLibrary)); Changed(nameof(IsSteamAchievements)); Changed(nameof(IsLegacy)); Changed(nameof(IsGfwl)); Changed(nameof(IsXbox360Profiles)); Changed(nameof(IsXbox360ProfileEditor)); Changed(nameof(IsQueues)); Changed(nameof(IsTools)); }
     private void ApplyXboxProfile(ProfileUser? user)
     {
         ProfileName = user?.Settings.FirstOrDefault(s => s.Id == "Gamertag")?.Value ?? "Xbox account";
@@ -153,12 +157,13 @@ public sealed partial class DesktopModel : Observable, IDisposable
         LoadCompletionCache();
         connectionMethod = method;
         ApplyXboxProfile(result.Profile?.ProfileUsers.FirstOrDefault());
-        Games = result.Titles.Titles.Where(t => t.TitleId != null).Select(t => new Game(t.TitleId!, t.Name ?? t.TitleId!, string.Join(" / ", t.Devices), t.Achievement?.CurrentAchievements ?? 0, t.Achievement?.TotalAchievements ?? 0, t.Achievement?.CurrentGamerscore ?? 0, true, ResolveTitleImage(t.DisplayImage, t.Images), t.TitleHistory?.LastTimePlayed)).OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ToArray();
+        Games = result.Titles.Titles.Where(t => t.TitleId != null).Select(t => new Game(t.TitleId!, t.Name ?? t.TitleId!, ClassifyXboxPlatform(t.TitleId!, t.Devices), t.Achievement?.CurrentAchievements ?? 0, t.Achievement?.TotalAchievements ?? 0, t.Achievement?.CurrentGamerscore ?? 0, true, ResolveTitleImage(t.DisplayImage, t.Images), t.TitleHistory?.LastTimePlayed)).OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ToArray();
         Changed(nameof(ConnectionLabel)); Changed(nameof(CanDisconnect)); Changed(nameof(HomeXboxSummary));
         await ImportCompletionExportsAsync(false);
     }
     public async Task SelectGameAsync(Game game)
     {
+        if (HasDevice(game, "GFWL") || IsKnownGfwlTitle(game.Id)) { OpenGfwlTitle(game); return; }
         if (busy) return;
         var version = ++selectionVersion;
         ResetActions();
@@ -178,7 +183,14 @@ public sealed partial class DesktopModel : Observable, IDisposable
             if (version != selectionVersion || lifetime.IsCancellationRequested || client == null || session == null) return;
             var api = client; var xuid = session.Xuid;
             Achievement[] loaded;
-            if (UsesLegacyEndpoint(game))
+            var resolvedGame = game;
+            if (HasDevice(game, "Win8") || HasDevice(game, "Windows8") || IsKnownWindows8Title(game.Id))
+            {
+                using var http = new HttpClient();
+                loaded = await Windows8Achievements.ReadAsync(http, session.Authorization, xuid, ResolveWindows8TitleId(game.Id), lifetime.Token);
+                resolvedGame = game with { Platform = "Windows8" };
+            }
+            else if (UsesLegacyEndpoint(game))
             {
                 using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
                 http.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", session.Authorization);
@@ -190,19 +202,40 @@ public sealed partial class DesktopModel : Observable, IDisposable
             }
             else
             {
-                var response = await Task.Run(() => api.GetAchievementsForTitleAsync(xuid, game.Id), lifetime.Token);
-                loaded = Map(response ?? throw new InvalidDataException());
+                AchievementsResponse? response = null;
+                Exception? primaryError = null;
+                try { response = await Task.Run(() => api.GetAchievementsForTitleAsync(xuid, game.Id), lifetime.Token); }
+                catch (Exception error) when (error is not OperationCanceledException) { primaryError = error; }
+                loaded = response == null ? [] : Map(response);
+                if (loaded.Length == 0)
+                {
+                    try
+                    {
+                        using var http = new HttpClient();
+                        var windows8 = await Windows8Achievements.ReadAsync(http, session.Authorization, xuid, ResolveWindows8TitleId(game.Id), lifetime.Token);
+                        if (windows8.Length > 0)
+                        {
+                            loaded = windows8;
+                            resolvedGame = game with { Platform = "Windows8" };
+                        }
+                    }
+                    catch (Exception error) when (error is HttpRequestException or InvalidDataException or System.Text.Json.JsonException)
+                    {
+                        if (primaryError != null) throw primaryError;
+                    }
+                }
                 if (version != selectionVersion || lifetime.IsCancellationRequested) return;
-                await LoadActionMetadataAsync(response, game.Id, version);
+                if (loaded.Length == 0 && primaryError != null) throw primaryError;
+                if (response != null && resolvedGame == game) await LoadActionMetadataAsync(response, game.Id, version);
             }
             if (version != selectionVersion || lifetime.IsCancellationRequested) return;
             bool progressComplete = CanReplaceAchievementProgress(game, loaded);
             if (!progressComplete) loaded = loaded.Select(a => a.Unlocked ? a : a with { ProgressKnown = false }).ToArray();
             achievements = loaded;
-            if (progressComplete) RememberCompletion(game, loaded.Select(a => new AchievementLabs.MultiSelect.CompletionMarkers.Row(a.Id, a.Name, a.Unlocked, a.ProgressKnown)).ToArray());
+            if (progressComplete) RememberCompletion(resolvedGame, loaded.Select(a => new AchievementLabs.MultiSelect.CompletionMarkers.Row(a.Id, a.Name, a.Unlocked, a.ProgressKnown)).ToArray());
             var updated = WithLibraryPresentation(progressComplete
-                ? game with { Completed = loaded.Count(a => a.Unlocked), Total = loaded.Length, Score = loaded.Where(a => a.Unlocked).Sum(a => a.Score), ProgressKnown = loaded.All(a => a.ProgressKnown) }
-                : game with { Total = loaded.Length > 0 ? loaded.Length : game.Total });
+                ? resolvedGame with { Completed = loaded.Count(a => a.Unlocked), Total = loaded.Length, Score = loaded.Where(a => a.Unlocked).Sum(a => a.Score), ProgressKnown = loaded.All(a => a.ProgressKnown) }
+                : resolvedGame with { Total = loaded.Length > 0 ? loaded.Length : game.Total });
             RememberLibraryTotal(updated.Id, updated.Total);
             SelectedGame = updated;
             Games = Games.Select(g => g.Id == updated.Id ? updated : g).ToArray();
@@ -237,6 +270,6 @@ public sealed partial class DesktopModel : Observable, IDisposable
             .Select(value => value.Type == JTokenType.String ? value.Value<string>() : null)
             .FirstOrDefault(value => value != null && (value.StartsWith("http", StringComparison.OrdinalIgnoreCase) || value.StartsWith("//", StringComparison.Ordinal)));
     }
-    public void Dispose() { completionScanCancellation?.Cancel(); Windows8.Dispose(); eventCatalog.Dispose(); apiServer?.Dispose(); StopQueues(); steam.StopSpoofSession(); browserLogin?.Dispose(); lifetime.Cancel(); /* Requests may still own the client; dispose after completion. */ _ = DisposeClientAsync(); }
+    public void Dispose() { completionScanCancellation?.Cancel(); Windows8.Dispose(); gfwlSession?.Dispose(); eventCatalog.Dispose(); apiServer?.Dispose(); StopQueues(); steam.StopSpoofSession(); browserLogin?.Dispose(); lifetime.Cancel(); updater.Dispose(); /* Requests may still own the client; dispose after completion. */ _ = DisposeClientAsync(); }
     private async Task DisposeClientAsync() { await requests.WaitAsync(); client?.Dispose(); requests.Release(); }
 }
