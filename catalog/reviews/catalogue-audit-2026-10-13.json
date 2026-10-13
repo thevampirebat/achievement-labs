@@ -1,0 +1,1221 @@
+{
+  "scope": "Raw bundled public catalogue before runtime Dishonored and legacy edition corrections. Structural/name-reference audit only; no live requests. Standard Python JSON may reject syntax normalized by the app; those rows need comparison with Windows regression results.",
+  "bundleSha256": "5ea1ea09e36a01457447073056c0b514c7c3beba857f856a332209e35690d546",
+  "counts": {
+    "numericTitleBlocks": 400,
+    "titlesWithNameReference": 133,
+    "recipes": 15932,
+    "requests": 30907,
+    "locallyEnabledTitles": 397,
+    "advertisedTitles": 413,
+    "findingRows": 8851
+  },
+  "findingCategories": {
+    "identical_recipes_within_title": 168,
+    "invalid_json_with_standard_parser": 648,
+    "unmatched_replacement": 7389,
+    "unresolved_placeholder": 158,
+    "recipe_id_absent_from_name_reference": 124,
+    "edition_copy_requires_game_specific_review": 65,
+    "criterion_matches_another_display_name": 55,
+    "payload_title_mismatch": 122,
+    "payload_scid_mismatch": 122
+  },
+  "titles": [
+    {
+      "titleId": "1798197019",
+      "name": "1001 Spikes",
+      "categories": {
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "88086791",
+      "name": "A King's Tale: Final Fantasy XV",
+      "categories": {
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "949699803",
+      "name": "ABZU",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1048340327",
+      "name": "ACA NEOGEO NEO GEO CUP '98: THE ROAD TO THE VICTORY",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "678033734",
+      "name": "ACA NEOGEO THE KING OF FIGHTERS 2003",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "690811594",
+      "name": "ACA NEOGEO WORLD HEROES 2",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "173777692",
+      "name": "Alto's Adventure",
+      "categories": {
+        "invalid_json_with_standard_parser": 19
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "975485641",
+      "name": "Back to the Future: The Game - 30th Anniversary Edition",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "23570566",
+      "name": "Batman - The Telltale Series - Episode 1: Realm of Shadows",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "20391045",
+      "name": "Batman: Return to Arkham - Arkham Asylum",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "514006173",
+      "name": "Batman: Return to Arkham - Arkham City",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "338995079",
+      "name": "Batman: The Enemy Within - Episode 1",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "256364670",
+      "name": "Battlefield\u2122 V",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1945255835",
+      "name": "Bunny Factory",
+      "categories": {
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "793598300",
+      "name": "CODE VEIN",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "572802557",
+      "name": "Call of Duty\u00ae: Ghosts",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 1,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Existing edition guard; compare effective app output"
+    },
+    {
+      "titleId": "796798669",
+      "name": "Call of Duty\u00ae: Infinite Warfare",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 3
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Existing edition guard; compare effective app output"
+    },
+    {
+      "titleId": "59903186",
+      "name": "Call of Duty\u00ae: Modern Warfare\u00ae 2 Campaign Remastered",
+      "categories": {
+        "unmatched_replacement": 1,
+        "unresolved_placeholder": 1,
+        "invalid_json_with_standard_parser": 1
+      },
+      "unmatchedOperations": {
+        "EventReplacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2154930",
+      "name": "Call of Duty\u00ae: Modern Warfare\u00ae Remastered",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 3
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Existing edition guard; compare effective app output"
+    },
+    {
+      "titleId": "1936845110",
+      "name": "Cities: Skylines - Remastered",
+      "categories": {
+        "unmatched_replacement": 244,
+        "payload_title_mismatch": 122,
+        "payload_scid_mismatch": 122,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {
+        "EventReplacement": 122,
+        "Replacement1": 122
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1019460860",
+      "name": "DRAGON BALL XENOVERSE 2",
+      "categories": {
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "527255540",
+      "name": "Dishonored 2",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1100121502",
+      "name": "Dishonored\u00ae Definitive Edition",
+      "categories": {
+        "criterion_matches_another_display_name": 50,
+        "unmatched_replacement": 12,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {
+        "MetadataSchemaReplacement": 12
+      },
+      "runtimeReview": "Already corrected by Dishonored override"
+    },
+    {
+      "titleId": "1627819535",
+      "name": "Dishonored\u00ae Definitive Edition (PC)",
+      "categories": {
+        "unmatched_replacement": 12
+      },
+      "unmatchedOperations": {
+        "MetadataSchemaReplacement": 12
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "137510457",
+      "name": "Dishonored\u00ae: Death of the Outsider\u2122",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1631143456",
+      "name": "EA SPORTS\u2122 Madden NFL 26",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "134413498",
+      "name": "EA SPORTS\u2122 NHL\u00ae 18",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1256782258",
+      "name": "Fallout 4",
+      "categories": {
+        "invalid_json_with_standard_parser": 84
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2146688994",
+      "name": "Fallout 4 (PC)",
+      "categories": {
+        "invalid_json_with_standard_parser": 84
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2142027917",
+      "name": "Fallout Shelter",
+      "categories": {
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1289871275",
+      "name": "Forza Horizon 3",
+      "categories": {
+        "identical_recipes_within_title": 6
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2067126551",
+      "name": "Forza Motorsport 5",
+      "categories": {
+        "identical_recipes_within_title": 5
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1694054782",
+      "name": "Forza Motorsport 6",
+      "categories": {
+        "identical_recipes_within_title": 9
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1856172970",
+      "name": "Game of Thrones - Episode 1: Iron from Ice",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "552499398",
+      "name": "Gears of War 4",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 1,
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1475571605",
+      "name": "Gears of War: Ultimate Edition",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "791545701",
+      "name": "Goat Simulator",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "886146124",
+      "name": "Goat Simulator: Mmore Goatz Edition",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "766737132",
+      "name": "Halo 5: Forge",
+      "categories": {
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "219630713",
+      "name": "Halo 5: Guardians",
+      "categories": {
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1667928394",
+      "name": "Halo Wars 2",
+      "categories": {
+        "identical_recipes_within_title": 5
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1030018025",
+      "name": "Halo Wars: Definitive Edition",
+      "categories": {
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1144039928",
+      "name": "Halo: The Master Chief Collection",
+      "categories": {
+        "unmatched_replacement": 3596,
+        "identical_recipes_within_title": 14
+      },
+      "unmatchedOperations": {
+        "MetaDataReplacement": 3596
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "812065290",
+      "name": "Halo: The Master Chief Collection (CN)",
+      "categories": {
+        "unmatched_replacement": 3144,
+        "identical_recipes_within_title": 13,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {
+        "MetaDataReplacement": 3144
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "928096970",
+      "name": "Happy Dungeons",
+      "categories": {
+        "unresolved_placeholder": 1,
+        "identical_recipes_within_title": 9
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1761060600",
+      "name": "Happy Wars",
+      "categories": {
+        "identical_recipes_within_title": 8
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "530599647",
+      "name": "Homefront\u00ae: The Revolution",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "45083076",
+      "name": "Injustice 2",
+      "categories": {
+        "identical_recipes_within_title": 6
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "642353763",
+      "name": "Injustice 2 - Standard Edition",
+      "categories": {
+        "identical_recipes_within_title": 6
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "101393300",
+      "name": "LEGO Batman 3: Beyond Gotham",
+      "categories": {
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "640703885",
+      "name": "LEGO Marvel's Avengers",
+      "categories": {
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "565406974",
+      "name": "LEGO STAR WARS: The Force Awakens",
+      "categories": {
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "226054795",
+      "name": "MONSTER HUNTER: WORLD\u2122",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2147358433",
+      "name": "Madden NFL 15",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1249526091",
+      "name": "Madden NFL 16",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2014880780",
+      "name": "Madden NFL 17",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "506903100",
+      "name": "Madden NFL 18",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "717669198",
+      "name": "Madden NFL 19",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "148078765",
+      "name": "Madden NFL 20",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1970109802",
+      "name": "Madden NFL 21 Xbox One",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1994181526",
+      "name": "Madden NFL 21 Xbox Series X|S",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 28,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1693050229",
+      "name": "Madden NFL 22 Xbox One",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1733044130",
+      "name": "Madden NFL 22 Xbox Series X|S",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2019267377",
+      "name": "Madden NFL 23 Xbox One",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2055522726",
+      "name": "Madden NFL 23 Xbox Series X|S",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1749127985",
+      "name": "Madden NFL 24 Xbox One",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1880561613",
+      "name": "Madden NFL 24 Xbox Series X|S",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "142841733",
+      "name": "Madden NFL 25",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1876694512",
+      "name": "Madden NFL 25 Xbox One",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2072546746",
+      "name": "Madden NFL 25 Xbox Series X|S",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1029188769",
+      "name": "Marvel\u2019s Guardians of the Galaxy: The Telltale Series - Episode 1",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1653696130",
+      "name": "Microsoft Mahjong",
+      "categories": {
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "85494077",
+      "name": "Microsoft Solitaire Collection",
+      "categories": {
+        "identical_recipes_within_title": 4
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "534004979",
+      "name": "Microsoft Ultimate Word Games",
+      "categories": {
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1828326430",
+      "name": "Minecraft",
+      "categories": {
+        "unmatched_replacement": 2,
+        "identical_recipes_within_title": 1,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1,
+        "Replacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1835298427",
+      "name": "Minecraft",
+      "categories": {
+        "unmatched_replacement": 2,
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1,
+        "Replacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1739947436",
+      "name": "Minecraft for Android",
+      "categories": {
+        "unmatched_replacement": 2,
+        "recipe_id_absent_from_name_reference": 1,
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1,
+        "Replacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1909043648",
+      "name": "Minecraft for Gear VR",
+      "categories": {
+        "unmatched_replacement": 2
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1,
+        "Replacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1944307183",
+      "name": "Minecraft for Kindle Fire",
+      "categories": {
+        "unmatched_replacement": 2,
+        "recipe_id_absent_from_name_reference": 4,
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1,
+        "Replacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2047319603",
+      "name": "Minecraft for Nintendo Switch",
+      "categories": {
+        "unmatched_replacement": 1,
+        "identical_recipes_within_title": 2,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "896928775",
+      "name": "Minecraft for Windows",
+      "categories": {
+        "unmatched_replacement": 2,
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1,
+        "Replacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1916611344",
+      "name": "Minecraft for Windows 10 Mobile",
+      "categories": {
+        "unmatched_replacement": 2,
+        "identical_recipes_within_title": 1,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1,
+        "Replacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1810924247",
+      "name": "Minecraft for iOS",
+      "categories": {
+        "unmatched_replacement": 2,
+        "recipe_id_absent_from_name_reference": 4,
+        "identical_recipes_within_title": 2,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1,
+        "Replacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2014650813",
+      "name": "Minecraft: Story Mode - Episode 1: The Order of the Stone",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "14233261",
+      "name": "Minecraft: Story Mode - Season Two - Episode 1",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "345903534",
+      "name": "Minecraft: Xbox One Edition",
+      "categories": {
+        "unmatched_replacement": 2,
+        "recipe_id_absent_from_name_reference": 48,
+        "identical_recipes_within_title": 1,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {
+        "NewEventBaseReplacement": 1,
+        "Replacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1824138520",
+      "name": "Mirror's Edge Catalyst",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 12
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "264259050",
+      "name": "Ori and the Blind Forest",
+      "categories": {
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "559544937",
+      "name": "Ori and the Blind Forest: Definitive Edition",
+      "categories": {
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "907086072",
+      "name": "Prey",
+      "categories": {
+        "criterion_matches_another_display_name": 5,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "333628240",
+      "name": "Quantum Break",
+      "categories": {
+        "unmatched_replacement": 309,
+        "unresolved_placeholder": 103,
+        "invalid_json_with_standard_parser": 103
+      },
+      "unmatchedOperations": {
+        "EventReplacement": 103,
+        "MetaDataReplacement": 103,
+        "DataReplacement": 103
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "852431422",
+      "name": "ReCore: Definitive Edition",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 1,
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1046363979",
+      "name": "Rise of the Tomb Raider",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "247124088",
+      "name": "Shovel Knight: Treasure Trove",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "129325438",
+      "name": "Sonic Forces",
+      "categories": {
+        "identical_recipes_within_title": 5
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1938834516",
+      "name": "State of Decay 2: Juggernaut Edition",
+      "categories": {
+        "invalid_json_with_standard_parser": 206,
+        "unresolved_placeholder": 1,
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2141647881",
+      "name": "Tales from the Borderlands - Episode 1: Zer0 Sum",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "389597738",
+      "name": "Terraria",
+      "categories": {
+        "unmatched_replacement": 1,
+        "unresolved_placeholder": 1,
+        "invalid_json_with_standard_parser": 1
+      },
+      "unmatchedOperations": {
+        "EventReplacement": 1
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1979014977",
+      "name": "The Crew",
+      "categories": {
+        "identical_recipes_within_title": 7
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "252034287",
+      "name": "The Elder Scrolls V: Skyrim Special Edition",
+      "categories": {
+        "invalid_json_with_standard_parser": 75,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1688839217",
+      "name": "The Elder Scrolls V: Skyrim Special Edition (PC)",
+      "categories": {
+        "invalid_json_with_standard_parser": 75
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "125965001",
+      "name": "The Escapists: The Walking Dead",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 1,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Existing edition guard; compare effective app output"
+    },
+    {
+      "titleId": "144439061",
+      "name": "The Evil Within",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "170773198",
+      "name": "The Evil Within\u00ae 2",
+      "categories": {
+        "unmatched_replacement": 51,
+        "unresolved_placeholder": 51,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {
+        "Replacement": 51
+      },
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "946930585",
+      "name": "The Walking Dead Collection - The Telltale Series",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "282062756",
+      "name": "The Walking Dead: A New Frontier - Episode 1",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "635298240",
+      "name": "The Walking Dead: Michonne - Ep. 1, In Too Deep",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 7,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "231674300",
+      "name": "The Walking Dead: Season Two",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1795379754",
+      "name": "The Walking Dead: The Complete First Season",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "62572131",
+      "name": "The Wolf Among Us",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 3,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2076385443",
+      "name": "Title 2076385443",
+      "categories": {
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "349397095",
+      "name": "Title 349397095",
+      "categories": {
+        "identical_recipes_within_title": 2
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1763742865",
+      "name": "Train Sim World\u00ae 2",
+      "categories": {
+        "identical_recipes_within_title": 14
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "974917521",
+      "name": "Train Sim World\u00ae 2020",
+      "categories": {
+        "identical_recipes_within_title": 3
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1669996905",
+      "name": "Train Sim World\u00ae 3",
+      "categories": {
+        "identical_recipes_within_title": 4
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1686524250",
+      "name": "Train Sim World\u00ae 4",
+      "categories": {
+        "identical_recipes_within_title": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1935604508",
+      "name": "Train Sim World\u00ae 5: Free Starter Pack",
+      "categories": {
+        "identical_recipes_within_title": 3
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "453395486",
+      "name": "Ultimate Chicken Horse",
+      "categories": {
+        "identical_recipes_within_title": 3
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1981403899",
+      "name": "Wolfenstein: The New Order",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "1159891781",
+      "name": "Wolfenstein: The Old Blood",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "2112431452",
+      "name": "\u30b5\u30a4\u30b3\u30d6\u30ec\u30a4\u30af (The Evil Within JP)",
+      "categories": {
+        "recipe_id_absent_from_name_reference": 3,
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    },
+    {
+      "titleId": "452142470",
+      "name": "\u30b5\u30a4\u30b3\u30d6\u30ec\u30a4\u30af2 (The Evil Within 2 JP)",
+      "categories": {
+        "edition_copy_requires_game_specific_review": 1
+      },
+      "unmatchedOperations": {},
+      "runtimeReview": "Requires review; not live verified"
+    }
+  ]
+}

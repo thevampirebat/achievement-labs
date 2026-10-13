@@ -1,17 +1,32 @@
 # Dishonored Definitive Edition — Xbox One mapping correction
 
-Exact title: 1100121502. PC comparison edition: 1627819535. Xbox service configuration remains 88940100-b0a6-495b-9f60-d06b4192859e.
+Xbox title: 1100121502. PC comparison edition: 1627819535. Xbox SCID: 88940100-b0a6-495b-9f60-d06b4192859e.
 
-Match the 80 Xbox and PC achievements by exact, unique names in the previously reviewed catalogue groups. All 74 preexisting Xbox recipes have exact full-object counterparts in the PC catalogue. The override restores each recipe to its named Xbox ID; offsets differ between sections, so no positional/constant-offset remap is used.
+The original Xbox catalogue exposed 74 recipes under mismatched IDs. Exact unique achievement names in the reviewed grouping data pair all 80 Xbox achievements with the PC edition; all 74 old Xbox recipes have exact full-object PC counterparts. The hash-pinned in-memory override restores the named Xbox IDs and supplies six previously absent Brigmore Witches recipes. IDs are never derived from package enum positions.
 
-The six recipes truly absent from Xbox data are copied from existing PC recipes: Xbox 81 / PC 75 Changed Ways; 82 / 76 Silence is Golden; 83 / 77 Cleanest Hands; 84 / 78 Enough Coin to Disappear; 85 / 79 Parting Shot; 86 / 80 Wall of Flesh. The six previously greyed-out IDs (4,5,6,60,61,62) also become available after correctly moving existing recipes.
+The six additions are Changed Ways (81), Silence is Golden (82), Cleanest Hands (83), Enough Coin to Disappear (84), Parting Shot (85) and Wall of Flesh (86). They remain PC-backed console candidates.
 
-Only catalogue data in memory is corrected. The standalone Xbox template, Xbox title ID/service configuration, PC catalogue and unrelated titles remain unchanged. Existing multi-request recipe variants are retained except for the two isolated console candidates described below; no new events or values are invented. No RawBody or embedded templates are generated.
+## Package-derived direct criteria
 
-The review manifest pins Xbox/PC recipe hashes and the Xbox template hash. Changed inputs disable this edition's mappings pending review while retaining other games. Offline checks validate all 80 exact recipes/payloads, restored IDs, added criteria, SCID/title identity, unchanged PC data and changed-input refusal. No live Xbox unlocks are sent. Live credit for the six PC-backed candidates remains unverified.
+The uploaded Microsoft Store PC 1.10.0.0 DishonoredGame.upk, SHA-256 ec64bd36be12d7063199cf2722a2b8f280100f1ed3f3c63404ac34980d7141e2, contains achievement enums with names differing from several catalogue criteria.
 
-Trial metadata correction: the PC recipes use CRLF in their exact metadata replacement targets, while the pinned Xbox template uses LF. The Xbox override normalizes only these metadata operations to LF and requires their targets to exist. This preserves the original schemas, event names and values; it does not change PC recipes or the general replacement engine. The previous test build repaired all 12 trial variants and checked their numeric property metadata; those variants did not credit the reported achievements and are now replaced by the isolated direct-event candidates below. By My Hand Alone and Time Management still require live console confirmation; request acceptance alone does not establish achievement credit.
+| Xbox ID | Achievement | Direct candidate criterion | Verification |
+|---|---|---|---|
+| 8 | Mostly Flesh and Steel | FleshAndSteel | Internal-name pairing inferred; live credit unverified |
+| 9 | Wall of Sparks | WallOfDarkness | Internal-name pairing inferred; live credit unverified |
+| 13 | Manipulator | Corruptor | Internal-name pairing inferred; live credit unverified |
+| 23 | Art Dealer | Profiteer | Internal-name pairing inferred; live credit unverified |
+| 57 | Mrs Pilsen's Remorse | DLC05MrsPilsenRemorse | Already present as an old alternative; single direct request now |
+| 61 | By My Hand Alone | DLC05ByMyHandOnly | User reported Xbox unlock |
+| 65 | Time Management | DLC05TimeManager | User reported Xbox unlock |
+| 80 | All Come To Ruin | DLC07Judgment | Internal-name pairing inferred; live credit unverified |
 
-Console test follow-up: Headhunter (Xbox 63 / PC 57) was reported to unlock; By My Hand Alone (61 / 55) and Time Management (65 / 59) did not credit after approximately ten minutes. Headhunter uses the original application asId 778, whereas every variant of the two failed recipes forces 11858. The next console candidates isolate each existing first direct AchievementShouldUnlock criterion with asId 778, dropping the alternative/stat variants for these two only. This is a controlled hypothesis, not proof that 11858 caused the failure or that these candidates unlock. All other achievements, including Headhunter, and the PC edition remain unchanged. No live account requests are used in tests.
+Each of these eight uses one ordinary CriteriaReplacement operation and the original Xbox template's asId 778. Previous variants and changed application IDs are replaced only for these eight. Headhunter and all other Xbox recipes retain their original values and variants. Six newly requested candidates require individual confirmation; internal enum names alone do not prove the collector criteria or server rules.
 
-Package evidence, 2026-10-13: the uploaded Microsoft Store PC version's DishonoredGame.upk (UE3 version 801/licensee 30) contains DishonoredPlayerPawn.EAchievement and DisDLC05GameInfo.EDLC05Achievement enum entries named eAchievement_DLC05_ByMyHandOnly / eDLC05Achievement_ByMyHandOnly and eAchievement_DLC05_TimeManager / eDLC05Achievement_TimeManager. Headhunter appears as HeadHunter. Neither ByMyHandAlone nor TimeManagement appears in the decoded name table. The new two candidates use DLC05ByMyHandOnly and DLC05TimeManager as their AchievementName values, retaining asId 778 and the Xbox title/SCID. This conversion from an internal enum suffix to a collector criterion is an inference: the package confirms internal names but does not establish the Xbox server's rule or collector spelling. The enum's numeric values are not used as Xbox achievement IDs. The previous application-context-only candidates were reported not to credit. No game binaries, full decompiled scripts or account data are committed.
+The two reported successes followed an unsuccessful metadata-repair build and an unsuccessful application-context-only build. A format repair normalizes any retained CRLF metadata targets to the pinned LF Xbox template and verifies target presence.
+
+The manifest pins original Xbox/PC recipes and Xbox template hashes; changed inputs disable this edition pending review. The standalone Xbox template, title/SCID, PC catalogue and unrelated games remain unchanged. No RawBody operations, new stat patterns or embedded templates are generated.
+
+Offline tests verify all 80 name identities, the eight direct candidates, original application context, unchanged Headhunter/unrelated request values, Xbox title/SCID isolation, unchanged PC data and changed-input refusal. No live Xbox requests are sent by tests. No game binaries, full decompiled scripts or account data are committed.
+
+The wider raw catalogue audit is in docs/catalogue-audit-2026-10-13.md.

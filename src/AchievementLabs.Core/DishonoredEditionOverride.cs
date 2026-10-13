@@ -48,16 +48,23 @@ internal static class DishonoredEditionOverride
                 && !JToken.DeepEquals(original![(string)entry["previousCatalogId"]!], recipe))
                 throw new InvalidDataException("Dishonored existing recipe changed.");
             var copy = (JObject)recipe.DeepClone();
-            if (xboxId is "61" or "65")
+            var reviewedCriteria = new Dictionary<string, string>
             {
-                // Console candidate: Headhunter succeeded using the pinned template's asId 778.
-                // These two recipes instead force 11858 in every PC-derived variant.
-                // The uploaded PC package identifies ByMyHandOnly and TimeManager, not the catalogue names.
-                // Converting those enum suffixes to collector criteria remains a console hypothesis.
-                var direct = copy["Request1"]?["CriteriaReplacement"] as JObject
-                    ?? throw new InvalidDataException("Dishonored direct trial criterion is missing.");
+                ["8"] = "FleshAndSteel", ["9"] = "WallOfDarkness", ["13"] = "Corruptor",
+                ["23"] = "Profiteer", ["57"] = "DLC05MrsPilsenRemorse",
+                ["61"] = "DLC05ByMyHandOnly", ["65"] = "DLC05TimeManager",
+                ["80"] = "DLC07Judgment"
+            };
+            if (reviewedCriteria.TryGetValue(xboxId, out var criterion))
+            {
+                // 61/65 were reported to credit on Xbox using these package-derived names.
+                // The other six are explicitly requested candidates; internal enum names
+                // do not alone prove the collector spelling or server rule.
+                var direct = copy["CriteriaReplacement"] as JObject
+                    ?? copy["Request1"]?["CriteriaReplacement"] as JObject
+                    ?? throw new InvalidDataException("Dishonored direct criterion is missing.");
                 var candidate = (JObject)direct.DeepClone();
-                candidate["Replacement"] = xboxId == "61" ? "DLC05ByMyHandOnly" : "DLC05TimeManager";
+                candidate["Replacement"] = criterion;
                 copy = new JObject { ["CriteriaReplacement"] = candidate };
             }
             // The reviewed recipes contain CRLF metadata blocks; the pinned Xbox template uses LF.
@@ -76,7 +83,7 @@ internal static class DishonoredEditionOverride
         }
         xbox["Achievements"] = corrected;
         xbox["AchievementNames"] = names;
-        xbox["ResearchStatus"] = "80 name-matched Xbox One IDs; 74 existing recipes retained and six PC-backed candidates added. Console achievement credit requires live verification.";
+        xbox["ResearchStatus"] = "80 name-matched Xbox One IDs; eight package-derived direct criteria (two reported Xbox successes, six candidates) and six PC-backed additions. Other console credit remains unverified.";
         return true;
     }
 }

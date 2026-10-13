@@ -13,7 +13,7 @@ public static class DishonoredMappingTests
         var ids = Enumerable.Range(4, 50).Concat(Enumerable.Range(57, 30)).Select(i => i.ToString()).ToArray();
         var actual = client.GetTitleAsync(xbox, default).GetAwaiter().GetResult();
         Assert(actual.AchievementIds.Length == 80 && actual.AchievementIds.ToHashSet().SetEquals(ids), "All 80 exact Xbox IDs restored, without filling nonexistent gaps");
-        var pairs = new Dictionary<string,string> { ["4"]="Thief", ["7"]="Shadow", ["10"]="Rogue", ["57"]="DLC05MrsPilsensRemorse",
+        var pairs = new Dictionary<string,string> { ["8"]="FleshAndSteel", ["9"]="WallOfDarkness", ["13"]="Corruptor", ["23"]="Profiteer", ["80"]="DLC07Judgment", ["4"]="Thief", ["7"]="Shadow", ["10"]="Rogue", ["57"]="DLC05MrsPilsenRemorse",
             ["60"]="DLC05NaturalTalent", ["61"]="DLC05ByMyHandOnly", ["62"]="DLC05Daredevil",
             ["63"]="DLC05Headhunter", ["65"]="DLC05TimeManager", ["67"]="DLC06JustBusiness", ["81"]="DLC07Reprieve", ["82"]="DLC07SilenceIsGolden",
             ["83"]="DLC07CleanestHands", ["84"]="DLC07EnoughCoinsToDisappear", ["85"]="DLC07PartingShot", ["86"]="DLC07WallOfFlesh" };
@@ -31,9 +31,9 @@ public static class DishonoredMappingTests
             var response = client.GetPayloadsAsync(xbox, id, "0", default).GetAwaiter().GetResult();
             var namedPcId=pcByName[xboxNames[id]];
             var expected=client.GetPayloadsAsync(pc, namedPcId, "0", default).GetAwaiter().GetResult();
-            bool consoleCandidate = id is "61" or "65";
+            bool consoleCandidate = id is "8" or "9" or "13" or "23" or "57" or "61" or "65" or "80";
             Assert(response.Payloads.Length==(consoleCandidate ? 1 : expected.Payloads.Length),
-                "Two console candidates isolate existing direct criteria; unrelated variants remain unchanged");
+                "Eight console candidates isolate existing direct criteria; unrelated variants remain unchanged");
             if (consoleCandidate)
             {
                 using var candidate = JsonDocument.Parse(response.Payloads[0]);
@@ -90,7 +90,7 @@ public static class DishonoredMappingTests
         bool Apply(JObject data, string input) => (bool)apply.Invoke(null, new object[] { data, new Dictionary<string,string> { [xbox]=input } })!;
         var unchangedPc = raw[pc]!.DeepClone(); var unchangedOther = raw["60633334"]!.DeepClone();
         Assert(Apply(raw, template) && JToken.DeepEquals(raw[pc], unchangedPc) && JToken.DeepEquals(raw["60633334"], unchangedOther), "Override leaves PC and unrelated titles unchanged");
-        foreach (var id in new[] { "61", "65" })
+        foreach (var id in new[] { "8", "9", "13", "23", "57", "61", "65", "80" })
         {
             var operations = (JObject)raw[xbox]!["Achievements"]![id]!;
             Assert(operations.Properties().Count()==1 && operations["CriteriaReplacement"] != null,
