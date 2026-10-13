@@ -47,7 +47,19 @@ internal static class DishonoredEditionOverride
             if (entry["previousCatalogId"]?.Type == JTokenType.String
                 && !JToken.DeepEquals(original![(string)entry["previousCatalogId"]!], recipe))
                 throw new InvalidDataException("Dishonored existing recipe changed.");
-            corrected.Add(xboxId, recipe.DeepClone());
+            var copy = (JObject)recipe.DeepClone();
+            // The reviewed recipes contain CRLF metadata blocks; the pinned Xbox template uses LF.
+            // Repair this edition only, retaining the original schema and event/stat values.
+            foreach (var property in copy.Descendants().OfType<JProperty>().Where(p => p.Name == "MetadataSchemaReplacement"))
+            {
+                var operation = (JObject)property.Value;
+                var target = ((string)operation["Target"]!).Replace("\r\n", "\n");
+                if (!templates[title].Contains(target, StringComparison.Ordinal))
+                    throw new InvalidDataException("Dishonored metadata replacement does not match its reviewed template.");
+                operation["Target"] = target;
+                operation["Replacement"] = ((string)operation["Replacement"]!).Replace("\r\n", "\n");
+            }
+            corrected.Add(xboxId, copy);
             names.Add(xboxId, entry["name"]!.DeepClone());
         }
         xbox["Achievements"] = corrected;
