@@ -48,6 +48,15 @@ internal static class DishonoredEditionOverride
                 && !JToken.DeepEquals(original![(string)entry["previousCatalogId"]!], recipe))
                 throw new InvalidDataException("Dishonored existing recipe changed.");
             var copy = (JObject)recipe.DeepClone();
+            if (xboxId is "61" or "65")
+            {
+                // Console candidate: Headhunter succeeded using the pinned template's asId 778.
+                // These two recipes instead force 11858 in every PC-derived variant.
+                // Isolate their existing direct criterion using the working console context.
+                var direct = copy["Request1"]?["CriteriaReplacement"] as JObject
+                    ?? throw new InvalidDataException("Dishonored direct trial criterion is missing.");
+                copy = new JObject { ["CriteriaReplacement"] = direct.DeepClone() };
+            }
             // The reviewed recipes contain CRLF metadata blocks; the pinned Xbox template uses LF.
             // Repair this edition only, retaining the original schema and event/stat values.
             foreach (var property in copy.Descendants().OfType<JProperty>().Where(p => p.Name == "MetadataSchemaReplacement"))

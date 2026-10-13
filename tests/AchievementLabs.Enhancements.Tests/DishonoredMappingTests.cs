@@ -15,7 +15,7 @@ public static class DishonoredMappingTests
         Assert(actual.AchievementIds.Length == 80 && actual.AchievementIds.ToHashSet().SetEquals(ids), "All 80 exact Xbox IDs restored, without filling nonexistent gaps");
         var pairs = new Dictionary<string,string> { ["4"]="Thief", ["7"]="Shadow", ["10"]="Rogue", ["57"]="DLC05MrsPilsensRemorse",
             ["60"]="DLC05NaturalTalent", ["61"]="DLC05ByMyHandAlone", ["62"]="DLC05Daredevil",
-            ["65"]="DLC05TimeManagement", ["67"]="DLC06JustBusiness", ["81"]="DLC07Reprieve", ["82"]="DLC07SilenceIsGolden",
+            ["63"]="DLC05Headhunter", ["65"]="DLC05TimeManagement", ["67"]="DLC06JustBusiness", ["81"]="DLC07Reprieve", ["82"]="DLC07SilenceIsGolden",
             ["83"]="DLC07CleanestHands", ["84"]="DLC07EnoughCoinsToDisappear", ["85"]="DLC07PartingShot", ["86"]="DLC07WallOfFlesh" };
         using var groupStream = typeof(AchievementLabs.MultiSelect.EditionMapping).Assembly.GetManifestResourceStream("AchievementLabs.SharedPacks.json")!;
         using var groups = JsonDocument.Parse(groupStream);
@@ -31,7 +31,17 @@ public static class DishonoredMappingTests
             var response = client.GetPayloadsAsync(xbox, id, "0", default).GetAwaiter().GetResult();
             var namedPcId=pcByName[xboxNames[id]];
             var expected=client.GetPayloadsAsync(pc, namedPcId, "0", default).GetAwaiter().GetResult();
-            Assert(response.Payloads.Length==expected.Payloads.Length, "All request variants retained for the named achievement");
+            bool consoleCandidate = id is "61" or "65";
+            Assert(response.Payloads.Length==(consoleCandidate ? 1 : expected.Payloads.Length),
+                "Two console candidates isolate existing direct criteria; unrelated variants remain unchanged");
+            if (consoleCandidate)
+            {
+                using var candidate = JsonDocument.Parse(response.Payloads[0]);
+                Assert(candidate.RootElement.GetProperty("ext").GetProperty("app").GetProperty("asId").GetInt32()==778,
+                    "Trial candidates preserve the console application context that worked for Headhunter");
+                Assert(candidate.RootElement.GetProperty("data").GetProperty("baseData").GetProperty("name").GetString()=="AchievementShouldUnlock",
+                    "Candidates send only the existing direct achievement event");
+            }
             for (int index=0;index<response.Payloads.Length;index++)
             {
                 using var consoleEvent=JsonDocument.Parse(response.Payloads[index]);
@@ -78,6 +88,15 @@ public static class DishonoredMappingTests
         bool Apply(JObject data, string input) => (bool)apply.Invoke(null, new object[] { data, new Dictionary<string,string> { [xbox]=input } })!;
         var unchangedPc = raw[pc]!.DeepClone(); var unchangedOther = raw["60633334"]!.DeepClone();
         Assert(Apply(raw, template) && JToken.DeepEquals(raw[pc], unchangedPc) && JToken.DeepEquals(raw["60633334"], unchangedOther), "Override leaves PC and unrelated titles unchanged");
+        foreach (var id in new[] { "61", "65" })
+        {
+            var operations = (JObject)raw[xbox]!["Achievements"]![id]!;
+            Assert(operations.Properties().Count()==1 && operations["CriteriaReplacement"] != null,
+                "Candidate contains no application-ID change or speculative stat events");
+        }
+        using (var working = JsonDocument.Parse(client.GetPayloadsAsync(xbox, "63", "0", default).GetAwaiter().GetResult().Payloads.Single()))
+            Assert(working.RootElement.GetProperty("ext").GetProperty("app").GetProperty("asId").GetInt32()==778,
+                "Known working Headhunter recipe is unchanged");
         Assert(raw.Properties().Last().Name=="SupportedTitleIDs", "Data.json ordering survives in-memory override");
         foreach (var scenario in new[] { "pc", "xbox", "template" })
         {
