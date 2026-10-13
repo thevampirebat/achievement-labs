@@ -24,6 +24,7 @@ internal sealed class BundledEventCatalog
         if (data.Properties().Last().Name != "SupportedTitleIDs") throw new InvalidDataException("SupportedTitleIDs must be last.");
         foreach (var entry in archive.Entries.Where(e => e.Name != "Data.json" && e.Name != "PublicStatus.json" && e.Name.EndsWith(".json")))
             templates.Add(Path.GetFileNameWithoutExtension(entry.Name), Read(entry));
+        DishonoredEditionOverride.Apply(data, templates);
         var supported = data["SupportedTitleIDs"]!.Values().Select(x => x.ToString()).ToHashSet(StringComparer.Ordinal);
         var enabled = supported.Where(id => data[id] is JObject block && (bool?)block["Enabled"] != false && templates.ContainsKey(id)).ToArray();
         localTitles = enabled.ToHashSet(StringComparer.Ordinal);
