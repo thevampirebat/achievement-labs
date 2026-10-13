@@ -17,9 +17,31 @@ public static class DishonoredMappingTests
             ["60"]="DLC05NaturalTalent", ["61"]="DLC05ByMyHandAlone", ["62"]="DLC05Daredevil",
             ["67"]="DLC06JustBusiness", ["81"]="DLC07Reprieve", ["82"]="DLC07SilenceIsGolden",
             ["83"]="DLC07CleanestHands", ["84"]="DLC07EnoughCoinsToDisappear", ["85"]="DLC07PartingShot", ["86"]="DLC07WallOfFlesh" };
+        using var groupStream = typeof(AchievementLabs.MultiSelect.EditionMapping).Assembly.GetManifestResourceStream("AchievementLabs.SharedPacks.json")!;
+        using var groups = JsonDocument.Parse(groupStream);
+        var titles = groups.RootElement.GetProperty("titles").EnumerateArray().ToArray();
+        Dictionary<string,string> Names(string title) => titles.Single(t => t.GetProperty("titleId").GetString()==title)
+            .GetProperty("packs").EnumerateArray().SelectMany(pack => pack.GetProperty("achievements").EnumerateArray())
+            .ToDictionary(a => a.GetProperty("id").GetString()!, a => a.GetProperty("name").GetString()!);
+        var xboxNames=Names(xbox); var pcNames=Names(pc);
+        var pcByName=pcNames.ToDictionary(a => a.Value, a => a.Key);
+        Assert(xboxNames.Count==80 && pcByName.Count==80, "Complete unique edition names provide independent identity check");
         foreach (var id in ids)
         {
             var response = client.GetPayloadsAsync(xbox, id, "0", default).GetAwaiter().GetResult();
+            var namedPcId=pcByName[xboxNames[id]];
+            var expected=client.GetPayloadsAsync(pc, namedPcId, "0", default).GetAwaiter().GetResult();
+            Assert(response.Payloads.Length==expected.Payloads.Length, "All request variants retained for the named achievement");
+            for (int index=0;index<response.Payloads.Length;index++)
+            {
+                using var consoleEvent=JsonDocument.Parse(response.Payloads[index]);
+                using var pcEvent=JsonDocument.Parse(expected.Payloads[index]);
+                var consoleBody=consoleEvent.RootElement.GetProperty("data").GetProperty("baseData");
+                var pcBody=pcEvent.RootElement.GetProperty("data").GetProperty("baseData");
+                Assert(JsonElement.DeepEquals(consoleBody.GetProperty("properties"), pcBody.GetProperty("properties"))
+                    && consoleBody.GetProperty("name").GetString()==pcBody.GetProperty("name").GetString(),
+                    "Every payload's criteria/stat values match the PC achievement with the same name");
+            }
             foreach (var text in response.Payloads)
             {
                 using var doc = JsonDocument.Parse(text);
