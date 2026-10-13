@@ -52,10 +52,13 @@ internal static class DishonoredEditionOverride
             {
                 // Console candidate: Headhunter succeeded using the pinned template's asId 778.
                 // These two recipes instead force 11858 in every PC-derived variant.
-                // Isolate their existing direct criterion using the working console context.
+                // The uploaded PC package identifies ByMyHandOnly and TimeManager, not the catalogue names.
+                // Converting those enum suffixes to collector criteria remains a console hypothesis.
                 var direct = copy["Request1"]?["CriteriaReplacement"] as JObject
                     ?? throw new InvalidDataException("Dishonored direct trial criterion is missing.");
-                copy = new JObject { ["CriteriaReplacement"] = direct.DeepClone() };
+                var candidate = (JObject)direct.DeepClone();
+                candidate["Replacement"] = xboxId == "61" ? "DLC05ByMyHandOnly" : "DLC05TimeManager";
+                copy = new JObject { ["CriteriaReplacement"] = candidate };
             }
             // The reviewed recipes contain CRLF metadata blocks; the pinned Xbox template uses LF.
             // Repair this edition only, retaining the original schema and event/stat values.
