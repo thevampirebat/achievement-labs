@@ -1,0 +1,491 @@
+{
+  "schemaVersion": 1,
+  "titleId": "1100121502",
+  "sourceTitleId": "1627819535",
+  "serviceConfigId": "88940100-b0a6-495b-9f60-d06b4192859e",
+  "expectedXboxRecipesSha256": "e82b274aed3c851e62511aaae76eca59b91e403a7ad22a6b81e9a9d3b959b2ee",
+  "expectedPcRecipesSha256": "4d0b1c2d0ab53cf59e89071430310626118ce7f79b75cdd07e03f857ae5d6b09",
+  "expectedXboxTemplateSha256": "d6464a702164324692a9d94f15f27aec7b3449fa727813b2c9b42ebeaf527c25",
+  "entries": [
+    {
+      "xboxId": "4",
+      "pcId": "1",
+      "name": "Thief",
+      "previousCatalogId": "7"
+    },
+    {
+      "xboxId": "5",
+      "pcId": "2",
+      "name": "Versatile",
+      "previousCatalogId": "8"
+    },
+    {
+      "xboxId": "6",
+      "pcId": "3",
+      "name": "Ghost",
+      "previousCatalogId": "9"
+    },
+    {
+      "xboxId": "7",
+      "pcId": "4",
+      "name": "Shadow",
+      "previousCatalogId": "10"
+    },
+    {
+      "xboxId": "8",
+      "pcId": "5",
+      "name": "Mostly Flesh and Steel",
+      "previousCatalogId": "11"
+    },
+    {
+      "xboxId": "9",
+      "pcId": "6",
+      "name": "Wall of Sparks",
+      "previousCatalogId": "12"
+    },
+    {
+      "xboxId": "10",
+      "pcId": "7",
+      "name": "Rogue",
+      "previousCatalogId": "13"
+    },
+    {
+      "xboxId": "11",
+      "pcId": "8",
+      "name": "Specter",
+      "previousCatalogId": "14"
+    },
+    {
+      "xboxId": "12",
+      "pcId": "9",
+      "name": "Faceless",
+      "previousCatalogId": "15"
+    },
+    {
+      "xboxId": "13",
+      "pcId": "10",
+      "name": "Manipulator",
+      "previousCatalogId": "16"
+    },
+    {
+      "xboxId": "14",
+      "pcId": "11",
+      "name": "Razor Rain",
+      "previousCatalogId": "17"
+    },
+    {
+      "xboxId": "15",
+      "pcId": "12",
+      "name": "Surgical",
+      "previousCatalogId": "18"
+    },
+    {
+      "xboxId": "16",
+      "pcId": "13",
+      "name": "Clean Hands",
+      "previousCatalogId": "19"
+    },
+    {
+      "xboxId": "17",
+      "pcId": "14",
+      "name": "Harm's Way",
+      "previousCatalogId": "20"
+    },
+    {
+      "xboxId": "18",
+      "pcId": "15",
+      "name": "Inhabitant",
+      "previousCatalogId": "21"
+    },
+    {
+      "xboxId": "19",
+      "pcId": "16",
+      "name": "Hornets' Nest",
+      "previousCatalogId": "22"
+    },
+    {
+      "xboxId": "20",
+      "pcId": "17",
+      "name": "Speed of Darkness",
+      "previousCatalogId": "23"
+    },
+    {
+      "xboxId": "21",
+      "pcId": "18",
+      "name": "Tempest",
+      "previousCatalogId": "24"
+    },
+    {
+      "xboxId": "22",
+      "pcId": "19",
+      "name": "Merchant of Disorder",
+      "previousCatalogId": "25"
+    },
+    {
+      "xboxId": "23",
+      "pcId": "20",
+      "name": "Art Dealer",
+      "previousCatalogId": "26"
+    },
+    {
+      "xboxId": "24",
+      "pcId": "21",
+      "name": "Occultist",
+      "previousCatalogId": "27"
+    },
+    {
+      "xboxId": "25",
+      "pcId": "22",
+      "name": "The Escapist",
+      "previousCatalogId": "28"
+    },
+    {
+      "xboxId": "26",
+      "pcId": "23",
+      "name": "Cleaner",
+      "previousCatalogId": "29"
+    },
+    {
+      "xboxId": "27",
+      "pcId": "24",
+      "name": "Dishonored",
+      "previousCatalogId": "30"
+    },
+    {
+      "xboxId": "28",
+      "pcId": "25",
+      "name": "Excommunication",
+      "previousCatalogId": "31"
+    },
+    {
+      "xboxId": "29",
+      "pcId": "26",
+      "name": "Child Care",
+      "previousCatalogId": "32"
+    },
+    {
+      "xboxId": "30",
+      "pcId": "27",
+      "name": "Capturing Genius and Madness",
+      "previousCatalogId": "33"
+    },
+    {
+      "xboxId": "31",
+      "pcId": "28",
+      "name": "Regicide",
+      "previousCatalogId": "34"
+    },
+    {
+      "xboxId": "32",
+      "pcId": "29",
+      "name": "Political Suicide",
+      "previousCatalogId": "35"
+    },
+    {
+      "xboxId": "33",
+      "pcId": "30",
+      "name": "This Is Mine",
+      "previousCatalogId": "36"
+    },
+    {
+      "xboxId": "34",
+      "pcId": "31",
+      "name": "Resolution",
+      "previousCatalogId": "37"
+    },
+    {
+      "xboxId": "35",
+      "pcId": "32",
+      "name": "Back Home",
+      "previousCatalogId": "38"
+    },
+    {
+      "xboxId": "36",
+      "pcId": "33",
+      "name": "Big Boy",
+      "previousCatalogId": "39"
+    },
+    {
+      "xboxId": "37",
+      "pcId": "34",
+      "name": "Dunwall in Chaos",
+      "previousCatalogId": "40"
+    },
+    {
+      "xboxId": "38",
+      "pcId": "35",
+      "name": "Just Dark Enough",
+      "previousCatalogId": "41"
+    },
+    {
+      "xboxId": "39",
+      "pcId": "36",
+      "name": "Vanished",
+      "previousCatalogId": "42"
+    },
+    {
+      "xboxId": "40",
+      "pcId": "37",
+      "name": "Gentleman Caller",
+      "previousCatalogId": "43"
+    },
+    {
+      "xboxId": "41",
+      "pcId": "38",
+      "name": "Street Conspiracy",
+      "previousCatalogId": "44"
+    },
+    {
+      "xboxId": "42",
+      "pcId": "39",
+      "name": "The Art of the Steal",
+      "previousCatalogId": "45"
+    },
+    {
+      "xboxId": "43",
+      "pcId": "40",
+      "name": "An Unfortunate Accident",
+      "previousCatalogId": "46"
+    },
+    {
+      "xboxId": "44",
+      "pcId": "41",
+      "name": "Well Mannered",
+      "previousCatalogId": "47"
+    },
+    {
+      "xboxId": "45",
+      "pcId": "42",
+      "name": "King of the World",
+      "previousCatalogId": "48"
+    },
+    {
+      "xboxId": "46",
+      "pcId": "43",
+      "name": "Bodyguard",
+      "previousCatalogId": "49"
+    },
+    {
+      "xboxId": "47",
+      "pcId": "44",
+      "name": "Mercy is the Mark",
+      "previousCatalogId": "50"
+    },
+    {
+      "xboxId": "48",
+      "pcId": "45",
+      "name": "Lights Out",
+      "previousCatalogId": "51"
+    },
+    {
+      "xboxId": "49",
+      "pcId": "46",
+      "name": "Long Live the Empress",
+      "previousCatalogId": "52"
+    },
+    {
+      "xboxId": "50",
+      "pcId": "47",
+      "name": "Poetic Justice",
+      "previousCatalogId": "53"
+    },
+    {
+      "xboxId": "51",
+      "pcId": "48",
+      "name": "Food Chain",
+      "previousCatalogId": "57"
+    },
+    {
+      "xboxId": "52",
+      "pcId": "49",
+      "name": "Alive Without Breath",
+      "previousCatalogId": "58"
+    },
+    {
+      "xboxId": "53",
+      "pcId": "50",
+      "name": "Creepy Crawly",
+      "previousCatalogId": "59"
+    },
+    {
+      "xboxId": "57",
+      "pcId": "51",
+      "name": "Mrs Pilsen's Remorse",
+      "previousCatalogId": "63"
+    },
+    {
+      "xboxId": "58",
+      "pcId": "52",
+      "name": "Long Way Down",
+      "previousCatalogId": "64"
+    },
+    {
+      "xboxId": "59",
+      "pcId": "53",
+      "name": "Assassin Vs. Machine",
+      "previousCatalogId": "65"
+    },
+    {
+      "xboxId": "60",
+      "pcId": "54",
+      "name": "Natural Talent",
+      "previousCatalogId": "66"
+    },
+    {
+      "xboxId": "61",
+      "pcId": "55",
+      "name": "By My Hand Alone",
+      "previousCatalogId": "67"
+    },
+    {
+      "xboxId": "62",
+      "pcId": "56",
+      "name": "Daredevil",
+      "previousCatalogId": "68"
+    },
+    {
+      "xboxId": "63",
+      "pcId": "57",
+      "name": "Headhunter",
+      "previousCatalogId": "69"
+    },
+    {
+      "xboxId": "64",
+      "pcId": "58",
+      "name": "Rare Collector",
+      "previousCatalogId": "70"
+    },
+    {
+      "xboxId": "65",
+      "pcId": "59",
+      "name": "Time Management",
+      "previousCatalogId": "71"
+    },
+    {
+      "xboxId": "66",
+      "pcId": "60",
+      "name": "Void Star",
+      "previousCatalogId": "72"
+    },
+    {
+      "xboxId": "67",
+      "pcId": "61",
+      "name": "Just Business",
+      "previousCatalogId": "73"
+    },
+    {
+      "xboxId": "68",
+      "pcId": "62",
+      "name": "Well Connected",
+      "previousCatalogId": "74"
+    },
+    {
+      "xboxId": "69",
+      "pcId": "63",
+      "name": "No Regrets",
+      "previousCatalogId": "75"
+    },
+    {
+      "xboxId": "70",
+      "pcId": "64",
+      "name": "Redemptive Path",
+      "previousCatalogId": "76"
+    },
+    {
+      "xboxId": "71",
+      "pcId": "65",
+      "name": "Whisper Ways",
+      "previousCatalogId": "77"
+    },
+    {
+      "xboxId": "72",
+      "pcId": "66",
+      "name": "Cleaner Hands",
+      "previousCatalogId": "78"
+    },
+    {
+      "xboxId": "73",
+      "pcId": "67",
+      "name": "Rats and Ashes",
+      "previousCatalogId": "79"
+    },
+    {
+      "xboxId": "74",
+      "pcId": "68",
+      "name": "Missing Pieces",
+      "previousCatalogId": "80"
+    },
+    {
+      "xboxId": "75",
+      "pcId": "69",
+      "name": "Stone Cold Heart",
+      "previousCatalogId": "81"
+    },
+    {
+      "xboxId": "76",
+      "pcId": "70",
+      "name": "Message from the Empress",
+      "previousCatalogId": "82"
+    },
+    {
+      "xboxId": "77",
+      "pcId": "71",
+      "name": "Breakout",
+      "previousCatalogId": "83"
+    },
+    {
+      "xboxId": "78",
+      "pcId": "72",
+      "name": "Gangs of Dunwall",
+      "previousCatalogId": "84"
+    },
+    {
+      "xboxId": "79",
+      "pcId": "73",
+      "name": "Deal Maker",
+      "previousCatalogId": "85"
+    },
+    {
+      "xboxId": "80",
+      "pcId": "74",
+      "name": "All Come To Ruin",
+      "previousCatalogId": "86"
+    },
+    {
+      "xboxId": "81",
+      "pcId": "75",
+      "name": "Changed Ways",
+      "previousCatalogId": null
+    },
+    {
+      "xboxId": "82",
+      "pcId": "76",
+      "name": "Silence is Golden",
+      "previousCatalogId": null
+    },
+    {
+      "xboxId": "83",
+      "pcId": "77",
+      "name": "Cleanest Hands",
+      "previousCatalogId": null
+    },
+    {
+      "xboxId": "84",
+      "pcId": "78",
+      "name": "Enough Coin to Disappear",
+      "previousCatalogId": null
+    },
+    {
+      "xboxId": "85",
+      "pcId": "79",
+      "name": "Parting Shot",
+      "previousCatalogId": null
+    },
+    {
+      "xboxId": "86",
+      "pcId": "80",
+      "name": "Wall of Flesh",
+      "previousCatalogId": null
+    }
+  ]
+}
