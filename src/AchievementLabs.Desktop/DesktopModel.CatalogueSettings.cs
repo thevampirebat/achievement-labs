@@ -5,6 +5,23 @@ namespace AchievementLabs.Desktop;
 
 public sealed partial class DesktopModel
 {
+    private bool eventRefreshRunning;
+    private string eventCatalogueStatus = "Bundled event data loaded. Automatic upstream checks add new titles only.";
+    public bool CanRefreshEventCatalogue => !eventRefreshRunning;
+    public string EventCatalogueStatus { get => eventCatalogueStatus; private set { eventCatalogueStatus = value; Changed(); } }
+    public async Task RefreshEventCatalogueAsync(bool force = true)
+    {
+        if (eventRefreshRunning || !force && !AutoRefreshEvents || OfflineChecks) return;
+        eventRefreshRunning = true; Changed(nameof(CanRefreshEventCatalogue));
+        EventCatalogueStatus = "Checking the original repository for new event titles…";
+        try {
+            using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
+            await eventCatalog.RefreshUpstreamAsync(http, force, lifetime.Token);
+            EventCatalogueStatus = eventCatalog.UpstreamStatus;
+        } catch (OperationCanceledException) { }
+        catch { EventCatalogueStatus = "Could not check upstream event data. Existing mappings retained."; }
+        finally { eventRefreshRunning = false; Changed(nameof(CanRefreshEventCatalogue)); }
+    }
     private bool dlcRefreshRunning;
     private string dlcCatalogueStatus = "Bundled DLC sections loaded. Automatic checks run daily while the app is open.";
     public bool CanRefreshDlcCatalogue => !dlcRefreshRunning;

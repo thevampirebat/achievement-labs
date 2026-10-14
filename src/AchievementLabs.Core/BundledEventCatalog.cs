@@ -13,6 +13,8 @@ internal sealed class BundledEventCatalog
     private readonly Dictionary<string, string> templates = new(StringComparer.Ordinal);
     public EventCatalogStatus Status { get; }
     private readonly HashSet<string> localTitles;
+    internal string[] ReservedTitleIds => data.Properties().Where(p => uint.TryParse(p.Name, out _)).Select(p => p.Name)
+        .Concat(Status.TitleIds).Concat(Status.TestingTitleIds ?? []).Concat(Status.ComingSoonTitleIds).Distinct().ToArray();
     internal string[] LocalTitleIds => localTitles.OrderBy(x => x, StringComparer.Ordinal).ToArray();
     private BundledEventCatalog()
     {
@@ -27,7 +29,9 @@ internal sealed class BundledEventCatalog
         DishonoredEditionOverride.Apply(data, templates);
         var supported = data["SupportedTitleIDs"]!.Values().Select(x => x.ToString()).ToHashSet(StringComparer.Ordinal);
         var enabled = supported.Where(id => data[id] is JObject block && (bool?)block["Enabled"] != false && templates.ContainsKey(id)).ToArray();
-        localTitles = enabled.ToHashSet(StringComparer.Ordinal);
+        // This legacy edition's bundled recipes contain Bedrock/Windows data.
+        // Use the upstream catalogue route used by the working regular app.
+        localTitles = enabled.Where(id => id != "345903534").ToHashSet(StringComparer.Ordinal);
         var published = JArray.Parse(Read(archive.GetEntry("PublicStatus.json") ?? throw new InvalidDataException("Public catalogue status is missing.")));
         Status = new(published.Where(row => (string?)row["status"] == "supported").Select(row => row["titleId"]!.ToString()).ToArray(),
             published.Where(row => (string?)row["status"] == "testing").Select(row => row["titleId"]!.ToString()).ToArray(),

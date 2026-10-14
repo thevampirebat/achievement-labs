@@ -5,6 +5,8 @@ public sealed record DesktopPreferences
 {
     public string EventsDirectory { get; init; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AchievementLabs", "Events");
     public string SessionPath { get; init; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AchievementLabs", "auth.json");
+    public bool RememberWindowSize { get; init; }
+    public bool AutoMaximize { get; init; }
     public bool RegionOverride { get; init; }
     public bool UnlockAllEnabled { get; init; }
     public string OAuthProfile { get; init; } = "Xbox App PC";
@@ -17,6 +19,7 @@ public sealed record DesktopPreferences
     public bool StopAutoUnlockOnSpoofFailure { get; init; }
     public bool NotifyAutoUnlockCompletion { get; init; } = true;
     public bool NotifySpooferStops { get; init; } = true;
+    public bool AutoRefreshEvents { get; init; } = true;
     public bool AutoRefreshDlc { get; init; } = true;
     public bool ShowMythicIcon { get; init; } = true;
     public bool HighlightCompletedDlcs { get; init; } = true;

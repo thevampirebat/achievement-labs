@@ -13,6 +13,10 @@ namespace AchievementLabs.Desktop;
 public partial class MainWindow : Window
 {
     private readonly DesktopModel model = new();
+    private double normalWidth = 1440, normalHeight = 920;
+    private PixelPoint? normalPosition;
+    private bool windowPreferencesLoaded;
+    private static readonly string windowSizePath = AchievementLabs.Core.AchievementLabsPaths.LocalFile("window-size.json");
     private readonly DispatcherTimer dlcCatalogueTimer = new() { Interval = TimeSpan.FromHours(1) };
     private readonly DispatcherTimer xboxPresenceTimer = new() { Interval = TimeSpan.FromSeconds(2) };
 
@@ -35,8 +39,20 @@ public partial class MainWindow : Window
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
         xboxPresenceTimer.Tick += (_, _) => model.RefreshXboxPcAppPresence();
         var offlineChecks = AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var offline) && offline;
-        dlcCatalogueTimer.Tick += async (_, _) => await model.RefreshDlcCatalogueAsync(false);
+        dlcCatalogueTimer.Tick += async (_, _) => { await model.RefreshDlcCatalogueAsync(false); await model.RefreshEventCatalogueAsync(false); };
         if (!offlineChecks) { xboxPresenceTimer.Start(); dlcCatalogueTimer.Start(); }
+        SizeChanged += (_, _) => {
+            if (windowPreferencesLoaded && WindowState == WindowState.Normal) { normalWidth = Width; normalHeight = Height; }
+        };
+        PositionChanged += (_, _) => { if (windowPreferencesLoaded && WindowState == WindowState.Normal) normalPosition = Position; };
+        Closing += (_, _) => {
+            if (!windowPreferencesLoaded || !model.RememberWindowSize) return;
+            try {
+                Directory.CreateDirectory(Path.GetDirectoryName(windowSizePath)!);
+                if (WindowState == WindowState.Normal) { normalWidth = Width; normalHeight = Height; normalPosition = Position; }
+                File.WriteAllText(windowSizePath, System.Text.Json.JsonSerializer.Serialize(new AchievementLabs.Core.WindowPlacement(normalWidth, normalHeight, normalPosition?.X, normalPosition?.Y)));
+            } catch { /* Closing must still succeed if the settings folder is unavailable. */ }
+        };
         Closed += (_, _) => { xboxPresenceTimer.Stop(); dlcCatalogueTimer.Stop(); model.Dispose(); };
         model.PropertyChanged += (_, e) =>
         {
@@ -83,7 +99,7 @@ public partial class MainWindow : Window
             if (!Environment.GetCommandLineArgs().Contains("--smoke-test")) {
                 var health = Environment.GetCommandLineArgs().SkipWhile(a => a != "--update-health").Skip(1).FirstOrDefault();
                 if (health != null && AppUpdater.IsUpdatePath(health)) File.WriteAllText(health, "Ready");
-                await model.LoadPreferencesAsync(); _ = model.CheckForUpdatesAsync(); _ = model.RefreshDlcCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return;
+                await model.LoadPreferencesAsync(); RestoreWindowPreferences(); _ = model.CheckForUpdatesAsync(); _ = model.RefreshDlcCatalogueAsync(false); _ = model.RefreshEventCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return;
             }
             try
             {
@@ -117,6 +133,51 @@ public partial class MainWindow : Window
             Close();
         };
     }
+    private void RestoreWindowPreferences()
+    {
+        var saved = new AchievementLabs.Core.WindowPlacement(1440, 920);
+        if (model.RememberWindowSize && File.Exists(windowSizePath)) {
+            try { saved = System.Text.Json.JsonSerializer.Deserialize<AchievementLabs.Core.WindowPlacement>(File.ReadAllText(windowSizePath)) ?? saved; }
+            catch { model.Notice = "Saved window placement could not be read; using the default."; }
+        }
+        WindowState = WindowState.Normal;
+        var screen = saved.X is { } x && saved.Y is { } y
+            ? Screens.All.FirstOrDefault(s => s.WorkingArea.Contains(new PixelPoint(x, y))) ?? Screens.Primary
+            : Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        if (screen != null) {
+            var area = screen.WorkingArea;
+            var frame = FrameSize;
+            var frameWidth = frame.HasValue ? Math.Max(0, frame.Value.Width - ClientSize.Width) + 2 : 16;
+            var frameHeight = frame.HasValue ? Math.Max(0, frame.Value.Height - ClientSize.Height) + 2 : 48;
+            saved = AchievementLabs.Core.WindowPlacement.Fit(saved, area.X, area.Y, area.Width, area.Height, screen.Scaling, frameWidth, frameHeight);
+            // Very small/high-DPI displays may have less usable space than the usual UI minimum.
+            MinWidth = Math.Min(1120, saved.Width); MinHeight = Math.Min(720, saved.Height);
+        }
+        Width = saved.Width; Height = saved.Height;
+        if (saved.X is { } left && saved.Y is { } top) Position = new PixelPoint(left, top);
+        normalWidth = Width; normalHeight = Height; normalPosition = Position;
+        windowPreferencesLoaded = true;
+        if (model.AutoMaximize) WindowState = WindowState.Maximized;
+    }
+    private async void SubmitTextField(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || e.KeyModifiers != KeyModifiers.None || sender is not TextBox field || field.AcceptsReturn) return;
+        // Explicit allowlist: Enter builds queues for review but never starts unlock/presence.
+        var action = field.Tag as string;
+        try {
+        if (action == "open-title" && model.CanQuery) { e.Handled = true; await model.LookupTitleAsync(); }
+        else if (action == "search-titles" && model.CanInteract) { e.Handled = true; await model.SearchTitlesAsync(); }
+        else if (action == "search-profile" && model.CanQuery) { e.Handled = true; await model.SearchGamertagAsync(); }
+        else if (action == "lookup-spoof" && model.CanLookupSpoofTitle) { e.Handled = true; await model.LookupSpoofTitleAsync(); }
+        else if (action == "load-steam" && model.CanInteract) { e.Handled = true; await model.LoadSteamAchievementsAsync(); }
+        else if (action == "build-xbox-queue" && model.CanQuery && model.XboxQueue.IsConfigEnabled
+            && !string.IsNullOrWhiteSpace(model.XboxQueue.ReferenceGamertag) && !string.IsNullOrWhiteSpace(model.XboxQueue.TitleId)
+            && model.XboxQueue.BuildQueueCommand.CanExecute(null)) { e.Handled = true; await model.XboxQueue.BuildQueueCommand.ExecuteAsync(null); }
+        else if (action == "save-token") { e.Handled = true; await model.SaveEventTokenAsync(); }
+        } catch (OperationCanceledException) { }
+        catch (Exception) { model.Notice = "The action could not be completed. Check the field and connection, then try again."; }
+    }
+    private async void RefreshEventCatalogue(object? sender, RoutedEventArgs e) => await model.RefreshEventCatalogueAsync();
     private void GoBack(object? s, RoutedEventArgs e) => model.GoBack();
     private void ShowAbout(object? s, RoutedEventArgs e) => model.Navigate("About");
     private void ShowLibrary(object? s, RoutedEventArgs e) => model.Navigate("Library");
