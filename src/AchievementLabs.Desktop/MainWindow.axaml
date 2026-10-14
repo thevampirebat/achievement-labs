@@ -258,11 +258,12 @@
    </Grid>
    <ScrollViewer Grid.Row="1" IsVisible="{Binding IsSettings}">
     <StackPanel Spacing="18" MaxWidth="760" HorizontalAlignment="Stretch">
+     <Button Name="SaveAllSettings" Content="Save all settings" Classes="primary" Click="SaveSettings" HorizontalAlignment="Left"/>
      <Border Classes="panel" Padding="24"><StackPanel Spacing="12">
       <TextBlock Text="Window and appearance" FontSize="22"/>
-      <CheckBox Content="Remember window size" IsChecked="{Binding RememberWindowSize, Mode=TwoWay}"/>
+      <CheckBox Content="Remember window size and position" IsChecked="{Binding RememberWindowSize, Mode=TwoWay}"/>
       <CheckBox Content="Maximize automatically on launch" IsChecked="{Binding AutoMaximize, Mode=TwoWay}"/>
-      <TextBlock Text="When both are enabled, the app opens maximized and keeps your last normal window size for restoring. Save settings to remember these options." Classes="muted" TextWrapping="Wrap"/>
+      <TextBlock Text="When both are enabled, the app opens maximized and keeps your last normal window size and position for restoring. Save settings to remember these options." Classes="muted" TextWrapping="Wrap"/>
       <CheckBox Content="Mint accent" IsChecked="{Binding MintAccent, Mode=TwoWay}"/>
       <CheckBox Content="Privacy mode" IsChecked="{Binding PrivacyMode, Mode=TwoWay}"/>
      </StackPanel></Border>
@@ -331,7 +332,6 @@
       <TextBlock Text="{Binding CatalogSummary}" TextWrapping="Wrap" Classes="muted"/>
       <ListBox ItemsSource="{Binding CatalogFindings}" MaxHeight="260" Background="Transparent"><ListBox.ItemTemplate><DataTemplate x:DataType="core:CatalogFinding"><StackPanel Margin="8" Spacing="4"><TextBlock Text="{Binding TitleId}"/><TextBlock Text="{Binding Status}"/><TextBlock Text="{Binding Detail}" TextWrapping="Wrap" Classes="muted"/></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox>
      </StackPanel></Expander></Border>
-     <Button Content="Save all settings" Classes="primary" Click="SaveSettings" HorizontalAlignment="Left"/>
     </StackPanel>
    </ScrollViewer>
    <Grid Grid.Row="1" IsVisible="{Binding IsDiagnostics}" RowDefinitions="Auto,Auto,*">

@@ -25,6 +25,7 @@ public static class BundledCatalogTests
     }
     public static void Run()
     {
+        WindowPlacementTests.Run();
         UpstreamEventCatalogueTests.Run();
         using var client = new EventCatalogClient(useBundledCatalog: true);
         var handler = new NoNetwork();

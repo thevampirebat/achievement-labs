@@ -14,6 +14,7 @@ public partial class MainWindow : Window
 {
     private readonly DesktopModel model = new();
     private double normalWidth = 1440, normalHeight = 920;
+    private PixelPoint? normalPosition;
     private bool windowPreferencesLoaded;
     private static readonly string windowSizePath = AchievementLabs.Core.AchievementLabsPaths.LocalFile("window-size.json");
     private readonly DispatcherTimer dlcCatalogueTimer = new() { Interval = TimeSpan.FromHours(1) };
@@ -41,13 +42,15 @@ public partial class MainWindow : Window
         dlcCatalogueTimer.Tick += async (_, _) => { await model.RefreshDlcCatalogueAsync(false); await model.RefreshEventCatalogueAsync(false); };
         if (!offlineChecks) { xboxPresenceTimer.Start(); dlcCatalogueTimer.Start(); }
         SizeChanged += (_, _) => {
-            if (WindowState == WindowState.Normal) { normalWidth = Width; normalHeight = Height; }
+            if (windowPreferencesLoaded && WindowState == WindowState.Normal) { normalWidth = Width; normalHeight = Height; }
         };
+        PositionChanged += (_, _) => { if (windowPreferencesLoaded && WindowState == WindowState.Normal) normalPosition = Position; };
         Closing += (_, _) => {
             if (!windowPreferencesLoaded || !model.RememberWindowSize) return;
             try {
                 Directory.CreateDirectory(Path.GetDirectoryName(windowSizePath)!);
-                File.WriteAllText(windowSizePath, System.Text.Json.JsonSerializer.Serialize(new WindowDimensions(normalWidth, normalHeight)));
+                if (WindowState == WindowState.Normal) { normalWidth = Width; normalHeight = Height; normalPosition = Position; }
+                File.WriteAllText(windowSizePath, System.Text.Json.JsonSerializer.Serialize(new AchievementLabs.Core.WindowPlacement(normalWidth, normalHeight, normalPosition?.X, normalPosition?.Y)));
             } catch { /* Closing must still succeed if the settings folder is unavailable. */ }
         };
         Closed += (_, _) => { xboxPresenceTimer.Stop(); dlcCatalogueTimer.Stop(); model.Dispose(); };
@@ -130,23 +133,29 @@ public partial class MainWindow : Window
             Close();
         };
     }
-    private sealed record WindowDimensions(double Width, double Height);
     private void RestoreWindowPreferences()
     {
-        if (model.RememberWindowSize && File.Exists(windowSizePath))
-        {
-            try {
-                var size = System.Text.Json.JsonSerializer.Deserialize<WindowDimensions>(File.ReadAllText(windowSizePath));
-                if (size != null && double.IsFinite(size.Width) && double.IsFinite(size.Height)) {
-                    var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
-                    var maxWidth = screen == null ? 3840 : Math.Max(MinWidth, screen.WorkingArea.Width / screen.Scaling);
-                    var maxHeight = screen == null ? 2160 : Math.Max(MinHeight, screen.WorkingArea.Height / screen.Scaling);
-                    Width = Math.Clamp(size.Width, MinWidth, maxWidth);
-                    Height = Math.Clamp(size.Height, MinHeight, maxHeight);
-                    normalWidth = Width; normalHeight = Height;
-                }
-            } catch { model.Notice = "Saved window size could not be read; using the default size."; }
+        var saved = new AchievementLabs.Core.WindowPlacement(1440, 920);
+        if (model.RememberWindowSize && File.Exists(windowSizePath)) {
+            try { saved = System.Text.Json.JsonSerializer.Deserialize<AchievementLabs.Core.WindowPlacement>(File.ReadAllText(windowSizePath)) ?? saved; }
+            catch { model.Notice = "Saved window placement could not be read; using the default."; }
         }
+        WindowState = WindowState.Normal;
+        var screen = saved.X is { } x && saved.Y is { } y
+            ? Screens.All.FirstOrDefault(s => s.WorkingArea.Contains(new PixelPoint(x, y))) ?? Screens.Primary
+            : Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        if (screen != null) {
+            var area = screen.WorkingArea;
+            var frame = FrameSize;
+            var frameWidth = frame.HasValue ? Math.Max(0, frame.Value.Width - ClientSize.Width) + 2 : 16;
+            var frameHeight = frame.HasValue ? Math.Max(0, frame.Value.Height - ClientSize.Height) + 2 : 48;
+            saved = AchievementLabs.Core.WindowPlacement.Fit(saved, area.X, area.Y, area.Width, area.Height, screen.Scaling, frameWidth, frameHeight);
+            // Very small/high-DPI displays may have less usable space than the usual UI minimum.
+            MinWidth = Math.Min(1120, saved.Width); MinHeight = Math.Min(720, saved.Height);
+        }
+        Width = saved.Width; Height = saved.Height;
+        if (saved.X is { } left && saved.Y is { } top) Position = new PixelPoint(left, top);
+        normalWidth = Width; normalHeight = Height; normalPosition = Position;
         windowPreferencesLoaded = true;
         if (model.AutoMaximize) WindowState = WindowState.Maximized;
     }

@@ -39,7 +39,9 @@ static class Test
    var appType=assembly.GetTypes().Single(t=>t.Name=="App" && typeof(Application).IsAssignableFrom(t));
    AppBuilder.Configure(()=> (Application)Activator.CreateInstance(appType)!).UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
    var window=(Window)Activator.CreateInstance(assembly.GetTypes().Single(t=>t.Name=="MainWindow"))!;
-   Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Remember window size")),"Window size setting present");
+   var saveAll = Desc<Button>(window).Single(b=>b.Name=="SaveAllSettings");
+   Assert(saveAll.Parent is StackPanel settingsPanel && settingsPanel.Children[0]==saveAll,"Save all settings is first in Settings");
+   Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Remember window size and position")),"Window size setting present");
    Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Maximize automatically on launch")),"Maximize setting present");
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="build-xbox-queue")==2,"Enter queue building attached to both configuration fields only");
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="lookup-spoof")==1,"Only title lookup accepts Enter, never start presence");

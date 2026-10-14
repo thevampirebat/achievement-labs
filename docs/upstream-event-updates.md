@@ -11,3 +11,5 @@ The separate public-data cache is atomically replaced only after a successful sn
 Enter in either queue configuration field builds the queue only when both reference gamertag and Title ID are populated, the account is connected and the existing command/configuration controls permit it. It does not start the queue or spoofing. Existing disabled/busy guards and AsyncRelayCommand execution protection remain active.
 
 Validation uses HTTP fixtures for new-title imports, existing-title protection, wrong title, missing templates, cache restart, throttle, malformed updates, network failure and cancellation. Windows CI covers the actual desktop window and release packaging. No events sent.
+
+Window placement follow-up: Save all settings is first in Settings. Remember window size now also preserves position; restored client size and outer frame are constrained to the selected monitor working area, including high-DPI and removed-monitor recovery. Old size-only files migrate without requiring a reset. Startup explicitly returns to normal state when automatic maximization is off.
