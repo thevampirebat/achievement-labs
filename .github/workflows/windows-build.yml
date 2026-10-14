@@ -53,12 +53,14 @@ jobs:
           Copy-Item -LiteralPath $taskExecutables[0].FullName -Destination artifacts/download/AchievementLabs.exe
           $taskHash = (Get-FileHash artifacts/download/AchievementLabs.exe -Algorithm SHA256).Hash
           "$taskHash  AchievementLabs.exe" | Set-Content artifacts/download/SHA256.txt -Encoding utf8
-          [ordered]@{ version="1.0.6.2"; bytes=(Get-Item artifacts/download/AchievementLabs.exe).Length; sha256=$taskHash.ToLowerInvariant() } | ConvertTo-Json | Set-Content artifacts/download/update.json -Encoding utf8
+          $taskFileVersion = (Get-Item artifacts/download/AchievementLabs.exe).VersionInfo.FileVersion
+          if ($taskFileVersion -notmatch '^\d+\.\d+\.\d+\.\d+$') { throw 'Invalid executable file version.' }
+          [ordered]@{ version=$taskFileVersion; bytes=(Get-Item artifacts/download/AchievementLabs.exe).Length; sha256=$taskHash.ToLowerInvariant() } | ConvertTo-Json | Set-Content artifacts/download/update.json -Encoding utf8
           @(
             'Achievement Labs fork build (Windows x64)'
             "Commit: $env:GITHUB_SHA"
             "Build: $env:GITHUB_RUN_NUMBER"
-            'Version: 1.0.6.2 source plus fork enhancements'
+            "Version: $taskFileVersion"
             'Signing: unsigned'
             'Offline enhancement checks: passed'
             'Live Xbox sign-in, event delivery and licensing have not been verified by this workflow.'
