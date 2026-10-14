@@ -39,6 +39,14 @@ static class Test
    var appType=assembly.GetTypes().Single(t=>t.Name=="App" && typeof(Application).IsAssignableFrom(t));
    AppBuilder.Configure(()=> (Application)Activator.CreateInstance(appType)!).UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
    var window=(Window)Activator.CreateInstance(assembly.GetTypes().Single(t=>t.Name=="MainWindow"))!;
+   Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Remember window size")),"Window size setting present");
+   Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Maximize automatically on launch")),"Maximize setting present");
+   Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="lookup-spoof")==1,"Only title lookup accepts Enter, never start presence");
+   Assert(!Desc<TextBox>(window).Any(c=>c.AcceptsReturn && c.Tag is string tag && tag=="save-token"),"Multiline text keeps normal Enter behaviour");
+   using (var routeClient = new AchievementLabs.Core.EventCatalogClient(true)) {
+       Assert(!routeClient.BundledTitleIds.Contains("345903534"),"Legacy Minecraft uses upstream route rather than Bedrock bundled data");
+       Assert(routeClient.BundledTitleIds.Contains("1828326430"),"Other Minecraft editions retain bundled route");
+   }
    Assert(Desc<ComboBox>(window).Any(c=>c.Name=="AchievementNameSort"),"Sort in real window");
    Assert(Desc<ComboBox>(window).Any(c=>c.Name=="AchievementPackFilter"),"Pack filter in real window");
    Assert(Desc<ListBox>(window).Any(l=>l.Name=="AchievementLabsAchievementList"),"Named real achievement list");

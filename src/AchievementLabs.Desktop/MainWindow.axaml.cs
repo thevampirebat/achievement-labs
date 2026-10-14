@@ -13,6 +13,9 @@ namespace AchievementLabs.Desktop;
 public partial class MainWindow : Window
 {
     private readonly DesktopModel model = new();
+    private double normalWidth = 1440, normalHeight = 920;
+    private bool windowPreferencesLoaded;
+    private static readonly string windowSizePath = AchievementLabs.Core.AchievementLabsPaths.LocalFile("window-size.json");
     private readonly DispatcherTimer dlcCatalogueTimer = new() { Interval = TimeSpan.FromHours(1) };
     private readonly DispatcherTimer xboxPresenceTimer = new() { Interval = TimeSpan.FromSeconds(2) };
 
@@ -37,6 +40,16 @@ public partial class MainWindow : Window
         var offlineChecks = AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var offline) && offline;
         dlcCatalogueTimer.Tick += async (_, _) => await model.RefreshDlcCatalogueAsync(false);
         if (!offlineChecks) { xboxPresenceTimer.Start(); dlcCatalogueTimer.Start(); }
+        SizeChanged += (_, _) => {
+            if (WindowState == WindowState.Normal) { normalWidth = Width; normalHeight = Height; }
+        };
+        Closing += (_, _) => {
+            if (!windowPreferencesLoaded || !model.RememberWindowSize) return;
+            try {
+                Directory.CreateDirectory(Path.GetDirectoryName(windowSizePath)!);
+                File.WriteAllText(windowSizePath, System.Text.Json.JsonSerializer.Serialize(new WindowDimensions(normalWidth, normalHeight)));
+            } catch { /* Closing must still succeed if the settings folder is unavailable. */ }
+        };
         Closed += (_, _) => { xboxPresenceTimer.Stop(); dlcCatalogueTimer.Stop(); model.Dispose(); };
         model.PropertyChanged += (_, e) =>
         {
@@ -83,7 +96,7 @@ public partial class MainWindow : Window
             if (!Environment.GetCommandLineArgs().Contains("--smoke-test")) {
                 var health = Environment.GetCommandLineArgs().SkipWhile(a => a != "--update-health").Skip(1).FirstOrDefault();
                 if (health != null && AppUpdater.IsUpdatePath(health)) File.WriteAllText(health, "Ready");
-                await model.LoadPreferencesAsync(); _ = model.CheckForUpdatesAsync(); _ = model.RefreshDlcCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return;
+                await model.LoadPreferencesAsync(); RestoreWindowPreferences(); _ = model.CheckForUpdatesAsync(); _ = model.RefreshDlcCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return;
             }
             try
             {
@@ -116,6 +129,41 @@ public partial class MainWindow : Window
             catch (Exception ex) { File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "smoke-error.txt"), ex.ToString()); Environment.ExitCode = 1; }
             Close();
         };
+    }
+    private sealed record WindowDimensions(double Width, double Height);
+    private void RestoreWindowPreferences()
+    {
+        if (model.RememberWindowSize && File.Exists(windowSizePath))
+        {
+            try {
+                var size = System.Text.Json.JsonSerializer.Deserialize<WindowDimensions>(File.ReadAllText(windowSizePath));
+                if (size != null && double.IsFinite(size.Width) && double.IsFinite(size.Height)) {
+                    var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+                    var maxWidth = screen == null ? 3840 : Math.Max(MinWidth, screen.WorkingArea.Width / screen.Scaling);
+                    var maxHeight = screen == null ? 2160 : Math.Max(MinHeight, screen.WorkingArea.Height / screen.Scaling);
+                    Width = Math.Clamp(size.Width, MinWidth, maxWidth);
+                    Height = Math.Clamp(size.Height, MinHeight, maxHeight);
+                    normalWidth = Width; normalHeight = Height;
+                }
+            } catch { model.Notice = "Saved window size could not be read; using the default size."; }
+        }
+        windowPreferencesLoaded = true;
+        if (model.AutoMaximize) WindowState = WindowState.Maximized;
+    }
+    private async void SubmitTextField(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || e.KeyModifiers != KeyModifiers.None || sender is not TextBox field || field.AcceptsReturn) return;
+        // Explicit allowlist: Enter never starts unlock/presence, writes stats, or removes data.
+        var action = field.Tag as string;
+        try {
+        if (action == "open-title" && model.CanQuery) { e.Handled = true; await model.LookupTitleAsync(); }
+        else if (action == "search-titles" && model.CanInteract) { e.Handled = true; await model.SearchTitlesAsync(); }
+        else if (action == "search-profile" && model.CanQuery) { e.Handled = true; await model.SearchGamertagAsync(); }
+        else if (action == "lookup-spoof" && model.CanLookupSpoofTitle) { e.Handled = true; await model.LookupSpoofTitleAsync(); }
+        else if (action == "load-steam" && model.CanInteract) { e.Handled = true; await model.LoadSteamAchievementsAsync(); }
+        else if (action == "save-token") { e.Handled = true; await model.SaveEventTokenAsync(); }
+        } catch (OperationCanceledException) { }
+        catch (Exception) { model.Notice = "The action could not be completed. Check the field and connection, then try again."; }
     }
     private void GoBack(object? s, RoutedEventArgs e) => model.GoBack();
     private void ShowAbout(object? s, RoutedEventArgs e) => model.Navigate("About");
