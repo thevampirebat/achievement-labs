@@ -25,6 +25,7 @@ public static class BundledCatalogTests
     }
     public static void Run()
     {
+        UpstreamEventCatalogueTests.Run();
         using var client = new EventCatalogClient(useBundledCatalog: true);
         var handler = new NoNetwork();
         typeof(EventCatalogClient).GetField("http", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(client, new HttpClient(handler));

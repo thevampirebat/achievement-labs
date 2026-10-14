@@ -38,7 +38,7 @@ public partial class MainWindow : Window
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
         xboxPresenceTimer.Tick += (_, _) => model.RefreshXboxPcAppPresence();
         var offlineChecks = AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var offline) && offline;
-        dlcCatalogueTimer.Tick += async (_, _) => await model.RefreshDlcCatalogueAsync(false);
+        dlcCatalogueTimer.Tick += async (_, _) => { await model.RefreshDlcCatalogueAsync(false); await model.RefreshEventCatalogueAsync(false); };
         if (!offlineChecks) { xboxPresenceTimer.Start(); dlcCatalogueTimer.Start(); }
         SizeChanged += (_, _) => {
             if (WindowState == WindowState.Normal) { normalWidth = Width; normalHeight = Height; }
@@ -96,7 +96,7 @@ public partial class MainWindow : Window
             if (!Environment.GetCommandLineArgs().Contains("--smoke-test")) {
                 var health = Environment.GetCommandLineArgs().SkipWhile(a => a != "--update-health").Skip(1).FirstOrDefault();
                 if (health != null && AppUpdater.IsUpdatePath(health)) File.WriteAllText(health, "Ready");
-                await model.LoadPreferencesAsync(); RestoreWindowPreferences(); _ = model.CheckForUpdatesAsync(); _ = model.RefreshDlcCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return;
+                await model.LoadPreferencesAsync(); RestoreWindowPreferences(); _ = model.CheckForUpdatesAsync(); _ = model.RefreshDlcCatalogueAsync(false); _ = model.RefreshEventCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return;
             }
             try
             {
@@ -153,7 +153,7 @@ public partial class MainWindow : Window
     private async void SubmitTextField(object? sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter || e.KeyModifiers != KeyModifiers.None || sender is not TextBox field || field.AcceptsReturn) return;
-        // Explicit allowlist: Enter never starts unlock/presence, writes stats, or removes data.
+        // Explicit allowlist: Enter builds queues for review but never starts unlock/presence.
         var action = field.Tag as string;
         try {
         if (action == "open-title" && model.CanQuery) { e.Handled = true; await model.LookupTitleAsync(); }
@@ -161,10 +161,14 @@ public partial class MainWindow : Window
         else if (action == "search-profile" && model.CanQuery) { e.Handled = true; await model.SearchGamertagAsync(); }
         else if (action == "lookup-spoof" && model.CanLookupSpoofTitle) { e.Handled = true; await model.LookupSpoofTitleAsync(); }
         else if (action == "load-steam" && model.CanInteract) { e.Handled = true; await model.LoadSteamAchievementsAsync(); }
+        else if (action == "build-xbox-queue" && model.CanQuery && model.XboxQueue.IsConfigEnabled
+            && !string.IsNullOrWhiteSpace(model.XboxQueue.ReferenceGamertag) && !string.IsNullOrWhiteSpace(model.XboxQueue.TitleId)
+            && model.XboxQueue.BuildQueueCommand.CanExecute(null)) { e.Handled = true; await model.XboxQueue.BuildQueueCommand.ExecuteAsync(null); }
         else if (action == "save-token") { e.Handled = true; await model.SaveEventTokenAsync(); }
         } catch (OperationCanceledException) { }
         catch (Exception) { model.Notice = "The action could not be completed. Check the field and connection, then try again."; }
     }
+    private async void RefreshEventCatalogue(object? sender, RoutedEventArgs e) => await model.RefreshEventCatalogueAsync();
     private void GoBack(object? s, RoutedEventArgs e) => model.GoBack();
     private void ShowAbout(object? s, RoutedEventArgs e) => model.Navigate("About");
     private void ShowLibrary(object? s, RoutedEventArgs e) => model.Navigate("Library");

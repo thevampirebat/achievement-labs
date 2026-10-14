@@ -13,6 +13,8 @@ internal sealed class BundledEventCatalog
     private readonly Dictionary<string, string> templates = new(StringComparer.Ordinal);
     public EventCatalogStatus Status { get; }
     private readonly HashSet<string> localTitles;
+    internal string[] ReservedTitleIds => data.Properties().Where(p => uint.TryParse(p.Name, out _)).Select(p => p.Name)
+        .Concat(Status.TitleIds).Concat(Status.TestingTitleIds ?? []).Concat(Status.ComingSoonTitleIds).Distinct().ToArray();
     internal string[] LocalTitleIds => localTitles.OrderBy(x => x, StringComparer.Ordinal).ToArray();
     private BundledEventCatalog()
     {

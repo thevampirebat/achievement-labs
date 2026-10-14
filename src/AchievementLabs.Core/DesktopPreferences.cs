@@ -19,6 +19,7 @@ public sealed record DesktopPreferences
     public bool StopAutoUnlockOnSpoofFailure { get; init; }
     public bool NotifyAutoUnlockCompletion { get; init; } = true;
     public bool NotifySpooferStops { get; init; } = true;
+    public bool AutoRefreshEvents { get; init; } = true;
     public bool AutoRefreshDlc { get; init; } = true;
     public bool ShowMythicIcon { get; init; } = true;
     public bool HighlightCompletedDlcs { get; init; } = true;

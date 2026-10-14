@@ -41,6 +41,7 @@ static class Test
    var window=(Window)Activator.CreateInstance(assembly.GetTypes().Single(t=>t.Name=="MainWindow"))!;
    Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Remember window size")),"Window size setting present");
    Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Maximize automatically on launch")),"Maximize setting present");
+   Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="build-xbox-queue")==2,"Enter queue building attached to both configuration fields only");
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="lookup-spoof")==1,"Only title lookup accepts Enter, never start presence");
    Assert(!Desc<TextBox>(window).Any(c=>c.AcceptsReturn && c.Tag is string tag && tag=="save-token"),"Multiline text keeps normal Enter behaviour");
    using (var routeClient = new AchievementLabs.Core.EventCatalogClient(true)) {

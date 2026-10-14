@@ -305,7 +305,7 @@ namespace AchievementLabs.Desktop.Workflows
                 {
                     if (EventCatalog == null) throw new InvalidOperationException("The event template service is unavailable.");
                     var catalog = await EventCatalog.GetCatalogAsync(CancellationToken.None);
-                    if (!catalog.TitleIds.Contains(TitleId)) throw new InvalidOperationException("This event-based title is not supported.");
+                    if (!catalog.TitleIds.Contains(TitleId) && !(catalog.TestingTitleIds ?? []).Contains(TitleId)) throw new InvalidOperationException("This event-based title is not supported.");
                     licensedIds = (await EventCatalog.GetTitleAsync(TitleId, CancellationToken.None)).AchievementIds.ToHashSet();
                 }
 
