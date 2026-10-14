@@ -12,6 +12,17 @@ public static class BundledCatalogTests
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         { Calls++; throw new Exception("Bundled catalogue must not access the network."); }
     }
+    sealed class UpstreamFixture : HttpMessageHandler
+    {
+        public List<string> Paths = [];
+        public bool Fail;
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            Paths.Add(request.RequestUri!.AbsolutePath);
+            var json = request.Method == HttpMethod.Get ? "{\"achievementIds\":[\"69\"]}" : "{\"payloads\":[\"fixture-payload\"]}";
+            return Task.FromResult(new HttpResponseMessage(Fail ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.OK) { Content = new StringContent(json) });
+        }
+    }
     public static void Run()
     {
         using var client = new EventCatalogClient(useBundledCatalog: true);
@@ -42,7 +53,9 @@ public static class BundledCatalogTests
                 achievements++;
             }
         }
-        Assert(achievements >= 15725 && payloads >= achievements, "Full enabled catalogue validated");
+        // Exclude exactly the 123 recipes deliberately routed back to upstream.
+        Assert(!client.BundledTitleIds.Contains("345903534") && client.BundledTitleIds.Contains("1828326430"), "Only legacy Minecraft leaves the local route");
+        Assert(achievements >= 15725 - 123 && payloads >= achievements, "Remaining enabled catalogue validated after the explicit 123-recipe exclusion");
         var sonic = client.GetTitleAsync("129325438", CancellationToken.None).GetAwaiter().GetResult();
         Assert(sonic.AchievementIds.Length == 48, "Previously validated Sonic Forces recipes retained");
         DishonoredMappingTests.Run(client);
@@ -58,6 +71,20 @@ public static class BundledCatalogTests
         try { client.GetTitleAsync("60633334", cancel.Token).GetAwaiter().GetResult(); }
         catch (OperationCanceledException) { blocked = true; }
         Assert(blocked && handler.Calls == 0, "Cancellation respected and no network requests made");
+        using (var remote = new EventCatalogClient(true)) {
+            var fixture = new UpstreamFixture();
+            typeof(EventCatalogClient).GetField("http", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(remote,
+                new HttpClient(fixture) { BaseAddress = new Uri("https://fixture.invalid/api/licensing/") });
+            var remoteIds = remote.GetTitleAsync("345903534", default).GetAwaiter().GetResult();
+            Assert(remoteIds.AchievementIds.SequenceEqual(new[]{"69"}), "Cupid mapping comes from upstream fixture");
+            var remotePayload = remote.GetPayloadsAsync("345903534", "69", "0", default).GetAwaiter().GetResult();
+            Assert(remotePayload.Payloads.SequenceEqual(new[]{"fixture-payload"}) && fixture.Paths.Count == 2
+                && fixture.Paths[1].EndsWith("/titles/345903534/payloads"), "Legacy payload uses upstream route");
+            fixture.Fail = true; blocked = false;
+            try { remote.GetPayloadsAsync("345903534", "69", "0", default).GetAwaiter().GetResult(); }
+            catch (HttpRequestException) { blocked = true; }
+            Assert(blocked && fixture.Paths.Count == 3, "Unavailable upstream fails without borrowed bundled fallback");
+        }
         Console.WriteLine($"PASS: bundled 1.0.6 catalogue: {titles.Length} advertised titles, {client.BundledTitleIds.Length} local titles, {achievements} usable achievements and {payloads} strict-JSON payloads; edition guards, invalid-entry rejection and 43 7 Days to Die mappings. No live requests.");
     }
 }
