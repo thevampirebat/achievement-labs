@@ -75,20 +75,27 @@ public sealed partial class DesktopModel
     private async Task SubmitAchievementsAsync(string[] ids)
     {
         if (client == null || session == null || SelectedGame == null) return;
-        var api = client; var account = session; var game = SelectedGame;
+        var game = SelectedGame;
         var source = definitions; var useEvents = eventBased; var directory = EventsDirectory;
-        if (useEvents && !EventTokenValidator.TryValidate(account.EventsToken, out _, out var tokenMessage))
-        {
-            ActionSummary = tokenMessage + " Paste a current event token in Settings before unlocking event-based achievements.";
-            if (EventTokenRequired != null) await EventTokenRequired();
-            return;
-        }
         Busy(true); ActionReports.Clear(); ActionSummary = "Submitting achievement actions…";
         try
         {
+            await EnsureAuthorizationFreshAsync(lifetime.Token);
+            if (useEvents)
+            {
+                try { await EnsureEventTokenAsync(lifetime.Token); }
+                catch (InvalidOperationException error)
+                {
+                    ActionSummary = error.Message;
+                    if (EventTokenRequired != null) await EventTokenRequired();
+                    return;
+                }
+            }
             await requests.WaitAsync(lifetime.Token);
             try
             {
+                if (client == null || session == null) return;
+                var api = client; var account = session;
                 foreach (var id in ids)
                 {
                     lifetime.Token.ThrowIfCancellationRequested();
@@ -135,6 +142,7 @@ public sealed partial class DesktopModel
             ActionSummary = $"Finished {ActionReports.Count} actions. Refresh achievements to verify account progress.";
         }
         catch (OperationCanceledException) { ActionSummary = "Stopped before the next request. Requests already sent may have completed."; }
+        catch (InvalidOperationException error) { ActionSummary = error.Message; }
         finally { Busy(false); }
     }
     private static string SummarizeEventError(string? responseBody)

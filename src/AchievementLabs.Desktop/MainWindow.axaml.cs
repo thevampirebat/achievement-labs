@@ -19,12 +19,12 @@ public partial class MainWindow : Window
     private static readonly string windowSizePath = AchievementLabs.Core.AchievementLabsPaths.LocalFile("window-size.json");
     private readonly DispatcherTimer dlcCatalogueTimer = new() { Interval = TimeSpan.FromHours(1) };
     private readonly DispatcherTimer xboxPresenceTimer = new() { Interval = TimeSpan.FromSeconds(2) };
+    private readonly DispatcherTimer tokenMaintenanceTimer = new() { Interval = AchievementLabs.Core.XboxTokenMaintenancePolicy.CheckInterval };
 
     public MainWindow()
     {
         InitializeComponent(); DataContext = model; model.EventTokenRequired = ShowEventTokenRequiredAsync;
         var notifications = new WindowNotificationManager(this) { Position = NotificationPosition.TopRight, MaxItems = 3 };
-        model.QueueTokenRefresh = ct => model.RefreshQueueEventTokenAsync(this, ct);
         model.AutoUnlockFailure = message => { notifications.Show(new Notification("Unlock failed", message, NotificationType.Error, TimeSpan.FromSeconds(10))); model.NotifyWindows("Unlock failed", message); };
         model.AutoUnlockCompleted = message => notifications.Show(new Notification("Auto unlock complete", message, NotificationType.Success, TimeSpan.FromSeconds(10)));
         model.SpooferFailure = message => notifications.Show(new Notification("Spoofer stopped", message, NotificationType.Error, TimeSpan.FromSeconds(10)));
@@ -33,14 +33,26 @@ public partial class MainWindow : Window
             if (AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var checks) && checks) return;
             if (!WindowsNotifications.TryShow(title, message)) model.Notice = "Windows notification could not be sent. Check Windows notification settings for Achievement Labs.";
         };
-        AchievementLabs.MultiSelect.EventTokenView.PreferredAcquireAsync = WamEventTokens.AcquireAsync;
         AchievementLabs.MultiSelect.BatchPicker.Attach(this);
         AchievementLabs.MultiSelect.SearchClearButtons.Attach(this);
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
         xboxPresenceTimer.Tick += (_, _) => model.RefreshXboxPcAppPresence();
         var offlineChecks = AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var offline) && offline;
+        var startupWindowCheck = Environment.GetCommandLineArgs().Contains("--window-startup-test");
+        if (!offlineChecks && !Environment.GetCommandLineArgs().Contains("--smoke-test") && !Environment.GetCommandLineArgs().Contains("--release-smoke-test"))
+        {
+            var maximize = true;
+            try
+            {
+                var path = AchievementLabs.Core.AchievementLabsPaths.LocalFile("native-settings.json");
+                if (!startupWindowCheck && File.Exists(path)) maximize = System.Text.Json.JsonSerializer.Deserialize<AchievementLabs.Core.DesktopPreferences>(File.ReadAllText(path))?.AutoMaximize ?? true;
+            }
+            catch { /* A missing/corrupt settings file must not prevent opening the window. */ }
+            WindowState = maximize ? WindowState.Maximized : WindowState.Normal;
+        }
         dlcCatalogueTimer.Tick += async (_, _) => { await model.RefreshDlcCatalogueAsync(false); await model.RefreshEventCatalogueAsync(false); };
-        if (!offlineChecks) { xboxPresenceTimer.Start(); dlcCatalogueTimer.Start(); }
+        tokenMaintenanceTimer.Tick += async (_, _) => await model.MaintainTokensAsync();
+        if (!offlineChecks && !Environment.GetCommandLineArgs().Contains("--smoke-test")) { xboxPresenceTimer.Start(); dlcCatalogueTimer.Start(); tokenMaintenanceTimer.Start(); }
         SizeChanged += (_, _) => {
             if (windowPreferencesLoaded && WindowState == WindowState.Normal) { normalWidth = Width; normalHeight = Height; }
         };
@@ -53,7 +65,7 @@ public partial class MainWindow : Window
                 File.WriteAllText(windowSizePath, System.Text.Json.JsonSerializer.Serialize(new AchievementLabs.Core.WindowPlacement(normalWidth, normalHeight, normalPosition?.X, normalPosition?.Y)));
             } catch { /* Closing must still succeed if the settings folder is unavailable. */ }
         };
-        Closed += (_, _) => { xboxPresenceTimer.Stop(); dlcCatalogueTimer.Stop(); model.Dispose(); };
+        Closed += (_, _) => { tokenMaintenanceTimer.Stop(); xboxPresenceTimer.Stop(); dlcCatalogueTimer.Stop(); model.Dispose(); };
         model.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(model.MintAccent)) ApplyAccent();
@@ -70,6 +82,19 @@ public partial class MainWindow : Window
         {
             // Headless regression tests must never attach to a real account.
             if (offlineChecks) return;
+            if (startupWindowCheck)
+            {
+                var initial = WindowState;
+                model.AutoMaximize = true; RestoreWindowPreferences();
+                await Task.Delay(500);
+                var checkArgs = Environment.GetCommandLineArgs();
+                var output = checkArgs.SkipWhile(a => a != "--output").Skip(1).First();
+                Directory.CreateDirectory(output);
+                var passed = initial == WindowState.Maximized && WindowState == WindowState.Maximized;
+                File.WriteAllText(Path.Combine(output,"window-startup.txt"), $"{(passed ? "PASS" : "FAIL")}: initial={initial}; after placement restore={WindowState}; maximized startup on Windows. No account calls.");
+                if (!passed) Environment.ExitCode = 1;
+                Close(); return;
+            }
             if (Environment.GetCommandLineArgs().Contains("--release-smoke-test"))
             {
                 var releaseArgs = Environment.GetCommandLineArgs();
@@ -120,10 +145,12 @@ public partial class MainWindow : Window
                 model.Navigate("Library"); await Task.Delay(100); bitmap.Render(root); bitmap.Save(Path.Combine(output, "native-library.png"), new PngBitmapEncoderOptions());
                                 model.Navigate("Settings"); await Task.Delay(150); bitmap.Render(root); bitmap.Save(Path.Combine(output, "native-settings.png"), new PngBitmapEncoderOptions());
                 model.EventsDirectory = Path.GetFullPath("src/AchievementLabs.App/Events"); await model.InspectCatalogAsync(); model.Navigate("Diagnostics"); await Task.Delay(150); bitmap.Render(root); bitmap.Save(Path.Combine(output, "native-catalog.png"), new PngBitmapEncoderOptions());
-                foreach (var page in new[] { "SteamLibrary", "SteamAchievements", "Epic", "Ubisoft", "Stats", "Legacy", "Gfwl", "Queues", "Tools" })
+                foreach (var page in new[] { "SteamLibrary", "SteamAchievements", "SteamQueue", "Epic", "Ubisoft", "Stats", "Gfwl", "Queues", "Tools" })
                 {
                     model.Navigate(page); await Task.Delay(100); bitmap.Render(root); bitmap.Save(Path.Combine(output, "native-" + page.ToLowerInvariant() + ".png"), new PngBitmapEncoderOptions());
                 }
+                model.OpenQueues(); BuildQueueTab.IsSelected = true; await Task.Delay(100);
+                bitmap.Render(root); bitmap.Save(Path.Combine(output, "native-build-queue.png"), new PngBitmapEncoderOptions());
                 Width = 1120; Height = 720; model.Navigate("Settings"); await Task.Delay(150);
                 using (var compact = new RenderTargetBitmap(new PixelSize((int)root.Bounds.Width, (int)root.Bounds.Height), new Vector(96,96))) { compact.Render(root); compact.Save(Path.Combine(output, "native-compact.png"), new PngBitmapEncoderOptions()); }
                 if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name is "PresentationFramework" or "WPF-UI")) throw new Exception("WPF UI assembly loaded into native desktop.");
@@ -157,7 +184,11 @@ public partial class MainWindow : Window
         if (saved.X is { } left && saved.Y is { } top) Position = new PixelPoint(left, top);
         normalWidth = Width; normalHeight = Height; normalPosition = Position;
         windowPreferencesLoaded = true;
-        if (model.AutoMaximize) WindowState = WindowState.Maximized;
+        if (model.AutoMaximize)
+        {
+            WindowState = WindowState.Maximized;
+            Dispatcher.UIThread.Post(() => { if (model.AutoMaximize) WindowState = WindowState.Maximized; }, DispatcherPriority.Loaded);
+        }
     }
     private async void SubmitTextField(object? sender, KeyEventArgs e)
     {
@@ -166,6 +197,7 @@ public partial class MainWindow : Window
         var action = field.Tag as string;
         try {
         if (action == "open-title" && model.CanQuery) { e.Handled = true; await model.LookupTitleAsync(); }
+        else if (action == "resolve-store-title" && model.CanInteract) { e.Handled = true; await model.ResolveStoreTitleAsync(); }
         else if (action == "search-titles" && model.CanInteract) { e.Handled = true; await model.SearchTitlesAsync(); }
         else if (action == "search-profile" && model.CanQuery) { e.Handled = true; await model.SearchGamertagAsync(); }
         else if (action == "lookup-spoof" && model.CanLookupSpoofTitle) { e.Handled = true; await model.LookupSpoofTitleAsync(); }
@@ -174,6 +206,9 @@ public partial class MainWindow : Window
             && !string.IsNullOrWhiteSpace(model.XboxQueue.ReferenceGamertag) && !string.IsNullOrWhiteSpace(model.XboxQueue.TitleId)
             && model.XboxQueue.BuildQueueCommand.CanExecute(null)) { e.Handled = true; await model.XboxQueue.BuildQueueCommand.ExecuteAsync(null); }
         else if (action == "save-token") { e.Handled = true; await model.SaveEventTokenAsync(); }
+        else if (action == "add-build-game" && model.XboxBuildQueue.CanAdd
+            && !string.IsNullOrWhiteSpace(model.XboxBuildQueue.ReferenceGamertag) && !string.IsNullOrWhiteSpace(model.XboxBuildQueue.TitleId)
+            && model.XboxBuildQueue.AddGameCommand.CanExecute(null)) { e.Handled = true; await model.XboxBuildQueue.AddGameCommand.ExecuteAsync(null); }
         } catch (OperationCanceledException) { }
         catch (Exception) { model.Notice = "The action could not be completed. Check the field and connection, then try again."; }
     }
@@ -225,6 +260,20 @@ public partial class MainWindow : Window
         await Clipboard.SetTextAsync(game.Id);
         model.Notice = $"Copied title ID {game.Id}.";
     }
+    private async void ResolveStoreTitle(object? s, RoutedEventArgs e) => await model.ResolveStoreTitleAsync();
+    private async void CopyStoreTitleId(object? s, RoutedEventArgs e)
+    {
+        if (model.HasStoreTitleId && Clipboard != null) await Clipboard.SetTextAsync(model.StoreTitleId);
+    }
+    private async void OpenStoreAchievements(object? s, RoutedEventArgs e)
+    {
+        if (!model.HasStoreTitleId) return;
+        if (!model.CanQuery) { model.Notice = "Connect Xbox before opening achievements. You can still copy the Title ID."; return; }
+        var game = model.Games.FirstOrDefault(g => g.Id == model.StoreTitleId)
+            ?? new Game(model.StoreTitleId, model.StoreTitleName, DesktopModel.IsKnownWindows8Title(model.StoreTitleId) ? "Windows8" : "XboxOne", 0, 0, 0);
+        if (await model.IsGfwlTitleAsync(game)) { model.OpenGfwlTitle(game); return; }
+        await model.SelectGameAsync(game);
+    }
     private async void CopySearchTitleId(object? s, RoutedEventArgs e)
     {
         if ((s as Button)?.Tag is not TitleSearchResult result || Clipboard == null) return;
@@ -273,8 +322,11 @@ public partial class MainWindow : Window
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title = "Export profile games", SuggestedFileName = "games.csv", DefaultExtension = "csv" });
         if (file?.TryGetLocalPath() is { } path) await model.ExportProfileGamesAsync(path);
     }
+    private void ShowSteamQueue(object? s, RoutedEventArgs e) => model.Navigate("SteamQueue");
+    private void OpenLibraryStats(object? s, RoutedEventArgs e) { if (s is Button { Tag: Game game }) model.OpenLibraryStats(game); }
     private void ShowQueues(object? s, RoutedEventArgs e) => model.OpenQueues();
     private async void RunXboxQueue(object? s, RoutedEventArgs e) => await model.RunXboxQueueAsync();
+    private async void RunXboxBuildQueue(object? s, RoutedEventArgs e) => await model.RunXboxBuildQueueAsync();
     private async void RunSteamQueue(object? s, RoutedEventArgs e) => await model.RunSteamQueueAsync();
     private void ShowLegacy(object? s, RoutedEventArgs e) => model.OpenLegacy();
     private async void ReadSave(object? s, RoutedEventArgs e) => await model.RunSaveToolAsync("Read");
@@ -345,7 +397,7 @@ public partial class MainWindow : Window
     private void StopPresence(object? s, RoutedEventArgs e) => model.StopPresence();
     private void ShowStats(object? s, RoutedEventArgs e) => model.OpenStats();
     private void UseStatsTitle(object? s, RoutedEventArgs e) => model.UseSelectedTitleForStats();
-    private async void SetDiscoveredStat(object? s, RoutedEventArgs e) { if (s is Button { Tag: Workflows.StatsEditorViewModel.StatDisplayItem item }) await model.StatsEditor.UpdateSingleStat(item); }
+    private async void SetDiscoveredStat(object? s, RoutedEventArgs e) { if (model.CanQuery && s is Button { Tag: Workflows.StatsEditorViewModel.StatDisplayItem item }) await model.StatsEditor.UpdateSingleStat(item); }
     private async void ReadStats(object? s, RoutedEventArgs e) => await model.ReadStatsAsync();
     private async void WriteStat(object? s, RoutedEventArgs e) => await model.WriteStatAsync();
     private void ToggleApiServer(object? s, RoutedEventArgs e) => model.ToggleApiServer();
@@ -395,8 +447,9 @@ public partial class MainWindow : Window
     private async void CheckUpdates(object? s, RoutedEventArgs e) => await model.CheckForUpdatesAsync(true);
     private void InstallUpdate(object? s, RoutedEventArgs e) { if (model.InstallUpdate()) Close(); }
     private async void SaveSettings(object? s, RoutedEventArgs e) => await model.SavePreferencesAsync();
+    private async void AcquireAccountEventToken(object? sender, RoutedEventArgs e) => await model.AcquireAccountEventTokenAsync(this);
     private async void SaveEventToken(object? s, RoutedEventArgs e) => await model.SaveEventTokenAsync();
-    private void ClearEventToken(object? s, RoutedEventArgs e) => model.ClearEventToken();
+    private async void ClearEventToken(object? s, RoutedEventArgs e) => await model.ClearEventTokenAsync();
     private async Task ShowEventTokenRequiredAsync()
     {
         var dialog = new Window { Title = "Event token needed", Width = 470, Height = 235, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner };

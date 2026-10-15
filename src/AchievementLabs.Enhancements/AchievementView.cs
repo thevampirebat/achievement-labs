@@ -15,7 +15,7 @@ public static class AchievementView
     static object? Prop(object? o,string key)=>o?.GetType().GetProperty(key,Flags)?.GetValue(o);
     public static string Normalize(string text)=>new string(text.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
     public static readonly string[] Packs={"All packs", "Base game", "Onslaught", "Devastation", "Invasion", "Nemesis", "Unclassified"};
-    public static readonly string[] Sorts={"Original order", "Name A–Z", "Name Z–A"};
+    public static readonly string[] Sorts={"Original order", "Name A–Z", "Name Z–A", "Global % low to high", "Global % high to low"};
     public static readonly Dictionary<string,string> Ghosts=new(StringComparer.Ordinal);
     static AchievementView()
     {
@@ -63,6 +63,13 @@ public static class AchievementView
         IOrderedEnumerable<object> ordered=result.OrderBy(r=>grouped?Array.IndexOf(packNames,GetGroup(r)):0);
         if(sort==1)ordered=ordered.ThenBy(r=>Prop(r,"Name")?.ToString(),StringComparer.CurrentCultureIgnoreCase);
         if(sort==2)ordered=ordered.ThenByDescending(r=>Prop(r,"Name")?.ToString(),StringComparer.CurrentCultureIgnoreCase);
+        if(sort is 3 or 4)
+        {
+            ordered=ordered.ThenBy(r=>Prop(r,"GlobalUnlockPercentage") is not double);
+            ordered=sort==3 ? ordered.ThenBy(r=>Prop(r,"GlobalUnlockPercentage") as double?)
+                : ordered.ThenByDescending(r=>Prop(r,"GlobalUnlockPercentage") as double?);
+            ordered=ordered.ThenBy(r=>Prop(r,"Name")?.ToString(),StringComparer.CurrentCultureIgnoreCase);
+        }
         return ordered.ToArray();
     }
     public static Array Transform(Array rows,object model, bool respectCollapse = true)
@@ -110,7 +117,9 @@ public static class AchievementView
         var packs=new ComboBox {Name="AchievementPackFilter",ItemsSource=Packs,SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
         var packLabel=new TextBlock {Text="BASE GAME / DLC",FontSize=11,Opacity=0.75};
         var info=new TextBlock {FontSize=11,Opacity=0.7,TextWrapping=TextWrapping.Wrap};
-        controls.Children.Add(new TextBlock{Text="SORT ACHIEVEMENTS",FontSize=11,Opacity=0.75});controls.Children.Add(sort);
+        var toolbar = owner.GetLogicalDescendants().OfType<StackPanel>().FirstOrDefault(p => p.Name == "AchievementSortToolbar");
+        if (toolbar != null) { sort.MinWidth=150; toolbar.Children.Add(sort); }
+        else { controls.Children.Add(new TextBlock{Text="SORT ACHIEVEMENTS",FontSize=11,Opacity=0.75}); controls.Children.Add(sort); }
         controls.Children.Add(packLabel);controls.Children.Add(packs);controls.Children.Add(info);
         panel.Children.Insert(panel.Children.IndexOf(before),controls);
         void Changed()=>model.GetType().GetMethod("Changed",Flags)?.Invoke(model,new object[]{"VisibleAchievements"});

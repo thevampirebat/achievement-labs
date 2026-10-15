@@ -17,9 +17,9 @@ static class Test
  static void Submit(Window d)=>Click(Desc<Button>(d).Single(b=>(b.Content as string)=="Unlock / retry selected"));
  public static void Main(string[] args)
  {
+  if(args.Contains("--ui-tweaks")){UITweakTests.Run();return;}
   if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();return;}
   if(args.Contains("--playtime")){PlaytimeTests.Run();return;}
-  if(args.Contains("--auto-token")){AutomaticTokenTests.Run();return;}
   if(args.Contains("--export")){ExportTests.Run();return;}
   if(args.Contains("--mapping")){MappingTests.Run();return;}
   if(args.Contains("--editions")){EditionMappingTests.Run();return;}
@@ -42,7 +42,7 @@ static class Test
    var saveAll = Desc<Button>(window).Single(b=>b.Name=="SaveAllSettings");
    Assert(saveAll.Parent is StackPanel settingsPanel && settingsPanel.Children[0]==saveAll,"Save all settings is first in Settings");
    Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Remember window size and position")),"Window size setting present");
-   Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Maximize automatically on launch")),"Maximize setting present");
+   Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Always open maximized")),"Maximize setting present");
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="build-xbox-queue")==2,"Enter queue building attached to both configuration fields only");
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="lookup-spoof")==1,"Only title lookup accepts Enter, never start presence");
    Assert(!Desc<TextBox>(window).Any(c=>c.AcceptsReturn && c.Tag is string tag && tag=="save-token"),"Multiline text keeps normal Enter behaviour");
@@ -50,7 +50,12 @@ static class Test
        Assert(!routeClient.BundledTitleIds.Contains("345903534"),"Legacy Minecraft uses upstream route rather than Bedrock bundled data");
        Assert(routeClient.BundledTitleIds.Contains("1828326430"),"Other Minecraft editions retain bundled route");
    }
+   Assert(Desc<ProgressBar>(window).Any(p=>p.Name=="LibraryRefreshProgressBar"),"Library refresh progress control present");
+   Assert(Desc<TextBlock>(window).Any(p=>p.Name=="LibraryRefreshStatusText"),"Library refresh stage/stats present");
    Assert(Desc<ComboBox>(window).Any(c=>c.Name=="AchievementNameSort"),"Sort in real window");
+   Assert(Desc<ComboBox>(window).Single(c=>c.Name=="AchievementNameSort").Parent is StackPanel { Name: "AchievementSortToolbar" },"Achievement sort sits in the top toolbar");
+   Assert(!Desc<TabItem>(window).Any(t=>Equals(t.Header,"Steam")),"Steam queue is not a tab of the Xbox queue");
+   Assert(!Desc<Button>(window).Any(b=>Equals(b.Content,"Legacy tools")),"Legacy tools navigation is removed");
    Assert(Desc<ComboBox>(window).Any(c=>c.Name=="AchievementPackFilter"),"Pack filter in real window");
    Assert(Desc<ListBox>(window).Any(l=>l.Name=="AchievementLabsAchievementList"),"Named real achievement list");
    Assert(Desc<Button>(window).Any(b=>(b.Content as string)=="Select multiple…"),"Batch button in real window");
@@ -63,9 +68,9 @@ static class Test
    Assert(Desc<CheckBox>(window).Any(c=>c.Name=="CompletedDlcSetting"),"DLC colour setting present");
    Assert(Desc<StackPanel>(window).Count(b=>b.Name=="XboxRecordedPlaytime")==1,"Xbox-recorded playtime panel attached to spoofer");
    Assert(Desc<Button>(window).Single(b=>b.Name=="RefreshXboxPlaytime").IsEnabled==false,"Playtime disabled without connected account");
-   Assert(Desc<StackPanel>(window).Count(b=>b.Name=="AutomaticEventToken")==1,"Automatic token controls attached to Settings");
-   Assert(Desc<Button>(window).Single(b=>b.Name=="GetEventTokenNow").IsEnabled==false,"Token retrieval disabled without connected account");
    Assert(Desc<Button>(window).Single(b=>b.Name=="CheckPresenceLogin").IsEnabled==false,"Read-only login check disabled disconnected");
+   Assert(!Desc<Button>(window).Any(b=>b.Name is "HomeGrabEventToken" or "GrabEventTokenShortcut" or "GetEventTokenNow"),"Background token-capture controls remain removed");
+   Assert(!Desc<Button>(window).Single(b=>b.Name=="AcquireConnectedAccountEventToken").IsEnabled,"Explicit matching-account token request disabled disconnected");
    Assert(Desc<CheckBox>(window).Single(b=>b.Name=="ShowEventToken").IsChecked==false,"Token hidden by default");
    Assert(Desc<Button>(window).Count(b=>b.Name=="OpenGameAutoSpoofer")==1,"Game queue shortcut attached");
    Assert(Equals(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Content,"Open Auto Unlock"),"Game shortcut label matches destination");
@@ -75,7 +80,7 @@ static class Test
    Assert(Desc<CheckBox>(window).Any(b=>b.Name=="StopQueueOnSpoofFailure"), "Spoof failure stop option on queue page");
    Assert(Desc<CheckBox>(window).Any(b=>b.Name=="NotifyQueueCompletion"), "Queue completion notification option present");
    var queueOptions=Desc<WrapPanel>(window).Single(b=>b.Name=="QueueUnlockOptions");
-   Assert(Desc<CheckBox>(queueOptions).Count()==5, "All five queue toggles share one wrapping row");
+   Assert(Desc<CheckBox>(queueOptions).Count()==4, "All four queue toggles share one wrapping row");
    Assert(Desc<CheckBox>(queueOptions).Any(b=>b.Name=="StopQueueOnSpoofFailure") && Desc<CheckBox>(queueOptions).Any(b=>b.Name=="NotifyQueueCompletion"), "Spoofer and completion toggles share the existing options row");
    Assert(Desc<Button>(window).Any(b=>Equals(b.Content,"Save queue delays")), "Manual delay save present");
    Assert(Desc<CheckBox>(window).Any(b=>Equals(b.Content,"Stop on unlock failure")), "Failure stop toggle present");
@@ -105,13 +110,22 @@ static class Test
     Assert(clientType.GetField("_xauth",flags)?.FieldType==typeof(string),"Existing client authentication integration");
     Assert(model.GetType().GetField("session",flags)!.FieldType.GetProperty("Xuid")!=null,"Existing session account integration");
     var input=Desc<TextBox>(window).Single(t=>t.PlaceholderText=="Paste event token");
-    var tokenSession=System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(model.GetType().GetField("session",flags)!.FieldType);
-    TokenPresentation.Install(model,tokenSession,new AutomaticEventToken.Grant("synthetic-display-token",DateTimeOffset.UtcNow.AddHours(1)),"",true);
-    Dispatcher.UIThread.RunJobs();Assert(input.Text=="synthetic-display-token","Automatic token reaches actual bound paste box");
+    var tokenSession=new AchievementLabs.Core.ConnectedXboxSession("XBL3.0 x=synthetic;auth", "123", "");
+    model.GetType().GetField("session",flags)!.SetValue(model,tokenSession);
+    const string displayToken="x:XBL3.0 x=synthetic;display-token";
+    ((AchievementLabs.Desktop.DesktopModel)model).EventTokenInput=displayToken;
+    Dispatcher.UIThread.RunJobs();Assert(input.Text==displayToken,"Manual token reaches actual bound paste box");
     var reveal=Desc<CheckBox>(window).Single(t=>t.Name=="ShowEventToken");
     Assert(input.PasswordChar!='\0',"Actual token box masked initially");reveal.IsChecked=true;Assert(input.PasswordChar=='\0',"Reveal works");reveal.IsChecked=false;
-    TokenPresentation.ClearOwnInput(model,"synthetic-display-token");Dispatcher.UIThread.RunJobs();Assert(input.Text=="","Clearing removes token from actual box");
+    ((AchievementLabs.Desktop.DesktopModel)model).EventTokenInput="";Dispatcher.UIThread.RunJobs();Assert(input.Text=="","Clearing removes token from actual box");
+    model.GetType().GetField("session",flags)!.SetValue(model,null);
     var typedModel=(AchievementLabs.Desktop.DesktopModel)model;
+    typedModel.Navigate("SteamQueue"); Dispatcher.UIThread.RunJobs();
+    Assert(!Desc<Button>(window).Single(b=>b.Name=="XboxAutoUnlockNav").Classes.Contains("active") && Desc<Button>(window).Single(b=>b.Name=="SteamAutoUnlockNav").Classes.Contains("active"),"Steam queue highlights only its Steam navigation child");
+    typedModel.Navigate("Queues"); Dispatcher.UIThread.RunJobs();
+    Assert(Desc<Button>(window).Single(b=>b.Name=="XboxAutoUnlockNav").Classes.Contains("active") && !Desc<Button>(window).Single(b=>b.Name=="SteamAutoUnlockNav").Classes.Contains("active"),"Xbox queue keeps its independent navigation");
+    var libraryRow=Desc<ListBox>(window).Single(l=>l.Name=="XboxLibraryList").ItemTemplate!.Build(new AchievementLabs.Desktop.Game("1","Fixture","XboxOne",0,1,0))!;
+    Assert(libraryRow.GetLogicalDescendants().OfType<Button>().Select(b=>b.Content?.ToString()).SequenceEqual(new[]{"Copy ID","Open achievements","Open stats"}),"Library has exactly three requested actions");
     var spooferPlaytime=Desc<TextBlock>(window).Single(t=>t.Name=="QueueRecordedPlaytime");
     Assert(Desc<TextBlock>(window).Any(t=>t.Text=="TITLE SPOOFER"), "Separate spoofer status tile present in Auto Unlock");
     typedModel.GetType().GetProperty("ActiveSpoofTitle")!.SetValue(typedModel,"Synthetic title · 42");
@@ -137,21 +151,6 @@ static class Test
     typedModel.XboxQueue.IsRunning=true;typedModel.XboxQueue.IsConfigEnabled=false;Dispatcher.UIThread.RunJobs();
     Assert(queueList.IsEnabled && !typedModel.XboxQueue.QueueItems[0].CanEditDelay,"Running queue list remains enabled while delay controls are locked");
     typedModel.XboxQueue.IsRunning=false;typedModel.XboxQueue.IsConfigEnabled=true;
-    var sessionField=model.GetType().GetField("session",flags)!;
-    var syntheticSession=new AchievementLabs.Core.ConnectedXboxSession("synthetic-auth","123","");
-    sessionField.SetValue(model,syntheticSession);
-    var changed=model.GetType().GetMethod("Changed",flags)!;
-    Desc<CheckBox>(window).Single(b=>b.Name=="AutomaticEventTokenEnabled").IsChecked=false;
-    var preferred=EventTokenView.PreferredAcquireAsync;
-    EventTokenView.PreferredAcquireAsync=(_,_,_)=>Task.FromResult<AutomaticEventToken.Grant?>(new("synthetic-retrieved-token",DateTimeOffset.UtcNow.AddHours(1)));
-    changed.Invoke(model,new object[]{"CanQuery"});Dispatcher.UIThread.RunJobs();
-    Click(Desc<Button>(window).Single(b=>b.Name=="GetEventTokenNow"));
-    Assert(input.Text=="synthetic-retrieved-token","Retrieved token shown");
-    sessionField.SetValue(model,syntheticSession with {EventsToken="synthetic-retrieved-token"});
-    changed.Invoke(model,new object[]{"CanQuery"});Dispatcher.UIThread.RunJobs();
-    Assert(input.Text=="synthetic-retrieved-token","Immutable Save session replacement preserves retrieved input");
-    EventTokenView.PreferredAcquireAsync=preferred;sessionField.SetValue(model,null);
-    changed.Invoke(model,new object[]{"CanQuery"});Dispatcher.UIThread.RunJobs();
     window.Show();var export=ExportAllView.Show(window,model);Dispatcher.UIThread.RunJobs();
     var dialog=window.OwnedWindows.Single();
     Assert(Desc<ProgressBar>(dialog).Any(b=>b.Name=="AllAchievementsProgress"),"Export progress bar present");

@@ -58,7 +58,7 @@ public static class QueueTools
   Set(state,"CurrentIndex",Math.Min(next,kept.Length));
   Set(state,"RemainingDelaySeconds",keepCurrent?delay:next<kept.Length?Convert.ToDouble(P(kept[next],"DelaySeconds")??0d):0d);
   Set(state,"IsRunning",false);
-  try{Call(state,"Save");}
+  try{if(model.GetType().GetMethod("SaveState",Flags,Type.EmptyTypes)!=null)Call(model,"SaveState");else Call(state,"Save");}
   catch{list.Clear();foreach(var item in original)list.Add(item);Set(state,"CurrentIndex",index);Set(state,"RemainingDelaySeconds",delay);throw;}
   Call(model,"PopulateQueueDisplay");Call(model,"UpdateProgressText");
   Set(model,"StatusText",$"Removed {count} achievement(s). Queue saved. Click Start when ready.");

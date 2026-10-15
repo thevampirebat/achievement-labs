@@ -13,6 +13,7 @@ public sealed record DesktopPreferences
     public bool FakeSignature { get; init; }
     public bool PrivacyMode { get; init; }
     public bool AutoSpoof { get; init; }
+    public double BuildQueueBufferSeconds { get; init; } = 60;
     public bool AutoLaunchXboxApp { get; init; }
     public bool LaunchXboxAppHidden { get; init; }
     public bool WindowsNotificationsEnabled { get; init; } = true;

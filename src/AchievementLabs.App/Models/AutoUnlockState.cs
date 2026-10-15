@@ -29,10 +29,12 @@ namespace AchievementLabs.Models
         /// Whether this achievement has already been unlocked by the auto unlocker
         /// </summary>
         public bool Completed { get; set; }
+        public int EventRequestIndex { get; set; }
     }
 
     public class AutoUnlockState
     {
+        public string OwnerXuid { get; set; } = "";
         /// <summary>
         /// Reference gamertag used to build the queue
         /// </summary>
