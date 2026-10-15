@@ -10,8 +10,8 @@ namespace AchievementLabs.Core;
 /// <summary>Additive public data updates. Author-maintained mappings always win.</summary>
 public sealed class UpstreamEventCatalogue
 {
-    public const string BundledSourceCommit = "a6d64af6e14037f8acc35ef97df14bcc54b015d3";
-    private const string BundledArchiveDigest = "85460a9c7712487b1cd718cd4c51d2139fa830def4a8b5d6447ecee41a777ef0";
+    public const string BundledSourceCommit = "1a76574db3ca4d5ee02f162a63cf0ce3123b3db9";
+    private const string BundledArchiveDigest = "f763e3048d7fda9d9e226dec0f40211937d0ffd454083aa29a7cd3f5af67b159";
     private readonly string cachePath;
     private readonly HashSet<string> reserved;
     private readonly SemaphoreSlim refreshGate = new(1, 1);
