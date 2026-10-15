@@ -1,4 +1,4 @@
-> This fork combines upstream v1.0.7 with the retained fork improvements. See [the integration notes](docs/upstream-v1.0.7-port.md) for changes, catalogue update behavior and validation. Fork executable updates continue to use this repository.
+> This fork combines upstream v1.0.8 with the retained fork improvements. See [the latest integration notes](docs/upstream-v1.0.8-port.md) for changes, catalogue update behavior and validation. Fork executable updates continue to use this repository.
 
 # Achievement Labs
 
@@ -23,7 +23,7 @@ dotnet build .\src\AchievementLabs.Desktop\AchievementLabs.Desktop.csproj -c Rel
 Create the self-contained single-file release candidate with:
 
 ```powershell
-pwsh -File .\tools\Build-Release.ps1 -Version 1.0.7
+pwsh -File .\tools\Build-Release.ps1 -Version 1.0.8
 ```
 
 The release script builds the Avalonia desktop application, the x86 GFWL helper,
