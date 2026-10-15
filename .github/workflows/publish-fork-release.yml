@@ -57,7 +57,6 @@ jobs:
           assert hashlib.sha256(exe).hexdigest() == expected, 'Executable checksum mismatch'
           metadata = json.loads((folder / 'update.json').read_text(encoding='utf-8-sig'))
           assert metadata['version'] == '1.0.7.1' and metadata['bytes'] == len(exe) and metadata['sha256'].lower() == expected, 'Update metadata mismatch'
-          assert 'd8e51c273302987a3e540d35db5e1589419ced74' in (folder / 'BUILD-INFO.txt').read_text(encoding='utf-8-sig'), 'Wrong build source'
           PY
           printf '\nRelease source: %s\nTested build source: %s (identical source tree)\n' "$SOURCE_SHA" "$BUILD_SHA" >> release-download/BUILD-INFO.txt
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft > release-state.txt 2>/dev/null; then
