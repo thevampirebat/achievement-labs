@@ -24,7 +24,6 @@ public sealed partial class DesktopModel
     private Game WithLibraryPresentation(Game game)
     {
         var title = SharedDlcCatalogue.Current.Find(game.Id, game.Platform);
-        if (game.Total <= 0 && title != null) game = game with { Total = title.Packs.Sum(p => p.Achievements.Length) };
         completionProgress.TryGetValue(game.Id, out var cached);
         var result = CompletionMarkers.Evaluate(title, cached?.Rows ?? [], game.Total, game.Completed, game.ProgressKnown);
         bool mythic = result.BaseComplete || cached?.MythicEarned == true;

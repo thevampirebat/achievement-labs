@@ -13,6 +13,8 @@ public class Observable : INotifyPropertyChanged
 }
 public record Achievement(string Id, string Name, string Description, int Score, bool Unlocked, bool ProgressKnown = true, bool ScoreKnown = true, string? ImageUrl = null)
 {
+    public double? GlobalUnlockPercentage { get; init; }
+    public string GlobalUnlockLabel => GlobalUnlockPercentage is { } value ? value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%" : "—";
     public string Status => !ProgressKnown ? "Not available" : Unlocked ? "Unlocked" : "Locked";
     public string Symbol => Unlocked ? "✓" : "◇";
     public string ScoreLabel => ScoreKnown ? $"{Score} G" : "Not available";
@@ -98,7 +100,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
     public bool HasLibrarySelection => SelectedLibraryGame != null;
     public Achievement? SelectedAchievement { get => selectedAchievement; set { selectedAchievement = value; Changed(); Changed(nameof(HasSelection)); NotifyActions(); } }
     public string Search { get => search; set { search = value ?? ""; Changed(); Refresh(); } }
-    public string PageTitle => page switch { "About" => "About Achievement Labs", "Home" => "Home", "Tools" => "Tools and information", "Queues" => "Auto unlock queues", "Legacy" => "Legacy tools", "Gfwl" => "Games for Windows LIVE", "Xbox360Profiles" => "Xbox 360 profiles", "Xbox360ProfileEditor" => "Xbox 360 achievement editor", "SteamLibrary" => "Steam library", "SteamAchievements" => "Steam achievements", "Spoofer" => "Xbox title spoofer", "Epic" => "Epic Games", "Ubisoft" => "Ubisoft Connect", "Stats" => "Stats editor", "Settings" => "Settings", "Diagnostics" => "Event catalog", "Library" => "Xbox library", _ => "Xbox achievements" };
+    public string PageTitle => page switch { "About" => "About Achievement Labs", "Home" => "Home", "Tools" => "Tools and information", "Queues" => "Xbox auto unlock queues", "SteamQueue" => "Steam Auto Unlocker", "Legacy" => "Legacy tools", "Gfwl" => "Games for Windows LIVE", "Xbox360Profiles" => "Xbox 360 profiles", "Xbox360ProfileEditor" => "Xbox 360 achievement editor", "SteamLibrary" => "Steam library", "SteamAchievements" => "Steam achievements", "Spoofer" => "Xbox title spoofer", "Epic" => "Epic Games", "Ubisoft" => "Ubisoft Connect", "Stats" => "Stats editor", "Settings" => "Settings", "Diagnostics" => "Event catalog", "Library" => "Xbox library", _ => "Xbox achievements" };
     public bool IsHome => page == "Home";
     public bool IsSpoofer => page == "Spoofer";
     public bool IsAchievements => page == "Achievements";
@@ -118,6 +120,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
     public string HomeSteamSummary => $"{SteamProfileName} · Level {SteamLevel} · {SteamStatus}";
     public bool CanGoBack => pageHistory.Count > 0;
     public void Navigate(string destination) {
+        if (destination == "Legacy") return;
         if (destination == page) return;
         if (page == "Achievements" && destination != "Achievements" && autoPresenceTask != null) StopPresence();
         pageHistory.Push(page); SetPage(destination);
@@ -128,7 +131,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         if (page == "Achievements" && autoPresenceTask != null) StopPresence();
         SetPage(pageHistory.Pop());
     }
-    private void SetPage(string destination) { page = destination; Changed(nameof(CanGoBack)); Changed(nameof(IsAbout)); Changed(nameof(PageTitle)); Changed(nameof(IsHome)); Changed(nameof(IsSpoofer)); Changed(nameof(IsAchievements)); Changed(nameof(IsLibrary)); Changed(nameof(IsSettings)); Changed(nameof(IsDiagnostics)); Changed(nameof(IsStats)); Changed(nameof(IsPlatform)); Changed(nameof(IsEpic)); Changed(nameof(IsUbisoft)); Changed(nameof(IsSteam)); Changed(nameof(IsSteamLibrary)); Changed(nameof(IsSteamAchievements)); Changed(nameof(IsLegacy)); Changed(nameof(IsGfwl)); Changed(nameof(IsXbox360Profiles)); Changed(nameof(IsXbox360ProfileEditor)); Changed(nameof(IsQueues)); Changed(nameof(IsTools)); }
+    private void SetPage(string destination) { page = destination; Changed(nameof(CanGoBack)); Changed(nameof(IsAbout)); Changed(nameof(PageTitle)); Changed(nameof(IsHome)); Changed(nameof(IsSpoofer)); Changed(nameof(IsAchievements)); Changed(nameof(IsLibrary)); Changed(nameof(IsSettings)); Changed(nameof(IsDiagnostics)); Changed(nameof(IsStats)); Changed(nameof(IsPlatform)); Changed(nameof(IsEpic)); Changed(nameof(IsUbisoft)); Changed(nameof(IsSteam)); Changed(nameof(IsSteamLibrary)); Changed(nameof(IsSteamAchievements)); Changed(nameof(IsLegacy)); Changed(nameof(IsGfwl)); Changed(nameof(IsXbox360Profiles)); Changed(nameof(IsXbox360ProfileEditor)); Changed(nameof(IsQueues)); Changed(nameof(IsSteamQueue)); Changed(nameof(IsTools)); }
     private void ApplyXboxProfile(ProfileUser? user)
     {
         ProfileName = user?.Settings.FirstOrDefault(s => s.Id == "Gamertag")?.Value ?? "Xbox account";
@@ -142,7 +145,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         SelectedAchievement = matches.Contains(SelectedAchievement) ? SelectedAchievement : matches.FirstOrDefault();
         Changed(nameof(VisibleAchievements)); Changed(nameof(NoResults)); Changed(nameof(ResultLabel)); Changed(nameof(CanExport));
     }
-    private void Busy(bool value) { busy = value; Changed(nameof(CanConnect)); Changed(nameof(CanInteract)); Changed(nameof(CanDisconnect)); Changed(nameof(CanQuery)); Changed(nameof(CanLookupSpoofTitle)); Changed(nameof(CanFillTotals)); Changed(nameof(CanStartPresence)); NotifyActions(); }
+    private void Busy(bool value) { busy = value; Changed(nameof(CanAcquireAccountEventToken)); Changed(nameof(CanConnect)); Changed(nameof(CanInteract)); Changed(nameof(CanDisconnect)); Changed(nameof(CanQuery)); Changed(nameof(CanLookupSpoofTitle)); Changed(nameof(CanFillTotals)); Changed(nameof(CanStartPresence)); NotifyActions(); }
     public Task ConnectAsync() => AttachXboxPcAppAsync();
 
     private async Task ActivateXboxSessionAsync(ConnectedXboxSession connected, XboxApiClient candidate, string method)
@@ -156,6 +159,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         LoadLibraryTotals();
         LoadCompletionCache();
         connectionMethod = method;
+        BeginTokenMaintenance();
         ApplyXboxProfile(result.Profile?.ProfileUsers.FirstOrDefault());
         Games = result.Titles.Titles.Where(t => t.TitleId != null).Select(t => new Game(t.TitleId!, t.Name ?? t.TitleId!, ClassifyXboxPlatform(t.TitleId!, t.Devices), t.Achievement?.CurrentAchievements ?? 0, t.Achievement?.TotalAchievements ?? 0, t.Achievement?.CurrentGamerscore ?? 0, true, ResolveTitleImage(t.DisplayImage, t.Images), t.TitleHistory?.LastTimePlayed)).OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase).ToArray();
         Changed(nameof(ConnectionLabel)); Changed(nameof(CanDisconnect)); Changed(nameof(HomeXboxSummary));
@@ -198,7 +202,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
                 var reader = new AchievementLabs.MultiSelect.AchievementExport(http, xuid);
                 var rows = await reader.Achievements(new(game.Id, game.Name, game.Platform.Replace(" / ", ", "), game.Score), lifetime.Token);
                 loaded = rows.Select(a => new Achievement(a.Id, a.Name, a.Description,
-                    int.TryParse(a.Score, out var score) ? score : 0, a.Status == "Unlocked", a.Status is "Unlocked" or "Locked")).ToArray();
+                    int.TryParse(a.Score, out var score) ? score : 0, a.Status == "Unlocked", a.Status is "Unlocked" or "Locked", ImageUrl: a.ImageUrl) { GlobalUnlockPercentage = a.GlobalUnlockPercentage }).ToArray();
             }
             else
             {
@@ -261,7 +265,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         GamePlaytimeText = "Xbox-recorded playtime: Unavailable for local export";
         Search = ""; Filter("All"); Navigate("Achievements"); Notice = $"Opened {achievements.Length} achievements from a local export.";
     }
-    private static Achievement[] Map(AchievementsResponse response) => response.achievements.Where(a => !string.Equals(a.achievementType, "Challenge", StringComparison.OrdinalIgnoreCase)).Select(a => new Achievement(a.id, a.name, (a.progressState == "Achieved" ? a.description : a.lockedDescription) ?? a.description ?? "", int.TryParse(a.rewards.FirstOrDefault(r => r.type == "Gamerscore")?.value, out var score) ? score : 0, a.progressState == "Achieved", a.progressState != "Null", a.rewards.Any(r => r.type == "Gamerscore"), a.mediaAssets.FirstOrDefault(m => m.type == "Icon")?.url ?? a.mediaAssets.FirstOrDefault()?.url)).ToArray();
+    private static Achievement[] Map(AchievementsResponse response) => response.achievements.Where(a => !string.Equals(a.achievementType, "Challenge", StringComparison.OrdinalIgnoreCase)).Select(a => new Achievement(a.id, a.name, (a.progressState == "Achieved" ? a.description : a.lockedDescription) ?? a.description ?? "", int.TryParse(a.rewards.FirstOrDefault(r => r.type == "Gamerscore")?.value, out var score) ? score : 0, a.progressState == "Achieved", a.progressState != "Null", a.rewards.Any(r => r.type == "Gamerscore"), a.mediaAssets.FirstOrDefault(m => m.type == "Icon")?.url ?? a.mediaAssets.FirstOrDefault()?.url) { GlobalUnlockPercentage = AchievementLabs.MultiSelect.AchievementRarity.Parse(a.rarity?.currentPercentage) }).ToArray();
     private static string? ResolveTitleImage(string? displayImage, object? images)
     {
         if (!string.IsNullOrWhiteSpace(displayImage)) return displayImage;

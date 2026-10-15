@@ -10,7 +10,7 @@ namespace AchievementLabs.MultiSelect;
 public sealed class AchievementExport
 {
     public sealed record Game(string Id,string Name,string Platform,int ExpectedScore);
-    public sealed record Row(string Id,string Name,string Description,string Status,string Score,string UnlockedAt,string ServiceConfigId,bool LegacyProgressVerified = false);
+    public sealed record Row(string Id,string Name,string Description,string Status,string Score,string UnlockedAt,string ServiceConfigId,bool LegacyProgressVerified = false, double? GlobalUnlockPercentage = null, string? ImageUrl = null);
     public sealed record Saved(int Version,string Account,Game Game,DateTimeOffset ScannedAt,Row[] Rows);
     public sealed record Progress(int Done,int Total,int Saved,int Skipped,int Failed,string Message);
     public sealed record Result(int Saved,int Skipped,int Failed,bool Paused,string Folder);
@@ -100,7 +100,10 @@ public sealed class AchievementExport
                 string score=S(a,"gamerscore");var rewards=Get(a,"rewards");
                 if(rewards.ValueKind==JsonValueKind.Array)foreach(var r in rewards.EnumerateArray())if(S(r,"type").Equals("Gamerscore",StringComparison.OrdinalIgnoreCase))score=S(r,"value");
                 string description=state=="Achieved"?S(a,"description"):S(a,"lockedDescription");if(description.Length==0)description=S(a,"description");
-                var row=new Row(id,S(a,"name"),description,state=="Achieved"?"Unlocked":state is "NotStarted" or "InProgress"?"Locked":state,score,unlocked,S(a,"serviceConfigId"));
+                double? rarity = a.TryGetProperty("rarity", out var rarityData) && rarityData.ValueKind == JsonValueKind.Object && rarityData.TryGetProperty("currentPercentage", out var percent) ? AchievementRarity.Parse(percent.ToString()) : null;
+                var imageUrl = a.TryGetProperty("mediaAssets", out var assets) && assets.ValueKind == JsonValueKind.Array
+                    ? assets.EnumerateArray().Where(asset => S(asset,"type") == "Icon").Select(asset => S(asset,"url")).FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)) : null;
+                var row=new Row(id,S(a,"name"),description,state=="Achieved"?"Unlocked":state is "NotStarted" or "InProgress"?"Locked":state,score,unlocked,S(a,"serviceConfigId"), GlobalUnlockPercentage: rarity, ImageUrl: imageUrl);
                 if(rows.TryGetValue(id,out var old) && old!=row)throw new InvalidDataException("Conflicting duplicate achievement IDs.");
                 rows[id]=row;
             }

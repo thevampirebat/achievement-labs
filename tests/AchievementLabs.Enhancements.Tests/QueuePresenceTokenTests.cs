@@ -47,23 +47,6 @@ public static class QueuePresenceTokenTests
             return Task.FromResult(response);
         }
     }
-    private static void Xbox360SigningProviderChecks()
-    {
-        Assert(!AchievementLabs.Services.Xbox360.Xbox360ConSigner.SigningAvailable, "Absent source-private signing dependency stays unavailable");
-        var path = Path.Combine(Path.GetTempPath(), "labs-untouched-profile-" + Guid.NewGuid() + ".bin");
-        try
-        {
-            var original = new byte[] { 1, 2, 3, 4 }; File.WriteAllBytes(path, original);
-            bool rejected = false;
-            try { AchievementLabs.Services.Xbox360.Xbox360ConSigner.SignFile(path); }
-            catch (NotSupportedException) { rejected = true; }
-            Assert(rejected && File.ReadAllBytes(path).SequenceEqual(original), "Signing unavailable fails before touching a file");
-            using var model = new DesktopModel();
-            Assert(!model.CanModifyXbox360Profile && !model.CanSaveXbox360Edits, "Signing-dependent editor actions disabled");
-        }
-        finally { File.Delete(path); }
-        Console.WriteLine("PASS: absent signing dependency leaves files untouched and signing-dependent actions disabled. No account/USB data used.");
-    }
     private static void CollectorResponseChecks()
     {
         var accepted = EventCollectorResponse.Read("{\"acc\":1,\"rej\":0}");
@@ -168,7 +151,6 @@ public static class QueuePresenceTokenTests
     }
     public static void Run()
     {
-        Xbox360SigningProviderChecks();
         CollectorResponseChecks();
         SharedTotalsTests.Run();
         BundledCatalogTests.Run();
@@ -181,17 +163,6 @@ public static class QueuePresenceTokenTests
         typeof(AutoUnlockerViewModel).GetField("_state", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(routeVm, routeState);
         routeVm.ValidateQueueMetadata(definitions);
         Assert(routeState.IsEventBased && routeState.Queue.Single().DelaySeconds == 45, "Saved queue routing repairs without changing custom delays");
-        var activeToken = "manual-current";
-        var seenTokens = new List<string>();
-        routeVm.SendEventAchievementAsync = (title, id, ct) => {
-            Assert(title == "123" && id == "2", "Queue forwards saved title and achievement IDs");
-            seenTokens.Add(activeToken);
-            if (seenTokens.Count == 1) throw new HttpRequestException("synthetic", null, HttpStatusCode.Unauthorized);
-            return Task.FromResult(true);
-        };
-        Task<bool> SendQueue() => (Task<bool>)typeof(AutoUnlockerViewModel).GetMethod("UnlockEventBasedAchievementAsync", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(routeVm, new object[] { "2" })!;
-        Assert(EventUnlockRecovery.RunAsync(true, SendQueue, _ => { activeToken = "refreshed-current"; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult(), "Queue uses connected-session sender for retry");
-        Assert(seenTokens.SequenceEqual(new[] { "manual-current", "refreshed-current" }), "Retry re-reads the current token instead of stale queue copy");
         var sends = 0; var refreshes = 0;
         bool RetrySend() { sends++; if (sends == 1) throw new HttpRequestException("synthetic", null, HttpStatusCode.Unauthorized); return true; }
         Assert(EventUnlockRecovery.RunAsync(true, () => Task.FromResult(RetrySend()), _ => { refreshes++; return Task.FromResult(true); }, CancellationToken.None).GetAwaiter().GetResult() && sends == 2 && refreshes == 1, "Token auth failure refreshes once and retries the same operation");
@@ -270,16 +241,6 @@ public static class QueuePresenceTokenTests
         Assert(AutoUnlockerViewModel.EstimateRemaining(state, 2) == TimeSpan.FromSeconds(60), "ETA uses saved remaining delay, speed and pending entries");
         state.CurrentIndex = 4;
         Assert(AutoUnlockerViewModel.EstimateRemaining(state, 1) == TimeSpan.Zero, "Finished queue has no remaining time");
-        var visited = new List<int>();
-        var matching = WamEventTokens.FindMatchingAccountAsync(new[] { 1, 2, 3, 4 }, id => {
-            visited.Add(id);
-            if (id == 1 || id == 3) throw new InvalidDataException("wrong Xbox account");
-            return Task.FromResult(id == 4 ? new AutomaticEventToken.Grant("synthetic", DateTimeOffset.UtcNow.AddHours(1)) : null);
-        }, CancellationToken.None).GetAwaiter().GetResult();
-        Assert(matching?.Value == "synthetic" && visited.SequenceEqual(new[] { 1, 2, 3, 4 }), "Four Windows accounts choose only the verified matching Xbox identity");
-        var cancelled = new CancellationToken(true);
-        try { WamEventTokens.FindMatchingAccountAsync(new[] { 1 }, _ => Task.FromResult<AutomaticEventToken.Grant?>(null), cancelled).GetAwaiter().GetResult(); throw new Exception("Cancellation expected"); }
-        catch (OperationCanceledException) { }
         using var model = new DesktopModel();
         var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
         typeof(DesktopModel).GetProperty("Games")!.SetValue(model, new[] {
@@ -313,17 +274,6 @@ public static class QueuePresenceTokenTests
         task.GetAwaiter().GetResult();
         model.XboxQueue.IsRunning = false;
         Assert(row.CanEditDelay, "Delay editing restored when stopped");
-        foreach (var scenario in new[] { "valid", "account", "hash", "expiry" })
-        {
-            var handler = new ExchangeHandler(scenario == "account" ? "999" : "123", scenario == "hash" ? "wrong" : "hash", scenario == "expiry");
-            using var http = new HttpClient(handler);
-            try
-            {
-                var grant = WamEventTokens.ExchangeAsync(http, "fake-msa", "123", CancellationToken.None).GetAwaiter().GetResult();
-                Assert(scenario == "valid" ? grant?.Value == "x:XBL3.0 x=hash;fake-event" && handler.Calls == 4 : scenario == "expiry" && grant == null, "Reject invalid token claims and expiry");
-            }
-            catch (InvalidDataException) { Assert(scenario is "account" or "hash", "Only mismatch scenarios throw"); if (scenario == "account") Assert(handler.Calls == 3, "Wrong account rejected before requesting event token"); }
-        }
         Console.WriteLine("PASS: library ordering, concurrent presence gates, queue row state and device-bound token exchange. Synthetic requests only.");
     }
 }

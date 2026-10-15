@@ -52,6 +52,13 @@ public class XboxApiClient : IDisposable
 
     public void Dispose() { _httpClient.Dispose(); _eventBasedClient.Dispose(); _spooferClient.Dispose(); }
 
+    // Transport injection for deterministic offline checks of the real request path.
+    public XboxApiClient(string xauth, HttpMessageHandler transport, bool regionOverride = false) : this(xauth, regionOverride)
+    {
+        _httpClient.Dispose();
+        _httpClient = new HttpClient(transport);
+    }
+
     private void SetDefaultHeaders()
     {
         _httpClient.DefaultRequestHeaders.Clear();
@@ -116,13 +123,15 @@ public class XboxApiClient : IDisposable
 #endif
     }
 
-    public async Task<BasicProfile?> GetBasicProfileAsync()
+    public Task<BasicProfile?> GetBasicProfileAsync() => GetBasicProfileAsync(CancellationToken.None);
+
+    public async Task<BasicProfile?> GetBasicProfileAsync(CancellationToken cancellationToken)
     {
         SetDefaultHeaders();
         _httpClient.DefaultRequestHeaders.Add(HeaderNames.ContractVersion, HeaderValues.ContractVersion2);
         _httpClient.DefaultRequestHeaders.Add(HeaderNames.Host, Hosts.Profile);
         _httpClient.DefaultRequestHeaders.Add(HeaderNames.Connection, HeaderValues.KeepAlive);
-        var response = await _httpClient.GetStringAsync(BasicXboxAPIUris.GamertagUrl);
+        var response = await _httpClient.GetStringAsync(BasicXboxAPIUris.GamertagUrl, cancellationToken);
         return JsonConvert.DeserializeObject<BasicProfile>(response);
     }
 
@@ -212,7 +221,7 @@ public class XboxApiClient : IDisposable
         return JsonConvert.DeserializeObject<Gamepass>(gpuResponse);
     }
 
-    public async Task<TitlesList?> GetGamesListAsync(string xuid)
+    public async Task<TitlesList?> GetGamesListAsync(string xuid, IProgress<AchievementLabs.Core.LibraryRefreshProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(xuid))
         {
@@ -224,9 +233,24 @@ public class XboxApiClient : IDisposable
         _httpClient.DefaultRequestHeaders.Add(HeaderNames.ContractVersion, HeaderValues.ContractVersion2);
         _httpClient.DefaultRequestHeaders.Add(HeaderNames.Host, Hosts.TitleHub);
         _httpClient.DefaultRequestHeaders.Add(HeaderNames.Connection, HeaderValues.KeepAlive);
-        var responseString = await _httpClient.GetStringAsync(string.Format(InterpolatedXboxAPIUrls.TitlesUrl, xuid));
+        using var response = await _httpClient.GetAsync(string.Format(InterpolatedXboxAPIUrls.TitlesUrl, xuid), HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        var length = response.Content.Headers.ContentLength;
+        if (length > 128L * 1024 * 1024) throw new InvalidDataException("Library response exceeds the size limit.");
+        using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var received = new MemoryStream(); var buffer = new byte[65536];
+        progress?.Report(new(0, length));
+        while (true) {
+            var count = await stream.ReadAsync(buffer, cancellationToken);
+            if (count == 0) break;
+            if (received.Length + count > 128L * 1024 * 1024) throw new InvalidDataException("Library response exceeds the size limit.");
+            received.Write(buffer,0,count); progress?.Report(new(received.Length,length));
+        }
+        var responseString = Encoding.UTF8.GetString(received.ToArray());
         WriteGamesListDebugLog(responseString);
-        return JsonConvert.DeserializeObject<TitlesList>(responseString);
+        var result = JsonConvert.DeserializeObject<TitlesList>(responseString);
+        progress?.Report(new(received.Length, length, result?.Titles?.Count ?? 0));
+        return result;
     }
 
     private void WriteGamesListDebugLog(string responseBody)
@@ -338,7 +362,13 @@ public class XboxApiClient : IDisposable
             };
         }
 
+        if (!Guid.TryParse(serviceConfigId, out var scid) || scid == Guid.Empty
+            || statValue.Type is not (JTokenType.Integer or JTokenType.Float or JTokenType.String or JTokenType.Boolean))
+            return new EventUnlockResult { StatusCode = 400, ReasonPhrase = "Invalid stat write input", ResponseBody = "A valid SCID and scalar stat value are required." };
+
         var revisionInfo = await ReadTitleStatRevisionAsync(xuid, serviceConfigId, statName);
+        if (revisionInfo.StatusCode is not (>= 200 and < 300) && revisionInfo.StatusCode != 404)
+            return new EventUnlockResult { StatusCode = revisionInfo.StatusCode, ReasonPhrase = "Stat read failed; write not sent", RequestUri = revisionInfo.RequestUri, ResponseBody = revisionInfo.Body };
 
         SetDefaultHeaders();
         _httpClient.DefaultRequestHeaders.Add(HeaderNames.ContractVersion, HeaderValues.ContractVersion4);
@@ -350,13 +380,13 @@ public class XboxApiClient : IDisposable
         foreach (var attempt in attempts)
         {
             var requestBody = attempt.Body.ToString(Formatting.None);
-            var request = new HttpRequestMessage(new HttpMethod("PATCH"), attempt.Uri)
+            using var request = new HttpRequestMessage(new HttpMethod("PATCH"), attempt.Uri)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, HeaderValues.Accept)
             };
 
             var sw = Stopwatch.StartNew();
-            var response = await _httpClient.SendAsync(request);
+            using var response = await _httpClient.SendAsync(request);
             sw.Stop();
 
             var responseBody = await response.Content.ReadAsStringAsync();
@@ -437,7 +467,7 @@ public class XboxApiClient : IDisposable
             SetDefaultHeaders();
             _httpClient.DefaultRequestHeaders.Add(HeaderNames.ContractVersion, HeaderValues.ContractVersion2);
 
-            var response = await _httpClient.GetAsync(url);
+            using var response = await _httpClient.GetAsync(url);
             var body = await response.Content.ReadAsStringAsync();
             var revision = ExtractStatRevision(body);
             return new TitleStatRevisionInfo
@@ -458,6 +488,15 @@ public class XboxApiClient : IDisposable
                 PreviousRevision = 0
             };
         }
+    }
+
+    public async Task<(int StatusCode, string Body)> GetTitleStatRawAsync(string xuid, string serviceConfigId, string statName)
+    {
+        SetDefaultHeaders();
+        _httpClient.DefaultRequestHeaders.Add(HeaderNames.ContractVersion, HeaderValues.ContractVersion2);
+        var url = $"https://userstats.xboxlive.com/users/xuid({Uri.EscapeDataString(xuid)})/scids/{Uri.EscapeDataString(serviceConfigId)}/stats/{Uri.EscapeDataString(statName)}?include=value,metadata";
+        using var response = await _httpClient.GetAsync(url);
+        return ((int)response.StatusCode, await response.Content.ReadAsStringAsync());
     }
 
     private static long ExtractStatRevision(string responseBody)
@@ -514,7 +553,7 @@ public class XboxApiClient : IDisposable
         var uri = $"https://statswrite.xboxlive.com/stats/users/{xuid}/scids/{serviceConfigId}";
         var schema = "http://stats.xboxlive.com/2017-1/schema#";
         var timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.ffffffZ", CultureInfo.InvariantCulture);
-        var revision = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var revision = Math.Max(DateTimeOffset.UtcNow.ToUnixTimeSeconds(), checked(previousRevision + 1));
         var writeValue = statValue.Type == JTokenType.String
             ? statValue.Value<string>() ?? string.Empty
             : statValue.ToString(Formatting.None);

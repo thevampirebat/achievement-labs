@@ -32,7 +32,7 @@ public sealed partial class DesktopModel
     public bool InstallUpdate()
     {
         if (!UpdateReady || updateDownload == null || availableUpdate == null) return false;
-        if (busy || QueueActive || WorkflowBusy || PresenceRunning || presenceStarting || PendingXbox360EditCount > 0)
+        if (busy || QueueActive || WorkflowBusy || PresenceRunning || PendingXbox360EditCount > 0)
         {
             UpdateStatus = "Save pending profile edits and finish active operations before installing the update.";
             return false;
