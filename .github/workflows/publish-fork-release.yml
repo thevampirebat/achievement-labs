@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-v1.0.6-fork.3
+  group: publish-v1.0.7-fork.1
   cancel-in-progress: false
 
 jobs:
@@ -22,10 +22,10 @@ jobs:
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: v1.0.6-fork.3
-      SOURCE_SHA: 8f426ca57f7f47b9b44f561c489c3ec5aca3cb22
-      BUILD_SHA: d2b9637337005608778ec42ce5d0391aa445edc2
-      BUILD_RUN: '38619092297'
+      RELEASE_TAG: v1.0.7-fork.1
+      SOURCE_SHA: 2fd2293845e3d9c499631ba23696867d6528a046
+      BUILD_SHA: d8e51c273302987a3e540d35db5e1589419ced74
+      BUILD_RUN: '38756041517'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,19 +56,14 @@ jobs:
           exe = (folder / 'AchievementLabs.exe').read_bytes()
           assert hashlib.sha256(exe).hexdigest() == expected, 'Executable checksum mismatch'
           metadata = json.loads((folder / 'update.json').read_text(encoding='utf-8-sig'))
-          assert expected == 'c44bf046b0ea6ac00a295b51f6f01019d775df8a27be9cb6ea4d4183bebcb7d8', 'Wrong tested executable'
-          assert metadata['version'] in ('1.0.6.2', '1.0.6.3') and metadata['bytes'] == len(exe) and metadata['sha256'].lower() == expected, 'Update metadata mismatch'
-          # The tested executable's PE version is 1.0.6.3. Correct stale packaging metadata without rebuilding it.
-          metadata['version'] = '1.0.6.3'
-          (folder / 'update.json').write_text(json.dumps(metadata, indent=2) + '\n', encoding='utf-8')
-          info = (folder / 'BUILD-INFO.txt').read_text(encoding='utf-8-sig').replace('Version: 1.0.6.2 source plus fork enhancements', 'Version: 1.0.6.3')
-          (folder / 'BUILD-INFO.txt').write_text(info, encoding='utf-8')
+          assert metadata['version'] == '1.0.7.1' and metadata['bytes'] == len(exe) and metadata['sha256'].lower() == expected, 'Update metadata mismatch'
+          assert 'd8e51c273302987a3e540d35db5e1589419ced74' in (folder / 'BUILD-INFO.txt').read_text(encoding='utf-8-sig'), 'Wrong build source'
           PY
           printf '\nRelease source: %s\nTested build source: %s (identical source tree)\n' "$SOURCE_SHA" "$BUILD_SHA" >> release-download/BUILD-INFO.txt
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft > release-state.txt 2>/dev/null; then
             test "$(cat release-state.txt)" = true
           else
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs 1.0.6 — Catalogue and Desktop Improvements (fork.3)' --notes-file docs/releases/v1.0.6-fork.3.md --draft
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs 1.0.7 — Combined Upgrade (fork.1)' --notes-file docs/releases/v1.0.7-fork.1.md --draft
           fi
           gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" release-download/AchievementLabs.exe release-download/SHA256.txt release-download/BUILD-INFO.txt release-download/update.json --clobber
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
