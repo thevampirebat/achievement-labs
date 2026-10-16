@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-v1.0.7-fork.1
+  group: publish-v1.0.8-fork.1
   cancel-in-progress: false
 
 jobs:
@@ -22,10 +22,10 @@ jobs:
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: v1.0.7-fork.1
-      SOURCE_SHA: 2fd2293845e3d9c499631ba23696867d6528a046
-      BUILD_SHA: d8e51c273302987a3e540d35db5e1589419ced74
-      BUILD_RUN: '38756041517'
+      RELEASE_TAG: v1.0.8-fork.1
+      SOURCE_SHA: 5ab5da116d04f58a68e38cfb5e5e66b50c635718
+      BUILD_SHA: d1a19ce943cd12f34ff23c2c5ea208d38bdf0d74
+      BUILD_RUN: '38825948623'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,13 +56,13 @@ jobs:
           exe = (folder / 'AchievementLabs.exe').read_bytes()
           assert hashlib.sha256(exe).hexdigest() == expected, 'Executable checksum mismatch'
           metadata = json.loads((folder / 'update.json').read_text(encoding='utf-8-sig'))
-          assert metadata['version'] == '1.0.7.1' and metadata['bytes'] == len(exe) and metadata['sha256'].lower() == expected, 'Update metadata mismatch'
+          assert metadata['version'] == '1.0.8.1' and metadata['bytes'] == len(exe) and metadata['sha256'].lower() == expected, 'Update metadata mismatch'
           PY
           printf '\nRelease source: %s\nTested build source: %s (identical source tree)\n' "$SOURCE_SHA" "$BUILD_SHA" >> release-download/BUILD-INFO.txt
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft > release-state.txt 2>/dev/null; then
             test "$(cat release-state.txt)" = true
           else
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs 1.0.7 — Combined Upgrade (fork.1)' --notes-file docs/releases/v1.0.7-fork.1.md --draft
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs 1.0.8 — Combined Upgrade (fork.1)' --notes-file docs/releases/v1.0.8-fork.1.md --draft
           fi
           gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" release-download/AchievementLabs.exe release-download/SHA256.txt release-download/BUILD-INFO.txt release-download/update.json --clobber
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
