@@ -41,8 +41,8 @@ jobs:
           mkdir -p mobile/artifacts/Payload
           cp -R mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app mobile/artifacts/Payload/
           cd mobile/artifacts
-          /usr/bin/zip -qry AchievementLabs-iOS-0.1.1-UNSIGNED.ipa Payload
-          shasum -a 256 AchievementLabs-iOS-0.1.1-UNSIGNED.ipa > SHA256.txt
+          /usr/bin/zip -qry AchievementLabs-iOS-0.2.0-UNSIGNED.ipa Payload
+          shasum -a 256 AchievementLabs-iOS-0.2.0-UNSIGNED.ipa > SHA256.txt
           cp ../Catalogue/catalogue-report.json .
           cp ../README.md .
           rm -rf Payload

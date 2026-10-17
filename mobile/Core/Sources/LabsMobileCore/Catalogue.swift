@@ -20,12 +20,16 @@ public final class Catalogue {
     public let index: [String: MappingStatus]
     private let folder: URL
     private let packs: [PackTitle]
+    private let hubIDs: Set<String>
+    private let totals: [TotalEntry]
     private var cachedTitle: String?
     private var cachedRecipes: MobileRecipes?
     private var cachedTemplate: String?
     public init(folder: URL) throws {
         self.folder = folder
         index = try JSONDecoder().decode([String: MappingStatus].self, from: Data(contentsOf: folder.appendingPathComponent("MobileIndex.json")))
+        hubIDs = Set(try JSONDecoder().decode(PackDocument.self, from: Data(contentsOf: folder.appendingPathComponent("achievement-hubs.json"))).titles.map(\.titleId))
+        totals = (try? JSONDecoder().decode(TotalDocument.self, from: Data(contentsOf: folder.appendingPathComponent("achievement-totals.json"))).entries) ?? []
         packs = try ["achievement-packs.json", "achievement-hubs.json"].flatMap {
             try JSONDecoder().decode(PackDocument.self, from: Data(contentsOf: folder.appendingPathComponent($0))).titles
         }
@@ -69,10 +73,19 @@ public final class Catalogue {
         return title.packs.first { $0.achievements.contains { $0.id == achievement.id && Self.normalized($0.name) == Self.normalized(achievement.name) } }?.name ?? "Unclassified"
     }
     public func groups(_ game: Game) -> [String] { (definition(game)?.packs.map(\.name) ?? ["Achievements"]) + ["Unclassified"] }
+    public func isHub(_ game: Game) -> Bool { hubIDs.contains(game.id) }
+    public func applyingTotal(_ input: Game) -> Game {
+        var game = input
+        if game.total <= 0, let entry = totals.first(where: { $0.titleId == game.id && !$0.platforms.filter(game.platforms.contains).isEmpty }), entry.total >= game.unlocked { game.total = entry.total }
+        return game
+    }
     public func baseComplete(_ rows: [Achievement], game: Game) -> Bool {
-        guard !rows.isEmpty else { return false }
+        guard !rows.isEmpty, !isHub(game) else { return false }
         if rows.allSatisfy(\.unlocked) { return true }
         guard let base = definition(game)?.packs.first(where: { $0.kind == "base" }), !base.achievements.isEmpty else { return false }
         return base.achievements.allSatisfy { item in rows.contains { $0.id == item.id && Self.normalized($0.name) == Self.normalized(item.name) && $0.unlocked } }
     }
 }
+
+private struct TotalDocument: Decodable { let entries: [TotalEntry] }
+private struct TotalEntry: Decodable { let titleId: String; let platforms: [String]; let total: Int }

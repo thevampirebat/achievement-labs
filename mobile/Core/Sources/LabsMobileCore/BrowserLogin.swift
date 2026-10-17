@@ -1,25 +1,34 @@
 import Foundation
 import CryptoKit
 
-/// Uses the existing public Xbox iOS OAuth profile and its registered desktop redirect.
+public enum LoginProfile: String, CaseIterable, Identifiable {
+    case desktop = "Xbox desktop"
+    case ios = "Xbox iOS"
+    public var id: String { rawValue }
+    public var clientID: String { self == .desktop ? "000000004424da1f" : "000000004c12ae6f" }
+    public var deviceType: String { self == .desktop ? "Win32" : "iOS" }
+}
+/// Uses existing public OAuth profiles and their registered desktop redirect.
 public final class BrowserLogin {
     private let verifier: String
     private let state: String
     private var consumed = false
     private let created = Date()
     private let session: URLSession
-    private static let client = "000000004c12ae6f"
+    private let profile: LoginProfile
+    private var client: String { profile.clientID }
     private static let scope = "service::user.auth.xboxlive.com::MBI_SSL"
     private static let redirect = "https://login.live.com/oauth20_desktop.srf"
     private static func b64(_ d: Data) -> String { d.base64EncodedString().replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "") }
-    public init(session: URLSession = .shared) {
+    public init(session: URLSession = .shared, profile: LoginProfile = .ios) {
+        self.profile = profile
         self.session = session
         verifier = Self.b64(Data((0..<32).map { _ in UInt8.random(in: 0...255) }))
         state = Self.b64(Data((0..<32).map { _ in UInt8.random(in: 0...255) }))
     }
     public var startURL: URL {
         var c = URLComponents(string: "https://login.live.com/oauth20_authorize.srf")!
-        c.queryItems = ["client_id":Self.client, "scope":Self.scope, "tenant":"consumers", "response_type":"code", "response_mode":"query", "prompt":"select_account", "state":state, "code_challenge":Self.b64(Data(SHA256.hash(data: Data(verifier.utf8)))), "code_challenge_method":"S256", "redirect_uri":Self.redirect].map { URLQueryItem(name:$0.key, value:$0.value) }
+        c.queryItems = ["client_id":client, "scope":Self.scope, "tenant":"consumers", "response_type":"code", "response_mode":"query", "prompt":"select_account", "state":state, "code_challenge":Self.b64(Data(SHA256.hash(data: Data(verifier.utf8)))), "code_challenge_method":"S256", "redirect_uri":Self.redirect].map { URLQueryItem(name:$0.key, value:$0.value) }
         return c.url!
     }
     public static func validateRedirect(_ input: String, state: String) throws -> String {
@@ -41,7 +50,7 @@ public final class BrowserLogin {
     public func complete(_ redirect: String) async throws -> Account {
         guard !consumed, Date().timeIntervalSince(created) < 600 else { throw LabsError.message("Start a new browser sign-in.") }
         let code = try Self.validateRedirect(redirect, state:state); consumed = true
-        var form = URLComponents(); form.queryItems = ["client_id":Self.client,"scope":Self.scope,"code":code,"code_verifier":verifier,"redirect_uri":Self.redirect,"grant_type":"authorization_code"].map { URLQueryItem(name:$0.key,value:$0.value) }
+        var form = URLComponents(); form.queryItems = ["client_id":client,"scope":Self.scope,"code":code,"code_verifier":verifier,"redirect_uri":Self.redirect,"grant_type":"authorization_code"].map { URLQueryItem(name:$0.key,value:$0.value) }
         let encoded = form.percentEncodedQuery!.replacingOccurrences(of:"+",with:"%2B")
         let oauth = try await post("https://login.live.com/oauth20_token.srf", body:Data(encoded.utf8), form:true, stage:"Microsoft sign-in")
         guard let access = oauth["access_token"] as? String, !access.isEmpty else { throw LabsError.message("Microsoft did not return an access token.") }
@@ -58,12 +67,13 @@ public final class BrowserLogin {
             var header = v; header.append(t); header.append(signature)
             return try await post(url,body:body,signature:header.base64EncodedString(),stage:stage)
         }
-        let device = try await signed("https://device.auth.xboxlive.com/device/authenticate", ["RelyingParty":"http://auth.xboxlive.com","TokenType":"JWT","Properties":["AuthMethod":"ProofOfPossession","Id":"{\(UUID().uuidString)}","DeviceType":"iOS","Version":"0.0.0","ProofKey":proof,"SerialNumber":"{\(UUID().uuidString)}"]], stage:"Xbox device authorization")
+        let device = try await signed("https://device.auth.xboxlive.com/device/authenticate", ["RelyingParty":"http://auth.xboxlive.com","TokenType":"JWT","Properties":["AuthMethod":"ProofOfPossession","Id":"{\(UUID().uuidString)}","DeviceType":profile.deviceType,"Version":"0.0.0","ProofKey":proof,"SerialNumber":"{\(UUID().uuidString)}"]], stage:"Xbox device authorization")
         guard let deviceToken = device["Token"] as? String else { throw LabsError.message("Xbox did not return device authorization.") }
-        let xbox = try await signed("https://sisu.xboxlive.com/authorize", ["AccessToken":"t="+access,"AppId":Self.client,"DeviceToken":deviceToken,"Sandbox":"RETAIL","UseModernGamertag":true,"SiteName":"user.auth.xboxlive.com","RelyingParty":"http://xboxlive.com","ProofKey":proof], stage:"Xbox account authorization")
+        let xbox = try await signed("https://sisu.xboxlive.com/authorize", ["AccessToken":"t="+access,"AppId":client,"DeviceToken":deviceToken,"Sandbox":"RETAIL","UseModernGamertag":true,"SiteName":"user.auth.xboxlive.com","RelyingParty":"http://xboxlive.com","ProofKey":proof], stage:"Xbox account authorization")
         guard let authorization = xbox["AuthorizationToken"] as? [String:Any], let token = authorization["Token"] as? String, let claims = authorization["DisplayClaims"] as? [String:Any] else { throw LabsError.message("Xbox returned incomplete authorization.") }
         let xui = (claims["xui"] as? [[String:Any]])?.first ?? claims["xui"] as? [String:Any]
         guard let hash = xui?["uhs"] as? String, !hash.isEmpty else { throw LabsError.message("Xbox returned no account identity.") }
-        return try await XboxService(session:session).connect("XBL3.0 x=\(hash);\(token)")
+        var account = try await XboxService(session:session).connect("XBL3.0 x=\(hash);\(token)")
+        account.loginProfile = profile.rawValue; return account
     }
 }

@@ -13,7 +13,9 @@ Native SwiftUI app for iPhone and iPad, iOS/iPadOS 17 or later. No PC companion 
 
 ## First connection
 
-In Settings choose **Sign in with Microsoft in browser**. Complete Microsoft sign-in, copy the entire final address from the browser address bar, return to the app and choose **Finish browser sign-in**. The final Microsoft page can appear blank. Do not share the final URL; it contains a short-lived authorization code. This beta uses the existing OAuth profile's registered desktop redirect and therefore requires this manual return step.
+In Settings choose **Sign in with Microsoft**. The embedded Microsoft webpage returns automatically after sign-in; PKCE, state and single-use callback checks remain enabled. The page uses an ephemeral WebKit store; no scripts inspect passwords, page contents or cookies. If the embedded page does not support your sign-in method, use **Safari / manual sign-in** and paste the final redirect into the app. Never share that URL.
+
+Choose **Xbox desktop** to use the same OAuth profile as the desktop fork, or **Xbox iOS** to retain the previous beta profile. Existing sessions retain their profile until you sign in again. A successful library read does not guarantee presence permissions: a heartbeat 403 is reported as a service-specific refusal and is not retried or bypassed.
 
 Alternatively paste a current **Xbox service authorization** (`XBL3.0 x=…;…`) and tap Connect. This is separate from the **event token** (`x:XBL3.0 x=…;…`), saved in its own section after connecting. Automatic event-token acquisition is not included. A standalone app still needs valid service credentials; it cannot read another app's protected account store.
 
@@ -27,7 +29,7 @@ This beta has no Steam/Epic/Ubisoft clients, Xbox 360/GFWL write/profile tools, 
 
 ## Build and sign
 
-The **iOS standalone beta** GitHub workflow prepares resources, runs synthetic tests plus every enabled generated recipe, builds arm64 iPhone/iPad and simulator apps, verifies simulator launch plus synthetic Keychain save/read/delete and creates `AchievementLabs-iOS-0.1.1-UNSIGNED.ipa`. Simulator-only ad-hoc entitlements are used to exercise Keychain APIs; they are never included in the unsigned device app. Device signing must supply the normal application identity and Keychain entitlements.
+The **iOS standalone beta** GitHub workflow prepares resources, runs synthetic tests plus every enabled generated recipe, builds arm64 iPhone/iPad and simulator apps, verifies simulator launch plus synthetic Keychain save/read/delete and creates `AchievementLabs-iOS-0.2.0-UNSIGNED.ipa`. Simulator-only ad-hoc entitlements are used to exercise Keychain APIs; they are never included in the unsigned device app. Device signing must supply the normal application identity and Keychain entitlements.
 
 **The unsigned IPA cannot be installed directly.** It needs signing/provisioning appropriate for your device or distribution method. No Apple account, certificate or provisioning profile is bundled. Never commit private signing credentials. No App Store/TestFlight release is claimed.
 
@@ -47,4 +49,10 @@ Documentation: [Apple device distribution](https://developer.apple.com/documenta
 
 Desktop source, licences and author attribution remain in the repository. No private Xbox signing material or TLS trust bypass is included. Mobile sources are independent of the Windows projects and build workflows.
 
-Browser sign-in: Settings → Sign in with Microsoft in browser. After signing in, copy the full final login.live.com/oauth20_desktop.srf address back into Finish browser sign-in. PKCE, state validation and a one-use response protect this manual callback. Account authorization is verified with Xbox before replacing the saved account. Event tokens remain separate. OAuth access tokens are held only during exchange; refresh tokens are not retained in this beta. Sign in again when authorization expires.
+Browser sign-in: use the embedded Microsoft page for automatic callback capture, or Safari / manual sign-in as a fallback. PKCE, state validation and a one-use response protect both paths. Account authorization is verified with Xbox before replacing the saved account. Event tokens remain separate. OAuth access tokens are held only during exchange; refresh tokens are not retained in this beta. Sign in again when authorization expires.
+
+## Mobile 0.2.0 refinements
+
+Compact inline navigation and library rows; nested Xbox image fallback; profile gamerpic and gamerscore from Xbox; loaded library game/achievement counts; desktop star-and-laurel Mythic artwork and persistent, account-specific completion evidence. “Mythic · known” counts verified base completions plus fully completed titles, excluding multi-game hubs. It is a local display calculation, not a new Xbox award. Settings can scan unchecked titles sequentially; leaving the app stops that scan after the current read. Bundled shared totals fill missing totals only for a matching title/platform and never replace account unlocked counts.
+
+Auto Unlock has reference gamertag + title ID timing import, fresh same-title achievement matching, preview-only queue building, editable minute delays, estimated finish and collapsible options. Timing gaps reproduce intervals, not historical achievement timestamps. Library/game shortcuts and typed-ID lookup show title art in both Auto Unlock and Title Spoofing. Xbox-recorded playtime is read separately when available. No claim is made that a heartbeat will increase it. The desktop OAuth profile is available for compatibility testing; actual spoofing permission remains subject to Xbox accepting the request.

@@ -28,3 +28,13 @@ Path('mobile/artifacts').mkdir(exist_ok=True)
 subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPhone-launch.png'],check=True)
 subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
 print('Simulator launch passed; no account connected or network actions requested.')
+
+for page in ['library','queue','spoof','settings']:
+    output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--ui-preview='+page)
+    preview_pid=output.strip().rsplit(':',1)[-1].strip()
+    time.sleep(3)
+    processes=run('xcrun','simctl','spawn',device,'launchctl','list')
+    assert any(line.split() and line.split()[0] == preview_pid and 'org.achievementlabs.mobile' in line for line in processes.splitlines()), 'Preview exited: '+page
+    subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPhone-'+page+'.png'],check=True)
+    subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+print('Four offline refinement screens launched. All preview network requests are blocked.')

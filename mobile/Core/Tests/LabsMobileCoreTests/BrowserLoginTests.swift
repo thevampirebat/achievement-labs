@@ -2,7 +2,7 @@ import XCTest
 import CryptoKit
 @testable import LabsMobileCore
 
-private final class LoginProtocol: URLProtocol {
+final class LoginProtocol: URLProtocol {
     static var handler: ((URLRequest) throws -> Data)?
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }

@@ -66,7 +66,7 @@ def prepare():
             else: reason='No deterministic recipes passed the mobile payload checks.'
         index[tid]={'count':len(recipes),'classification':'Supported' if block.get('FullySupported') is True else 'Testing','reason':reason}
     (OUTPUT/'MobileIndex.json').write_text(json.dumps(index,separators=(',',':')))
-    for name in ['achievement-packs.json','achievement-hubs.json']: shutil.copyfile(ROOT/'catalog'/name,OUTPUT/name)
+    for name in ['achievement-packs.json','achievement-hubs.json','achievement-totals.json']: shutil.copyfile(ROOT/'catalog'/name,OUTPUT/name)
     summary={'sourceTitleBlocks':len(index),'mobileTitles':sum(v['count']>0 for v in index.values()),'recipes':sum(v['count'] for v in index.values()),'omittedRecipes':dict(failures),'guardedEditions':sorted(guarded)}
     (OUTPUT/'catalogue-report.json').write_text(json.dumps(summary,indent=2)+'\n')
     print(json.dumps(summary,indent=2))

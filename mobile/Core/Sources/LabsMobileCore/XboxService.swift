@@ -13,21 +13,34 @@ public struct XboxService {
         r.setValue("application/json", forHTTPHeaderField: "Accept"); r.setValue("en-US", forHTTPHeaderField: "Accept-Language")
         if let body { r.httpBody = try JSON.data(body); r.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         let (data, response) = try await session.data(for: r)
-        try Self.check(response); guard data.count <= 128 * 1024 * 1024 else { throw LabsError.message("The response is too large.") }; return data
+        try Self.check(response, endpoint: endpoint.host ?? "Xbox"); guard data.count <= 128 * 1024 * 1024 else { throw LabsError.message("The response is too large.") }; return data
     }
-    private static func check(_ response: URLResponse, event: Bool = false) throws {
+    private static func check(_ response: URLResponse, event: Bool = false, endpoint: String = "Xbox") throws {
         guard let http = response as? HTTPURLResponse else { throw LabsError.message("No HTTP response.") }
-        guard (200...299).contains(http.statusCode) else { throw LabsError.message("Xbox returned HTTP \(http.statusCode)." + ([401,403].contains(http.statusCode) ? (event ? " The event collector rejected authorization. Check the separate event token and account authorization." : " Account authorization was rejected. Sign in again using the browser; refreshing only the event token will not fix account authorization.") : "")) }
+        guard (200...299).contains(http.statusCode) else {
+            let detail: String
+            if endpoint == "presence-heartbeat.xboxlive.com", http.statusCode == 403 {
+                detail = "Xbox refused title spoofing for this session (403). Library access can still work. The iOS and desktop sign-in profiles can have different permissions; choose Xbox desktop in Settings and sign in again to test compatibility. Xbox may still refuse it. An event token does not authorize spoofing."
+            } else if http.statusCode == 401 {
+                detail = event ? "The collector rejected authorization (401). Check the event token and account authorization." : "Xbox account authorization expired or was rejected (401). Sign in again."
+            } else if http.statusCode == 403 {
+                detail = event ? "Xbox refused the event request (403)." : "Xbox refused access to \(endpoint) (403). Permissions or profile privacy may restrict this request."
+            } else { detail = "Xbox returned HTTP \(http.statusCode) from \(endpoint)." }
+            throw LabsError.message(detail)
+        }
     }
     public func connect(_ token: String) async throws -> Account {
         let auth = try Tokens.normalize(token, event: false)
-        let data = try await request("https://profile.xboxlive.com/users/me/profile/settings?settings=Gamertag", authorization: auth)
+        let data = try await request("https://profile.xboxlive.com/users/me/profile/settings?settings=Gamertag,GameDisplayPicRaw,Gamerscore", authorization: auth)
         let root = try JSON.object(data)
         guard let profile = (root["profileUsers"] as? [[String: Any]])?.first else { throw LabsError.message("Xbox did not return an account.") }
         let xuid = try JSON.requiredID(profile, "id")
         let settings = profile["settings"] as? [[String: Any]] ?? []
         let name = settings.first { JSON.string($0["id"]) == "Gamertag" }.map { JSON.string($0["value"]) } ?? "Xbox account"
-        return Account(authorization: auth, xuid: xuid, gamertag: name)
+        var account = Account(authorization: auth, xuid: xuid, gamertag: name)
+        account.gamerpic = settings.first { JSON.string($0["id"]) == "GameDisplayPicRaw" }.flatMap { Artwork.resolve($0["value"]) }
+        account.gamerscore = settings.first { JSON.string($0["id"]) == "Gamerscore" }.map { JSON.string($0["value"]) }
+        return account
     }
     public func games(_ account: Account) async throws -> [Game] {
         guard JSON.numeric(account.xuid) else { throw LabsError.message("Invalid account.") }
@@ -36,12 +49,13 @@ public struct XboxService {
         guard let titles = root["titles"] as? [[String: Any]] else { throw LabsError.message("Library response is incomplete; previous library retained.") }
         return try titles.map(Game.init)
     }
-    public func achievements(_ game: Game, account: Account) async throws -> [Achievement] {
-        guard JSON.numeric(game.id), JSON.numeric(account.xuid) else { throw LabsError.message("Invalid title or account.") }
+    public func achievements(_ game: Game, account: Account, xuid: String? = nil) async throws -> [Achievement] {
+        let target = xuid ?? account.xuid
+        guard JSON.numeric(game.id), JSON.numeric(target) else { throw LabsError.message("Invalid title or account.") }
         var results: [Achievement] = []; var continuation: String?; var seen = Set<String>()
         repeat {
             try Task.checkCancellation()
-            var components = URLComponents(string: "https://achievements.xboxlive.com/users/xuid(\(account.xuid))/\(game.legacy ? "titleachievements" : "achievements")")!
+            var components = URLComponents(string: "https://achievements.xboxlive.com/users/xuid(\(target))/\(game.legacy ? "titleachievements" : "achievements")")!
             components.queryItems = [URLQueryItem(name: "titleId", value: game.id), URLQueryItem(name: "maxItems", value: "1000")]
             if let continuation { components.queryItems!.append(URLQueryItem(name: "continuationToken", value: continuation)) }
             let data = try await request(components.url!.absoluteString, authorization: account.authorization, version: game.legacy ? "3" : "4")
@@ -53,6 +67,35 @@ public struct XboxService {
             if let continuation { guard seen.insert(continuation).inserted, seen.count < 100 else { throw LabsError.message("Invalid achievement pagination.") } }
         } while continuation != nil
         return results
+    }
+    public func profile(gamertag: String, account: Account) async throws -> Account {
+        let tag = gamertag.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !tag.isEmpty, tag.count <= 64 else { throw LabsError.message("Enter a gamertag.") }
+        let encoded = tag.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
+        let data = try await request("https://profile.xboxlive.com/users/gt(\(encoded))/profile/settings?settings=Gamertag", authorization:account.authorization)
+        guard let profile = (try JSON.object(data)["profileUsers"] as? [[String:Any]])?.first else { throw LabsError.message("Gamertag not found.") }
+        let xuid = try JSON.requiredID(profile,"id")
+        let settings = profile["settings"] as? [[String:Any]] ?? []
+        let name = settings.first { JSON.string($0["id"]) == "Gamertag" }.map { JSON.string($0["value"]) } ?? tag
+        return Account(authorization:account.authorization,xuid:xuid,gamertag:name)
+    }
+    public func game(_ title: String, account: Account) async throws -> Game {
+        guard JSON.numeric(title) else { throw LabsError.message("Enter a numeric Title ID.") }
+        let data = try await request("https://titlehub.xboxlive.com/users/xuid(\(account.xuid))/titles/batch/decoration/TitleHistory,Achievement,detail,scid", authorization:account.authorization, method:"POST", body:["Pfns":NSNull(),"TitleIds":[title]])
+        guard let row = (try JSON.object(data)["titles"] as? [[String:Any]])?.first(where: { JSON.string($0["titleId"]) == title }) else { throw LabsError.message("Xbox did not return this title.") }
+        return try Game(row)
+    }
+    public func playedMinutes(_ title: String, account: Account) async throws -> Double? {
+        guard JSON.numeric(title) else { throw LabsError.message("Invalid Title ID.") }
+        let data = try await request("https://userstats.xboxlive.com/batch", authorization:account.authorization, method:"POST", body:["ArrangeByField":"xuid","Xuids":[account.xuid],"Stats":[["Name":"MinutesPlayed","TitleId":title]]])
+        func find(_ value: Any) -> Double? {
+            if let object = value as? [String:Any] {
+                if JSON.string(object["name"] ?? object["Name"]).caseInsensitiveCompare("MinutesPlayed") == .orderedSame, let result = Double(JSON.string(object["value"] ?? object["Value"])), result.isFinite, result >= 0 { return result }
+                for key in object.keys.sorted() { if let result = find(object[key]!) { return result } }
+            } else if let array = value as? [Any] { for item in array { if let result = find(item) { return result } } }
+            return nil
+        }
+        return find(try JSON.object(data))
     }
     public func titleUnlock(_ achievement: Achievement, game: Game, account: Account) async throws {
         guard !game.legacy, !achievement.eventBased, JSON.numeric(game.id), JSON.numeric(achievement.id), UUID(uuidString: achievement.serviceConfigID) != nil else { throw LabsError.message("This achievement cannot use title-based unlocks.") }

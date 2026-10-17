@@ -9,6 +9,9 @@ public struct Account: Codable, Equatable {
     public var xuid: String
     public var gamertag: String
     public var eventToken: String
+    public var gamerpic: String?
+    public var gamerscore: String?
+    public var loginProfile: String?
     public init(authorization: String, xuid: String, gamertag: String, eventToken: String = "") {
         self.authorization = authorization; self.xuid = xuid; self.gamertag = gamertag; self.eventToken = eventToken
     }
@@ -22,18 +25,20 @@ public struct Game: Codable, Identifiable, Hashable {
         id = try JSON.requiredID(j, "titleId"); name = JSON.string(j["name"]); platforms = j["devices"] as? [String] ?? []
         let a = j["achievement"] as? [String: Any] ?? [:]
         unlocked = (a["currentAchievements"] as? Int) ?? 0; total = (a["totalAchievements"] as? Int) ?? 0
-        image = JSON.string(j["displayImage"]); lastPlayed = JSON.string((j["titleHistory"] as? [String: Any])?["lastTimePlayed"])
+        image = Artwork.resolve(j["displayImage"]) ?? Artwork.resolve(j["images"]) ?? ""; lastPlayed = JSON.string((j["titleHistory"] as? [String: Any])?["lastTimePlayed"])
     }
 }
 public struct Achievement: Codable, Identifiable, Hashable {
     public var id: String; public var name: String; public var detail: String; public var unlocked: Bool
     public var serviceConfigID: String; public var eventBased: Bool; public var score: String
+    public var unlockedAt: Date?
     public init(_ j: [String: Any], legacy: Bool = false) throws {
         id = try JSON.requiredID(j, "id"); name = JSON.string(j["name"])
         detail = JSON.string(j["description"]); if detail.isEmpty { detail = JSON.string(j["lockedDescription"]) }
         unlocked = legacy ? (j["unlocked"] as? Bool ?? false) : JSON.string(j["progressState"]).lowercased() == "achieved"
         serviceConfigID = JSON.string(j["serviceConfigId"])
         let p = j["progression"] as? [String: Any] ?? [:]
+        unlockedAt = ServiceDates.parse(JSON.string(p["timeUnlocked"] ?? j["timeUnlocked"]))
         eventBased = (p["requirements"] as? [[String: Any]] ?? []).contains {
             let s = JSON.string($0["id"]); return !s.isEmpty && s != "00000000-0000-0000-0000-000000000000"
         }
@@ -44,6 +49,8 @@ public struct Achievement: Codable, Identifiable, Hashable {
 public struct QueueItem: Codable, Identifiable {
     public var id: String { game.id + "/" + achievement.id }
     public var game: Game; public var achievement: Achievement; public var delay: Double; public var status: String
+    public var referenceGamertag: String?
+    public var referenceDate: Date?
     public init(game: Game, achievement: Achievement, delay: Double) { self.game = game; self.achievement = achievement; self.delay = delay; status = "Waiting" }
 }
 public enum JSON {
@@ -78,5 +85,56 @@ public enum Tokens {
         b += String(repeating: "=", count: (4 - b.count % 4) % 4)
         guard let d = Data(base64Encoded: b), let j = try? JSON.object(d), let exp = j["exp"] as? Double else { return }
         guard exp > Date().timeIntervalSince1970 + 60 else { throw LabsError.message("This token has expired. Paste a current token.") }
+    }
+}
+
+public enum ServiceDates {
+    public static func parse(_ text: String) -> Date? {
+        let formatter = ISO8601DateFormatter(); formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let value = formatter.date(from:text) ?? ISO8601DateFormatter().date(from:text)
+        guard let value, value.timeIntervalSince1970 > 0 else { return nil }; return value
+    }
+}
+public enum Artwork {
+    public static func resolve(_ value: Any?) -> String? {
+        if let text = value as? String {
+            let s = text.hasPrefix("//") ? "https:" + text : text
+            guard var c = URLComponents(string:s), ["https","http"].contains(c.scheme?.lowercased() ?? ""), c.host != nil, c.user == nil, c.password == nil else { return nil }
+            c.scheme = "https"; return c.url?.absoluteString
+        }
+        if let array = value as? [Any] { return array.lazy.compactMap { resolve($0) }.first }
+        if let object = value as? [String:Any] {
+            let preferred = ["uri","url","imageUrl","displayImage","BoxArt","boxArt","Tile","tile"]
+            for key in preferred + object.keys.sorted().filter({ !preferred.contains($0) }) {
+                if let result = resolve(object[key]) { return result }
+            }
+        }
+        return nil
+    }
+}
+public struct TimingPlan {
+    public var items: [QueueItem]; public var skipped: Int
+    public static func build(game: Game, own: [Achievement], reference: [Achievement], gamertag: String, supported: (Achievement) -> Bool) throws -> TimingPlan {
+        guard !game.legacy else { throw LabsError.message("Legacy titles are read-only on mobile.") }
+        let grouped = Dictionary(grouping:own,by: \.id)
+        let rows = reference.filter { $0.unlocked && $0.unlockedAt != nil }.sorted {
+            if $0.unlockedAt != $1.unlockedAt { return $0.unlockedAt! < $1.unlockedAt! }
+            return $0.id.localizedStandardCompare($1.id) == .orderedAscending
+        }
+        guard !rows.isEmpty else { throw LabsError.message("This profile has no visible dated unlocks for this title. Xbox privacy settings may hide them.") }
+        var items: [QueueItem] = []; var previous: Date?; var seen = Set<String>(); var skipped = 0
+        for row in rows {
+            guard seen.insert(row.id).inserted, let matches = grouped[row.id], matches.count == 1, let mine = matches.first,
+                Catalogue.normalized(mine.name) == Catalogue.normalized(row.name),
+                mine.serviceConfigID.isEmpty || row.serviceConfigID.isEmpty || mine.serviceConfigID.caseInsensitiveCompare(row.serviceConfigID) == .orderedSame,
+                !mine.unlocked, supported(mine) else { skipped += 1; continue }
+            let date = row.unlockedAt!
+            let delay = previous.map { date.timeIntervalSince($0) } ?? 0
+            guard delay >= 0, delay <= 31_536_000 else { throw LabsError.message("Reference timing contains an unsupported interval longer than a year. Existing queue retained.") }
+            var item = QueueItem(game:game,achievement:mine,delay:delay)
+            item.referenceGamertag = gamertag; item.referenceDate = date
+            items.append(item); previous = date
+        }
+        return TimingPlan(items:items,skipped:skipped)
     }
 }
