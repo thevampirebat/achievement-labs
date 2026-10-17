@@ -451,7 +451,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 guard let self else { return }; defer { if self.sessionStatusGeneration == token { self.sessionStatusTask = nil } }
                 while self.continuedQueue.hasRequest && !Task.isCancelled {
                     do { try await Task.sleep(nanoseconds:15_000_000_000); try Task.checkCancellation() } catch { return }
-                    if let end = self.presenceDeadline, end <= Date(), !self.queueBackgroundAllowed { Task { await self.stopPresence() }; return }
+                    if let end = self.presenceDeadline, end <= Date(), !(self.continueSpoofWithQueue && self.queueBackgroundAllowed) { Task { await self.stopPresence() }; return }
                     self.updateSessionCard()
                 }
             }

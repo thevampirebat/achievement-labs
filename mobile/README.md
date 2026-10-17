@@ -23,7 +23,7 @@ The app does not unlock anything on launch, sign-in, refresh or queue load. Manu
 
 ## Foreground operation and current limitations
 
-Queues and presence pause when the scene becomes inactive; reopening never automatically resumes them. While running in the foreground the screen is kept awake. Do not rely on background execution or a heartbeat stopping instantly after a lost connection. Queue requests interrupted during submission are marked for review rather than automatically retried. Timers show this app session, not Xbox-recorded playtime.
+By default, queues and presence pause when the app enters the background; reopening never automatically resumes them. The opt-in iOS 26 continued-processing options below can keep an explicitly started finite session active while iOS grants runtime. While running in the foreground the screen is kept awake. Do not rely on background execution or a heartbeat stopping instantly after a lost connection. Queue requests interrupted during submission are marked for review rather than automatically retried. Timers show this app session, not Xbox-recorded playtime.
 
 This beta has no Steam/Epic/Ubisoft clients, Xbox 360/GFWL write/profile tools, Windows token capture, stats editor, automatic catalogue refresh or Windows executable updater. DLC metadata and mappings are bundled with each mobile build. Legacy achievements are read-only. Live authentication, event credit and presence still require physical-device testing; simulator/core tests do not prove service compatibility.
 
@@ -107,3 +107,5 @@ Event sending defaults to Microsoft's documented `mobile.events.data.microsoft.c
 A finite standalone background spoofing option (5–120 minutes, off by default) can share the existing continued-processing request with Auto Unlock on iOS 26. Status text shows processed queue actions and spoof elapsed time; no extra ActivityKit card is created. CPU/network background permission remains up to iOS, including during long waits. Previously failed system cards may require manual dismissal.
 
 Queue delay fields now have a Done keyboard toolbar control that validates, saves, and dismisses the keypad. Start is disabled while a delay is being edited.
+
+Unauthenticated macOS URLSession probes for 0.8.0 reproduced URL error -1202 on the Windows collector while the mobile collector, achievement API and heartbeat host completed TLS. This does not verify authenticated event acceptance or physical-device background runtime.
