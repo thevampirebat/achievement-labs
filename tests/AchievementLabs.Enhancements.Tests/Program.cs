@@ -51,6 +51,21 @@ static class Test
        Assert(!routeClient.BundledTitleIds.Contains("345903534"),"Legacy Minecraft uses upstream route rather than Bedrock bundled data");
        Assert(routeClient.BundledTitleIds.Contains("1828326430"),"Other Minecraft editions retain bundled route");
    }
+   {
+       var transfer = AchievementLabs.Core.MobileTransfer.Create("XBL3.0 x=123;synthetic","42","synthetic-event",null);
+       using var doc = System.Text.Json.JsonDocument.Parse(transfer.Bytes);
+       var root = doc.RootElement;
+       var keyText = transfer.PairingKey.Replace('-','+').Replace('_','/'); keyText += new string('=',(4-keyText.Length%4)%4);
+       var key = Convert.FromBase64String(keyText); var ciphertext = Convert.FromBase64String(root.GetProperty("ciphertext").GetString()!); var plain = new byte[ciphertext.Length];
+       using var aes = new System.Security.Cryptography.AesGcm(key,16);
+       aes.Decrypt(Convert.FromBase64String(root.GetProperty("nonce").GetString()!),ciphertext,Convert.FromBase64String(root.GetProperty("tag").GetString()!),plain,System.Text.Encoding.UTF8.GetBytes("AchievementLabs-PC-Transfer-v1"));
+       using var payload = System.Text.Json.JsonDocument.Parse(plain);
+       Assert(payload.RootElement.GetProperty("xuid").GetString()=="42","Mobile transfer retains the explicitly connected account");
+       Assert(payload.RootElement.GetProperty("eventToken").GetString()=="synthetic-event","Mobile transfer retains the current event token");
+       Assert(!System.Text.Encoding.UTF8.GetString(transfer.Bytes).Contains("synthetic-event"),"Mobile file is encrypted");
+       Assert(!payload.RootElement.TryGetProperty("refreshToken",out _),"PC renewal credentials are excluded");
+       System.Security.Cryptography.CryptographicOperations.ZeroMemory(plain); System.Security.Cryptography.CryptographicOperations.ZeroMemory(key);
+   }
    Assert(Desc<ProgressBar>(window).Any(p=>p.Name=="LibraryRefreshProgressBar"),"Library refresh progress control present");
    Assert(Desc<TextBlock>(window).Any(p=>p.Name=="LibraryRefreshStatusText"),"Library refresh stage/stats present");
    Assert(Desc<ComboBox>(window).Any(c=>c.Name=="AchievementNameSort"),"Sort in real window");

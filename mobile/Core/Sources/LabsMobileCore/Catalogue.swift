@@ -17,7 +17,9 @@ public struct Pack: Codable {
 public struct PackAchievement: Codable { public let id: String; public let name: String }
 
 public final class Catalogue {
-    public let index: [String: MappingStatus]
+    public private(set) var index: [String: MappingStatus]
+    private let bundledIDs: Set<String>
+    private var synced: [String:SyncedTitle] = [:]
     private let folder: URL
     private let packs: [PackTitle]
     private let hubIDs: Set<String>
@@ -28,6 +30,7 @@ public final class Catalogue {
     public init(folder: URL) throws {
         self.folder = folder
         index = try JSONDecoder().decode([String: MappingStatus].self, from: Data(contentsOf: folder.appendingPathComponent("MobileIndex.json")))
+        bundledIDs = Set(index.keys)
         hubIDs = Set(try JSONDecoder().decode(PackDocument.self, from: Data(contentsOf: folder.appendingPathComponent("achievement-hubs.json"))).titles.map(\.titleId))
         totals = (try? JSONDecoder().decode(TotalDocument.self, from: Data(contentsOf: folder.appendingPathComponent("achievement-totals.json"))).entries) ?? []
         packs = try ["achievement-packs.json", "achievement-hubs.json"].flatMap {
@@ -36,6 +39,7 @@ public final class Catalogue {
     }
     public func recipes(_ title: String) throws -> MobileRecipes {
         guard JSON.numeric(title), let status = index[title], status.reason == nil else { throw LabsError.message(index[title]?.reason ?? "No mobile event data is available for this title.") }
+        if let remote = synced[title] { return remote.recipes }
         if cachedTitle == title, let cachedRecipes { return cachedRecipes }
         let value = try JSONDecoder().decode(MobileRecipes.self, from: Data(contentsOf: folder.appendingPathComponent("Events/\(title).mapping.json")))
         cachedTitle = title; cachedRecipes = value; cachedTemplate = nil
@@ -43,8 +47,8 @@ public final class Catalogue {
     }
     public func payloads(title: String, achievement: String, xuid: String) throws -> [String] {
         let mapping = try recipes(title)
-        let template = try cachedTemplate ?? String(contentsOf: folder.appendingPathComponent("Events/\(title).json"), encoding: .utf8)
-        cachedTemplate = template
+        let template = try synced[title]?.template ?? cachedTemplate ?? String(contentsOf: folder.appendingPathComponent("Events/\(title).json"), encoding: .utf8)
+        if synced[title] == nil { cachedTemplate = template }
         guard let requests = mapping.recipes[achievement] else { throw LabsError.message("No verified mobile mapping for this achievement.") }
         return try Self.build(template: template, requests: requests, title: title, xuid: xuid)
     }
@@ -56,7 +60,11 @@ public final class Catalogue {
             var body = template
             guard !operations.isEmpty else { throw LabsError.message("Empty mapping.") }
             for op in operations {
+                guard body.utf8.count <= 2*1024*1024, op.value.utf8.count <= 1024*1024 else { throw LabsError.message("Event payload exceeds its size limit.") }
                 guard !op.target.isEmpty, body.contains(op.target) else { throw LabsError.message("Mapping target does not match the template.") }
+                let occurrences = body.components(separatedBy:op.target).count - 1
+                let estimate = body.utf8.count + occurrences * (op.value.utf8.count - op.target.utf8.count)
+                guard estimate <= 2*1024*1024 else { throw LabsError.message("Event payload expansion limit exceeded.") }
                 body = body.replacingOccurrences(of: op.target, with: op.value)
             }
             for (target, value) in ["REPLACESEQ":String(Int64(date.timeIntervalSince1970 * 1000) + Int64(n)), "REPLACETIME":stamp, "REPLACEXUID":xuid, "REPLACESESSIONGUID":session] { body = body.replacingOccurrences(of: target, with: value) }
@@ -65,6 +73,32 @@ public final class Catalogue {
             guard JSON.string(base["titleId"]) == title, UUID(uuidString: JSON.string(base["serviceConfigId"])) != nil else { throw LabsError.message("Event title or service identity does not match.") }
             return body
         }
+    }
+    public func merge(_ feed: EventFeed, cache: URL) throws -> Int {
+        guard feed.schemaVersion == 1, feed.archiveSHA256.range(of:#"^[a-f0-9]{64}$"#,options:.regularExpression) != nil,
+              let date = ServiceDates.parse(feed.generatedAt), date < Date().addingTimeInterval(86400), feed.titles.count <= 5000 else { throw LabsError.message("Unsupported event feed. Bundled data retained.") }
+        var merged = synced; var count = 0; var recipeCount = 0
+        for (title,value) in feed.titles where !bundledIDs.contains(title) && merged[title] == nil {
+            guard JSON.numeric(title), title.count <= 10, value.template.utf8.count <= 1024*1024, value.recipes.recipes.count <= 10000 else { throw LabsError.message("Event feed limit exceeded.") }
+            for (id,requests) in value.recipes.recipes {
+                recipeCount += 1
+                guard JSON.numeric(id), recipeCount <= 50000, !requests.isEmpty, requests.count <= 100, requests.allSatisfy({ !$0.isEmpty && $0.count <= 100 }) else { throw LabsError.message("Invalid synced recipe.") }
+                _ = try Self.build(template:value.template,requests:requests,title:title,xuid:"0")
+            }
+            guard !value.recipes.recipes.isEmpty else { continue }; merged[title] = value; count += 1
+        }
+        var saved = feed; saved.titles = merged
+        let data = try JSONEncoder().encode(saved)
+        guard data.count <= 32*1024*1024 else { throw LabsError.message("Event cache limit exceeded.") }
+        try data.write(to:cache,options:.atomic)
+        synced = merged
+        for (title,value) in synced { index[title] = MappingStatus(count:value.recipes.recipes.count,classification:"Testing · synced",reason:nil) }
+        cachedTitle = nil; cachedRecipes = nil; cachedTemplate = nil
+        return count
+    }
+    public func loadCache(_ cache: URL) throws {
+        let values = try cache.resourceValues(forKeys:[.fileSizeKey]); guard values.fileSize ?? 0 <= 32*1024*1024 else { throw LabsError.message("Event cache is too large.") }
+        let data = try Data(contentsOf:cache); _ = try merge(JSONDecoder().decode(EventFeed.self,from:data),cache:cache)
     }
     private func definition(_ game: Game) -> PackTitle? { packs.first { $0.titleId == game.id && !$0.platforms.filter(game.platforms.contains).isEmpty } }
     public static func normalized(_ name: String) -> String { name.lowercased().unicodeScalars.filter(CharacterSet.alphanumerics.contains).map(String.init).joined() }

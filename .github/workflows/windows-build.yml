@@ -42,7 +42,7 @@ jobs:
         run: dotnet run --project tools/UpdaterChecks -c Release
 
       - name: Build self-contained Windows executable
-        run: ./tools/Build-Release.ps1 -Version 1.0.8 -BuildRevision 1
+        run: ./tools/Build-Release.ps1 -Version 1.0.8 -BuildRevision 2
 
       - name: Prepare download and checksum
         run: |

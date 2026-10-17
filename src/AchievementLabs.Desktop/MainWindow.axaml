@@ -276,6 +276,11 @@
      </StackPanel></Border>
      <Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Achievement exports" FontSize="22"/><Button Name="ExportAllAchievements" Content="Export all achievements…" Click="OpenBulkAchievementExport" IsEnabled="{Binding CanQuery}"/></StackPanel></Border>
      <Border Classes="panel" Padding="24"><StackPanel Spacing="16">
+      <TextBlock Text="iPhone / iPad sync" FontSize="22"/>
+      <TextBlock Text="Export the connected account's current authorization and event token in an encrypted file. The separate pairing key expires with the file after 10 minutes. OAuth renewal credentials remain on this PC." TextWrapping="Wrap" Classes="muted"/>
+      <Button Content="Export encrypted mobile sign-in" Click="ExportMobileTransfer" IsEnabled="{Binding CanQuery}"/>
+     </StackPanel></Border>
+     <Border Classes="panel" Padding="24"><StackPanel Spacing="16">
       <TextBlock Text="App updates" FontSize="22"/>
       <CheckBox Content="Automatically check and download updates on launch" IsChecked="{Binding AutomaticallyCheckUpdates, Mode=TwoWay}"/>
       <TextBlock Text="{Binding UpdateStatus}" TextWrapping="Wrap"/>

@@ -36,6 +36,22 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     @Published var queueTitle = ""
     @Published var referenceGamertag = ""
     @Published var referenceInfo = ""
+    @Published var eventsSyncing = false
+    @Published var eventSyncStatus = "Bundled catalogue loaded."
+    @Published var updateChecking = false
+    @Published var updateStatus = "No update check yet."
+    @Published var availableUpdate: MobileRelease?
+    @Published var pendingPCAccount: Account?
+    private var pendingPCExpiry: Date?
+    @Published var pcSyncStatus = "Import an encrypted transfer exported from the PC app."
+    @AppStorage("autoSyncEvents") var autoSyncEvents = true
+    @AppStorage("checkMobileUpdates") var checkMobileUpdates = true
+    @AppStorage("notifyMobileUpdates") var notifyMobileUpdates = true
+    @AppStorage("autoRefreshLibrary") var autoRefreshLibrary = true
+    private var lifecycleRunning = false
+    private var lastLibraryRefresh = Date.distantPast
+    private var lastEventsCheck = Date.distantPast
+    private var lastUpdateCheck = Date.distantPast
     @Published var refreshingSignIn = false
     @Published var sessionStatus = ""
     @Published var spoofDiagnostics = ""
@@ -88,6 +104,10 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             if rememberSignIn, let data = try SecureStore.read() { account = try JSONDecoder().decode(Account.self, from: data); status = "Saved account loaded. Refresh the library to verify authorization."; loadQueue(); loadCompletion() }
         } catch { self.error = "Could not load protected account or queue storage." }
         if catalogue == nil { error = "Bundled catalogue could not be read. Event actions remain unavailable." }
+        else if FileManager.default.fileExists(atPath:directory.appendingPathComponent("synced-events.json").path) {
+            do { try catalogue?.loadCache(directory.appendingPathComponent("synced-events.json")); eventSyncStatus = "Cached synced event data loaded." }
+            catch { eventSyncStatus = "Synced cache could not be validated. Bundled data retained." }
+        }
         #if DEBUG
         if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--ui-preview=") }) { configurePreview(String(argument.dropFirst("--ui-preview=".count))) }
         #endif
@@ -164,6 +184,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             if next.xuid == account?.xuid { next.eventToken = account?.eventToken ?? "" }
             try saveAccount(next); sessionStatus = rememberSignIn && next.refreshToken != nil ? "Sign-in remembered with automatic renewal." : "Session saved; browser sign-in may be needed when it expires."; generation = UUID(); games = []; rows = []; selectedGame = nil; baseCompleted = []; rowResults = [:]; queue = []; titleDetails = [:]; playedHours = [:]; referenceInfo = ""; loadQueue(); loadCompletion()
             status = "Connected as \(next.gamertag)."
+            Task { await maintainOnOpen(forceLibrary:true) }
         } catch { self.error = error.localizedDescription }
     }
     @Published var browserPending = false
@@ -176,7 +197,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func cancelBrowserLogin() { guard !busy else { return }; browserLogin = nil; browserPending = false }
     func finishBrowserLogin(_ redirect: String) async {
         guard let login = browserLogin, !busy, !refreshingSignIn, !running, !presenceRunning else { return }
-        busy = true; defer { busy = false; browserPending = false; browserLogin = nil }
+        busy = true; defer { busy = false; browserPending = false; browserLogin = nil; Task { await maintainOnOpen(forceLibrary:true) } }
         do {
             var next = try await login.complete(redirect)
             if next.xuid == account?.xuid { next.eventToken = account?.eventToken ?? "" }
@@ -207,7 +228,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 guard profile.xuid == credentials.xuid else { throw LabsError.message("Profile identity changed.") }
                 profile.eventToken = credentials.eventToken; profile.loginProfile = credentials.loginProfile; profile.refreshToken = credentials.refreshToken; profile.authorizationExpiresAt = credentials.authorizationExpiresAt; try saveAccount(profile) }
             catch { status = "Library loaded; profile details could not refresh." }
-            status = "Loaded \(loaded.count) titles." }
+            lastLibraryRefresh = Date(); status = "Loaded \(loaded.count) titles." }
         catch { self.error = error.localizedDescription; status = "Refresh failed; previous library retained." }
     }
     func load(_ game: Game) async {
@@ -364,7 +385,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         if let account, presenceStarted != nil { Task { try? await api.presence(nil, account: account) } }
         status = "Paused while the app is inactive. Review and resume when you return."
     }
-    func active() { foreground = true }
+    func active() { foreground = true; Task { await maintainOnOpen() } }
     func requestNotifications() async { do { _ = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert,.sound]) } catch { self.error = error.localizedDescription } }
     private func notify(_ title: String, body: String) async {
         let content = UNMutableNotificationContent(); content.title = title; content.body = body; content.sound = .default
@@ -409,6 +430,73 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             referenceInfo = "\(reference.gamertag) · \(plan.items.count) queued · \(plan.skipped) skipped"
             rememberCompletion(own,game:game); saveQueue(); status = "Timing queue loaded. Review delays, then start when ready."
         } catch { self.error = error.localizedDescription; status = "Timing import failed; review the existing queue." }
+    }
+    func maintainOnOpen(forceLibrary: Bool = false) async {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("--ui-preview=") || $0 == "--storage-self-test" || $0 == "--web-callback-self-test" }) { return }
+        #endif
+        guard foreground, !running, !presenceRunning else { return }
+        if lifecycleRunning {
+            if forceLibrary, autoRefreshLibrary, account != nil, !busy { await refreshGames() }
+            return
+        }
+        lifecycleRunning = true; defer { lifecycleRunning = false }
+        if autoRefreshLibrary, account != nil, !busy, forceLibrary || Date().timeIntervalSince(lastLibraryRefresh) > 60 { await refreshGames() }
+        if autoSyncEvents, Date().timeIntervalSince(lastEventsCheck) > 3600 { await syncEvents() }
+        if checkMobileUpdates, Date().timeIntervalSince(lastUpdateCheck) > 86400 { await checkForMobileUpdates() }
+    }
+    func syncEvents() async {
+        guard !eventsSyncing, !running else { return }; eventsSyncing = true; defer { eventsSyncing = false }
+        eventSyncStatus = "Downloading the validated upstream event feed…"
+        do {
+            let feed = try await PublicSync().events()
+            guard let catalogue else { throw LabsError.message("Bundled catalogue is unavailable.") }
+            let added = try catalogue.merge(feed,cache:directory.appendingPathComponent("synced-events.json"))
+            lastEventsCheck = Date(); eventSyncStatus = "\(feed.upstreamRelease) · \(added) new titles added · checked " + Date().formatted(date:.abbreviated,time:.shortened)
+        } catch { eventSyncStatus = error.localizedDescription + " Existing mappings retained." }
+    }
+    func checkForMobileUpdates() async {
+        guard !updateChecking else { return }; updateChecking = true; defer { updateChecking = false }
+        updateStatus = "Checking published iOS releases…"
+        do {
+            let latest = try await PublicSync().release(); lastUpdateCheck = Date()
+            let current = Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "0.3.0"
+            if let latest, MobileRelease.newer(latest.version,than:current) {
+                availableUpdate = latest; updateStatus = "iOS \(latest.version) is available. Sign and install its IPA through Signulous."
+                if notifyMobileUpdates, UserDefaults.standard.string(forKey:"lastNotifiedMobileVersion") != latest.version {
+                    await notify("Achievement Labs update",body:"iOS \(latest.version) is available. Open Settings to download it.")
+                    UserDefaults.standard.set(latest.version,forKey:"lastNotifiedMobileVersion")
+                }
+            } else { availableUpdate = nil; updateStatus = latest == nil ? "No published iOS release found yet. Windows releases are ignored." : "iOS \(current) is up to date." }
+        } catch { updateStatus = error.localizedDescription }
+    }
+    func preparePCTransfer(_ data: Data, key: String) async {
+        guard !busy, !running, !presenceRunning else { return }; busy = true; defer { busy = false }
+        pendingPCAccount = nil; pcSyncStatus = "Verifying the transferred Xbox account…"
+        do {
+            let transfer = try PCTransfer.open(data,key:key)
+            var verified = try await api.connect(transfer.authorization)
+            guard verified.xuid == transfer.xuid else { throw LabsError.message("The transferred authorization belongs to a different account.") }
+            verified.eventToken = transfer.eventToken.isEmpty ? "" : try Tokens.normalize(transfer.eventToken,event:true)
+            verified.authorizationExpiresAt = transfer.authorizationExpiresAt.flatMap(ServiceDates.parse)
+            verified.loginProfile = "PC transfer"; pendingPCAccount = verified; pendingPCExpiry = Date(timeIntervalSince1970:Double(transfer.expiresAt))
+            pcSyncStatus = "Verified \(verified.gamertag). Choose whether to connect this account or import only its event token."
+        } catch { pcSyncStatus = error.localizedDescription }
+    }
+    func usePCTransfer(eventOnly: Bool) {
+        guard let imported = pendingPCAccount, !busy, !running, !presenceRunning else { return }
+        do {
+            guard let pendingPCExpiry, pendingPCExpiry > Date() else { pendingPCAccount = nil; throw LabsError.message("The transfer expired. Export a fresh file from PC.") }
+            if eventOnly {
+                guard var current = account, current.xuid == imported.xuid else { throw LabsError.message("Event-only sync requires the same Xbox account on both devices.") }
+                guard !imported.eventToken.isEmpty else { throw LabsError.message("The PC transfer contains no event token.") }
+                current.eventToken = imported.eventToken; try saveAccount(current)
+            } else {
+                try saveAccount(imported); generation = UUID(); games = []; rows = []; queue = []; selectedGame = nil; titleDetails = [:]; playedHours = [:]; loadQueue(); loadCompletion()
+                Task { await maintainOnOpen(forceLibrary:true) }
+            }
+            pendingPCAccount = nil; pcSyncStatus = eventOnly ? "Event token imported; remembered mobile sign-in retained." : "PC account imported. Renewal credentials remain on PC; sync again when this authorization expires."
+        } catch { pcSyncStatus = error.localizedDescription }
     }
     #if DEBUG
     private func configurePreview(_ page: String) {

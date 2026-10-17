@@ -444,6 +444,24 @@ public partial class MainWindow : Window
     private void ShowSettings(object? s, RoutedEventArgs e) => model.Navigate("Settings");
     private void ShowDiagnostics(object? s, RoutedEventArgs e) => model.Navigate("Diagnostics");
     private void TestWindowsNotification(object? s, RoutedEventArgs e) => model.TestWindowsNotification();
+    private async void ExportMobileTransfer(object? sender, RoutedEventArgs args)
+    {
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title="Export encrypted mobile sign-in",SuggestedFileName="AchievementLabs-PC.labslink",DefaultExtension="labslink" });
+        if (file?.TryGetLocalPath() is not { } path) return;
+        try {
+            var transfer = model.CreateMobileTransfer();
+            await File.WriteAllBytesAsync(path,transfer.Bytes);
+            var dialog = new Window { Title="Sync with iPhone / iPad",Width=580,Height=340,CanResize=false,WindowStartupLocation=WindowStartupLocation.CenterOwner };
+            var copy = new Button { Content="Copy pairing key" }; var close = new Button { Content="Close" };
+            copy.Click += async (_,_) => { if (Clipboard != null) await Clipboard.SetTextAsync(transfer.PairingKey); };
+            close.Click += (_,_) => dialog.Close();
+            dialog.Content = new StackPanel { Margin=new Thickness(24),Spacing=14,Children={
+                new TextBlock { Text="Encrypted file saved. Import it in the mobile app's Settings → PC sync, then enter this key. The file expires in 10 minutes.",TextWrapping=Avalonia.Media.TextWrapping.Wrap },
+                new SelectableTextBlock { Text=transfer.PairingKey,TextWrapping=Avalonia.Media.TextWrapping.Wrap,FontSize=17 },
+                new TextBlock { Text="Keep the file and key private. This exports the current authorization and event token, not Microsoft renewal credentials.",TextWrapping=Avalonia.Media.TextWrapping.Wrap },copy,close } };
+            await dialog.ShowDialog(this); model.Notice="Encrypted mobile transfer exported.";
+        } catch { model.Notice="Could not export mobile sign-in. Connect Xbox and check the destination."; }
+    }
     private async void CheckUpdates(object? s, RoutedEventArgs e) => await model.CheckForUpdatesAsync(true);
     private void InstallUpdate(object? s, RoutedEventArgs e) { if (model.InstallUpdate()) Close(); }
     private async void SaveSettings(object? s, RoutedEventArgs e) => await model.SavePreferencesAsync();

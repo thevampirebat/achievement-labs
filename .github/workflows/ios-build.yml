@@ -25,6 +25,8 @@ jobs:
         run: swift test --package-path mobile/Core
       - name: Install project generator
         run: brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+      - name: Prepare existing application icon
+        run: swift mobile/tools/prepare_icon.swift
       - name: Generate Xcode project
         run: cd mobile && xcodegen generate
       - name: Build iPhone and iPad device app without a signing identity
@@ -41,8 +43,8 @@ jobs:
           mkdir -p mobile/artifacts/Payload
           cp -R mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app mobile/artifacts/Payload/
           cd mobile/artifacts
-          /usr/bin/zip -qry AchievementLabs-iOS-0.2.1-UNSIGNED.ipa Payload
-          shasum -a 256 AchievementLabs-iOS-0.2.1-UNSIGNED.ipa > SHA256.txt
+          /usr/bin/zip -qry AchievementLabs-iOS-0.3.0-UNSIGNED.ipa Payload
+          shasum -a 256 AchievementLabs-iOS-0.3.0-UNSIGNED.ipa > SHA256.txt
           cp ../Catalogue/catalogue-report.json .
           cp ../README.md .
           rm -rf Payload
