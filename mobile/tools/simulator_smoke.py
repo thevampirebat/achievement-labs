@@ -16,7 +16,7 @@ device=available[0]['udid']
 print('Chosen simulator: '+available[0]['name'],flush=True)
 subprocess.run(['xcrun','simctl','boot',device],check=False)
 print('Waiting for iOS 26 simulator boot',flush=True)
-subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True,timeout=180)
+subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True,timeout=300)
 app='mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app'
 subprocess.run(['xcrun','simctl','install',device,app],check=True)
 try:
@@ -34,6 +34,18 @@ Path('mobile/artifacts').mkdir(exist_ok=True)
 subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPhone-launch.png'],check=True)
 subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
 print('Simulator launch passed; no account connected or network actions requested.')
+
+# A real iOS URLSession check, unlike the macOS command-line probe: ATS applies.
+output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--collector-self-test')
+container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.mobile','data').strip())
+marker=container/'Documents'/'Collector-self-test.json'
+for _ in range(30):
+    if marker.exists(): break
+    time.sleep(1)
+result=json.loads(marker.read_text())
+print('Actual iOS app collector TLS check: '+str(result),flush=True)
+assert result['scopedATS'] and result['passed'], 'Actual iOS app collector TLS failed'
+subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
 
 for page in ['library','queue','spoof','settings','settings-sync','settings-library','settings-app','home']:
     output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--ui-preview='+page)
@@ -61,3 +73,4 @@ assert result['available'] and result['finishedInactive'], 'Background request d
 assert result['manifestValid'], 'Background identifiers/modes missing from the built app'
 print('iOS 26 background API request completed or safely declined with no network: '+str(result))
 subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+

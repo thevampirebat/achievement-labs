@@ -25,6 +25,7 @@ import LabsMobileCore
             .alert("Achievement Labs", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("OK") { model.error = nil } } message: { Text(model.error ?? "") }
             .task {
                 #if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("--collector-self-test") { await model.collectorSelfTest(); return }
                 if ProcessInfo.processInfo.arguments.contains("--background-self-test") { await model.backgroundSelfTest(); return }
                 #endif
                 await model.maintainOnOpen()
@@ -162,7 +163,7 @@ struct QueueView: View {
                     VStack(alignment:.leading,spacing:8) {
                         HStack { Label(m.running ? "Running" : "Paused",systemImage:m.running ? "play.fill" : "pause.fill"); Spacer(); Text("\(m.queue.count) items").foregroundStyle(.secondary) }.font(.subheadline)
                         Text(m.status).font(.caption).foregroundStyle(.secondary).lineLimit(3)
-                        if m.continueQueueInBackground { Text(m.continuedQueue.status).font(.caption2).foregroundStyle(.secondary) }
+                        if m.continueQueueInBackground { Text(m.extendedAudio.active ? m.extendedAudio.status : m.continuedQueue.status).font(.caption2).foregroundStyle(.secondary) }
                         TimelineView(.periodic(from:.now,by:1)) { timeline in
                             VStack(alignment:.leading,spacing:3) {
                                 if let next = m.nextAction { HStack { Text("Next action"); Spacer(); Text(next,style:.timer).monospacedDigit() } }
@@ -273,7 +274,8 @@ struct PresenceView: View {
                         Button("Stop",systemImage:"stop.fill",role:.destructive) { Task { await m.stopPresence() } }.disabled(!m.presenceRunning)
                     }.buttonStyle(.borderless)
                     Text(m.spoofStatus).font(.caption).foregroundStyle(.secondary)
-                    if m.continueSpoofInBackground || m.continueQueueInBackground { Text(m.continuedQueue.status).font(.caption2).foregroundStyle(.secondary) }
+                    if m.extendedAudio.active { Text(m.extendedAudio.status).font(.caption).foregroundStyle(.green) }
+                    if m.continueSpoofInBackground || m.continueQueueInBackground { Text(m.extendedAudio.active ? m.extendedAudio.status : m.continuedQueue.status).font(.caption2).foregroundStyle(.secondary) }
                 }
                 if !m.spoofDiagnostics.isEmpty {
                     Section("Spoofing diagnostics") {
@@ -285,7 +287,7 @@ struct PresenceView: View {
                 Section {
                     Toggle("Notify if spoofing stops",isOn:$m.notifyPresenceFailure)
                     Button("Refresh Xbox playtime") { Task { await m.readPlaytime(m.presenceTitle) } }.disabled(m.account == nil || !JSON.numeric(m.presenceTitle))
-                    Text("Background spoofing can use a finite session when enabled in Settings → App. Wait for iOS to grant background time before leaving. iOS can end it early; Xbox-recorded playtime can update later.").font(.caption2).foregroundStyle(.secondary)
+                    Text("Background spoofing can use a finite session when enabled in Settings → App. For system-task mode, wait for a grant before leaving; for extended mode, wait for “Extended audio active”. iOS or audio interruptions can stop it. Xbox-recorded playtime can update later.").font(.caption2).foregroundStyle(.secondary)
                 }.font(.subheadline)
             }.listSectionSpacing(.compact).navigationTitle("Title Spoofing").navigationBarTitleDisplayMode(.inline)
             .task(id:m.presenceTitle) { do { try await Task.sleep(nanoseconds:400_000_000); try Task.checkCancellation(); await m.lookupTitle(m.presenceTitle); await m.readPlaytime(m.presenceTitle) } catch {} }
@@ -383,18 +385,20 @@ struct SettingsView: View {
                 }
     }
     @ViewBuilder private var appSettings: some View {
-                Section("Background queue · experimental") {
-                    if m.continuedQueue.available {
-                        Toggle("Continue queue in background",isOn:$m.continueQueueInBackground)
-                            .disabled(m.running || m.presenceRunning)
-                            .onChange(of:m.continueQueueInBackground) { _,_ in m.updateBackgroundPreference() }
-                        Toggle("Allow standalone background spoofing",isOn:$m.continueSpoofInBackground).disabled(m.running || m.presenceRunning).onChange(of:m.continueSpoofInBackground) { _,_ in m.updateBackgroundPreference() }
-                        if m.continueSpoofInBackground { Stepper("Spoof session limit: \(Int(m.spoofBackgroundMinutes)) min",value:$m.spoofBackgroundMinutes,in:5...120,step:5).disabled(m.running || m.presenceRunning) }
+                Section("Background sessions · experimental") {
+                    Toggle("Allow standalone background spoofing",isOn:$m.continueSpoofInBackground).disabled(m.running || m.presenceRunning).onChange(of:m.continueSpoofInBackground) { _,_ in m.updateBackgroundPreference() }
+                    if m.continueSpoofInBackground {
+                        Toggle("Extended background audio",isOn:$m.useExtendedAudio).disabled(m.running || m.presenceRunning)
+                        Stepper("Spoof session limit: \(Int(m.spoofBackgroundMinutes)) min",value:$m.spoofBackgroundMinutes,in:5...120,step:5).disabled(m.running || m.presenceRunning)
+                        Text("Extended mode loops silent audio and mixes with other media. It may use more battery. Calls or audio interruptions stop it; resume manually. Starts only when you explicitly start spoofing. Its Live Activity uses a system-rendered ticking timer.").font(.caption2).foregroundStyle(.secondary)
+                    }
+                    if m.continuedQueue.available || m.useExtendedAudio {
+                        Toggle("Continue queue in background",isOn:$m.continueQueueInBackground).disabled(m.running || m.presenceRunning).onChange(of:m.continueQueueInBackground) { _,_ in m.updateBackgroundPreference() }
                         Toggle("Keep spoofing alongside queue",isOn:$m.continueSpoofWithQueue).disabled(m.running || m.presenceRunning || !m.continueQueueInBackground)
-                        Text(m.continuedQueue.status).font(.caption)
-                        Text("Start the queue while this app is open and wait for iOS to grant background time. One system request is shared by the queue and spoofer. Its status shows processed queue actions and spoofing elapsed time. Standalone spoofing has a finite limit; iOS can stop any session earlier. Failed system cards may need manual dismissal. Processed or accepted actions are not confirmed unlocks. This needs testing on your Signulous-signed device.").font(.caption2).foregroundStyle(.secondary)
-                        Text("When enabled, remembered sign-in and queue files remain accessible after your first device unlock so background requests can save progress. They stay protected on this device.").font(.caption2).foregroundStyle(.secondary)
-                    } else { Text("Requires iOS 26 or later. Keep this app open for queues and spoofing.").font(.caption) }
+                    }
+                    Text(m.extendedAudio.active ? m.extendedAudio.status : m.continuedQueue.status).font(.caption)
+                    Text("System-task mode requires iOS 26 and a grant before leaving. Extended audio works only during your finite spoofing session. iOS can still stop either mode. Accepted actions need Xbox verification. Start spoofing before the queue to share extended mode.").font(.caption2).foregroundStyle(.secondary)
+                    Text("When background mode is enabled, remembered sign-in and queue files remain accessible after the first device unlock. They stay protected on this device.").font(.caption2).foregroundStyle(.secondary)
                 }
                 Section("Secure connections") {
                     Text("Xbox event collector: Windows · Microsoft root validated")
@@ -407,11 +411,12 @@ struct SettingsView: View {
                 }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.8.1").font(.headline)
+                    Text("Standalone iPhone and iPad app · 0.8.2").font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. New event games sync from the public upstream feed; Windows-specific tools are not included.").font(.caption).foregroundStyle(.secondary)
                     Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)
                 }
     }
 }
+
 

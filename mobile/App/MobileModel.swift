@@ -94,8 +94,13 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     @AppStorage("continueSpoofWithQueue") var continueSpoofWithQueue = true
     let continuedQueue = ContinuedQueue()
     private var continuedObservation: AnyCancellable?
-    var queueBackgroundAllowed: Bool { continueQueueInBackground && running && queueTask?.isCancelled != true && continuedQueue.active }
-    var presenceBackgroundAllowed: Bool { continuedQueue.active && presenceRunning && presenceTask?.isCancelled != true && ((continueSpoofInBackground && (presenceDeadline ?? .distantPast) > Date()) || (continueSpoofWithQueue && queueBackgroundAllowed)) }
+    private var audioObservation: AnyCancellable?
+    @AppStorage("useExtendedAudio") var useExtendedAudio = false
+    let extendedAudio = ExtendedAudioSession()
+    let liveStatus = SessionLiveStatus()
+    var extendedBackgroundAllowed: Bool { useExtendedAudio && extendedAudio.active && (presenceDeadline ?? .distantPast) > Date() }
+    var queueBackgroundAllowed: Bool { continueQueueInBackground && running && queueTask?.isCancelled != true && (continuedQueue.active || extendedBackgroundAllowed) }
+    var presenceBackgroundAllowed: Bool { presenceRunning && presenceTask?.isCancelled != true && (extendedBackgroundAllowed || (continuedQueue.active && ((continueSpoofInBackground && (presenceDeadline ?? .distantPast) > Date()) || (continueSpoofWithQueue && queueBackgroundAllowed)))) }
     private var queueTask: Task<Void, Never>?
     private var presenceTask: Task<Void, Never>?
     private var foreground = true
@@ -108,6 +113,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("AchievementLabs", isDirectory: true)
         catalogue = Bundle.main.resourceURL.map { try? Catalogue(folder: $0.appendingPathComponent("Catalogue")) } ?? nil
         continuedObservation = continuedQueue.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send(); Task { @MainActor [weak self] in self?.updateSessionCard() } }
+        audioObservation = extendedAudio.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send(); Task { @MainActor [weak self] in self?.updateSessionCard() } }
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--storage-self-test") {
             do {
@@ -328,7 +334,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 if !self.foreground && !self.presenceBackgroundAllowed { self.presenceTask?.cancel(); Task { await self.stopPresence(reason:"Queue ended without separate background spoofing permission.") } }
             }
             UIApplication.shared.isIdleTimerDisabled = true
-            if self.continueQueueInBackground {
+            if self.continueQueueInBackground && !self.extendedBackgroundAllowed {
                 do {
                     if self.queue.contains(where:{ $0.status == "Waiting" && $0.achievement.eventBased }) { try await self.api.checkCollector(.windows) }
                     try Task.checkCancellation()
@@ -391,13 +397,21 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         spoofStopReason = ""; spoofCleanupStatus = ""; presenceTitle = title; presenceRunning = true; spoofDiagnostics = ""; spoofStatus = "Sending heartbeat…"
         presenceTask = Task { [weak self] in
             guard let self else { return }
-            defer { self.presenceStarted = nil; self.presenceRunning = false; self.presenceTask = nil; self.presenceDeadline = nil; self.finishSessionIfIdle(); UIApplication.shared.isIdleTimerDisabled = self.running }
+            defer { self.presenceStarted = nil; self.presenceRunning = false; self.presenceTask = nil; self.presenceDeadline = nil; if !self.presenceStopping { self.extendedAudio.stop() }; self.finishSessionIfIdle(); if !self.foreground && self.running && !self.queueBackgroundAllowed { self.pauseQueue() }; UIApplication.shared.isIdleTimerDisabled = self.running }
             do {
                 let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.api.presence(title, account: active); self.presenceStarted = Date(); self.presenceCleanupNeeded = true
                 if self.continueSpoofInBackground {
                     let minutes = max(5,min(120,self.spoofBackgroundMinutes)); self.presenceDeadline = Date().addingTimeInterval(minutes*60)
-                    self.requestBackgroundSession(units:max(1,Int(ceil(minutes/4))))
-                    self.continuedQueue.advance()
+                    if self.useExtendedAudio {
+                        try self.extendedAudio.start { [weak self] reason in
+                            guard let self else { return }; self.spoofStopReason = reason
+                            Task { await self.stopPresence(reason:reason); if self.stopOnPresenceFailure { self.pauseQueue() }; if self.notifyPresenceFailure { await self.notify("Title spoofing stopped",body:reason) } }
+                        }
+                        self.startSessionStatusUpdates(); self.updateSessionCard()
+                    } else {
+                        self.requestBackgroundSession(units:max(1,Int(ceil(minutes/4))))
+                        self.continuedQueue.advance()
+                    }
                 }
                 self.spoofStatus = "Heartbeat accepted. Xbox-recorded playtime can update later."; UIApplication.shared.isIdleTimerDisabled = true
                 while !Task.isCancelled { try await Task.sleep(nanoseconds: 240_000_000_000); try Task.checkCancellation(); guard self.foreground || self.presenceBackgroundAllowed else { throw CancellationError() }; let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.api.presence(title, account: active); self.spoofStatus = "Heartbeat accepted at " + Date().formatted(date:.omitted,time:.standard); if self.continueSpoofInBackground { self.continuedQueue.advance() }; self.updateSessionCard() }
@@ -428,7 +442,8 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func stopPresence(reason: String = "Stopped by user.") async {
         guard !presenceStopping, presenceTask != nil || presenceStarted != nil || presenceCleanupNeeded else { return }
-        presenceStopping = true; presenceCleanupNeeded = false; defer { presenceStopping = false }
+        presenceStopping = true; presenceCleanupNeeded = false
+        defer { presenceStopping = false; extendedAudio.stop(); finishSessionIfIdle(); if !foreground && running && !queueBackgroundAllowed { pauseQueue() } }
         if spoofStopReason.isEmpty { spoofStopReason = reason }
         presenceTask?.cancel(); if let presenceTask { await presenceTask.value }
         spoofStatus = spoofStopReason
@@ -436,7 +451,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             do { try await api.presence(nil, account: account); spoofCleanupStatus = "Xbox stop request accepted." }
             catch { spoofCleanupStatus = "Xbox stop request failed (\((error as NSError).domain) \((error as NSError).code)). The last heartbeat may take time to expire." }
         }
-        spoofDiagnostics = "Stopped: " + spoofStopReason + "\nBackground status: " + continuedQueue.status + "\n" + spoofCleanupStatus
+        spoofDiagnostics = "Stopped: " + spoofStopReason + "\nBackground status: " + continuedQueue.status + "\nAudio mode: " + (useExtendedAudio ? "Extended" : "System task") + " · " + extendedAudio.status + "\n" + spoofCleanupStatus
 
     }
     func updateBackgroundPreference() {
@@ -448,19 +463,24 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         guard foreground else { return }
         if !continuedQueue.hasRequest { backgroundHadFailure = false }
         continuedQueue.start(total:units) { [weak self] in
-            guard let self else { return }; self.pauseQueue(); self.presenceTask?.cancel()
+            guard let self else { return }
+            if self.extendedBackgroundAllowed { self.updateSessionCard(); return }
+            self.pauseQueue(); self.presenceTask?.cancel()
             Task { await self.stopPresence() }
             self.status = "iOS ended background time. Review before resuming."
             self.spoofStopReason = "iOS ended background permission."
         }
-        updateSessionCard()
+        updateSessionCard(); startSessionStatusUpdates()
+    }
+    func startSessionStatusUpdates() {
         if sessionStatusTask == nil {
             let token = UUID(); sessionStatusGeneration = token
             sessionStatusTask = Task { [weak self] in
                 guard let self else { return }; defer { if self.sessionStatusGeneration == token { self.sessionStatusTask = nil } }
-                while self.continuedQueue.hasRequest && !Task.isCancelled {
+                while (self.continuedQueue.hasRequest || self.extendedAudio.active) && !Task.isCancelled {
                     do { try await Task.sleep(nanoseconds:15_000_000_000); try Task.checkCancellation() } catch { return }
-                    if let end = self.presenceDeadline, end <= Date(), !(self.continueSpoofWithQueue && self.queueBackgroundAllowed) { Task { await self.stopPresence(reason:"Configured spoof session limit reached.") }; return }
+                    if let end = self.presenceDeadline, end <= Date(), (self.extendedAudio.active || !(self.continueSpoofWithQueue && self.queueBackgroundAllowed)) { Task { await self.stopPresence(reason:"Configured spoof session limit reached.") }; return }
+                    if self.extendedAudio.active && !self.extendedAudio.playing { Task { await self.stopPresence(reason:"Extended audio playback stopped. Resume manually.") }; return }
                     self.updateSessionCard()
                 }
             }
@@ -475,12 +495,13 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             spoofText = String(format:"Spoof %02d:%02d",seconds/60,seconds%60)
         } else { spoofText = "Spoof stopped" }
         continuedQueue.update(title:"Achievement Labs",subtitle:queueText+" · "+spoofText)
+        liveStatus.update(.init(spoofStarted:presenceStarted,queueHandled:queue.filter { $0.status != "Waiting" && $0.status != "Submitting" }.count,queueTotal:queue.count,queueRunning:running,nextAction:nextAction),enabled:extendedAudio.active && (presenceRunning || running) && !continuedQueue.active)
     }
     func finishSessionIfIdle() {
         let queueWanted = running && queueTask?.isCancelled != true && continueQueueInBackground
         let spoofWanted = presenceRunning && presenceTask?.isCancelled != true && ((continueSpoofInBackground && (presenceDeadline ?? .distantPast) > Date()) || (continueSpoofWithQueue && queueWanted))
         if queueWanted || spoofWanted { updateSessionCard(); return }
-        continuedQueue.finish(success:!backgroundHadFailure)
+        continuedQueue.finish(success:!backgroundHadFailure); liveStatus.end()
         sessionStatusGeneration = UUID(); sessionStatusTask?.cancel(); sessionStatusTask = nil
     }
     func rememberTransport(_ error: Error) {
@@ -503,6 +524,15 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         else { finishSessionIfIdle(); status = "Paused in background. Review and resume when you return." }
     }
     #if DEBUG
+    func collectorSelfTest() async {
+        guard account == nil else { return }
+        let result = await XboxService().probe(CollectorRoute.windows.url)
+        let ats = (Bundle.main.object(forInfoDictionaryKey:"NSAppTransportSecurity") as? [String:Any]) ?? [:]
+        let exceptions = ats["NSExceptionDomains"] as? [String:Any] ?? [:]
+        let scoped = exceptions.keys.sorted() == ["v20.events.data.microsoft.com"] && ats["NSAllowsArbitraryLoads"] == nil
+        let document = ["result":result,"passed":result.contains("TLS accepted"),"scopedATS":scoped] as [String:Any]
+        if let url = FileManager.default.urls(for:.documentDirectory,in:.userDomainMask).first?.appendingPathComponent("Collector-self-test.json") { try? JSONSerialization.data(withJSONObject:document).write(to:url,options:.atomic) }
+    }
     func backgroundSelfTest() async {
         // Only reachable in offline preview, which blocks every Xbox request.
         guard ProcessInfo.processInfo.arguments.contains("--ui-preview=queue") else { return }
@@ -706,4 +736,5 @@ private final class PreviewOfflineProtocol: URLProtocol {
     override func stopLoading() {}
 }
 #endif
+
 

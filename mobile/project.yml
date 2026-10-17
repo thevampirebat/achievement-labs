@@ -11,8 +11,8 @@ settings:
     SWIFT_VERSION: "5.0"
     TARGETED_DEVICE_FAMILY: "1,2"
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: "0.8.1"
-    CURRENT_PROJECT_VERSION: "11"
+    MARKETING_VERSION: "0.8.2"
+    CURRENT_PROJECT_VERSION: "12"
 targets:
   AchievementLabsMobile:
     type: application
@@ -25,10 +25,20 @@ targets:
     info:
       path: GeneratedInfo.plist
       properties:
-        UIBackgroundModes: [processing]
+        UIBackgroundModes: [processing, audio]
+        NSSupportsLiveActivities: true
+        NSAppTransportSecurity:
+          NSExceptionDomains:
+            v20.events.data.microsoft.com:
+              NSIncludesSubdomains: false
+              NSExceptionAllowsInsecureHTTPLoads: true
+              NSExceptionMinimumTLSVersion: TLSv1.2
+              NSExceptionRequiresForwardSecrecy: true
         BGTaskSchedulerPermittedIdentifiers: [org.achievementlabs.mobile.queue.*]
     dependencies:
       - package: LabsMobileCore
+      - target: LabsSessionWidget
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.achievementlabs.mobile
@@ -41,9 +51,27 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+  LabsSessionWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widget
+      - path: App/SessionActivityAttributes.swift
+    info:
+      path: GeneratedWidgetInfo.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.achievementlabs.mobile.sessionwidget
+        INFOPLIST_KEY_CFBundleDisplayName: Labs session
+        GENERATE_INFOPLIST_FILE: YES
+        SKIP_INSTALL: YES
 schemes:
   AchievementLabsMobile:
     build:
       targets:
         AchievementLabsMobile: all
+
 

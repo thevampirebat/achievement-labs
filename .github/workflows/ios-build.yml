@@ -26,7 +26,7 @@ jobs:
         # The core tests below also exercise the scoped collector trust.
   build:
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 35
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
@@ -59,15 +59,15 @@ jobs:
           codesign --verify --deep --strict mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app
           codesign -d --entitlements :- mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app
       - name: Verify iOS 26 simulator screens and safe background request
-        timeout-minutes: 10
+        timeout-minutes: 12
         run: python3 -u mobile/tools/simulator_smoke.py
       - name: Package unsigned IPA for user signing
         run: |
           mkdir -p mobile/artifacts/Payload
           cp -R mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app mobile/artifacts/Payload/
           cd mobile/artifacts
-          /usr/bin/zip -qry AchievementLabs-iOS-0.8.1-UNSIGNED.ipa Payload
-          shasum -a 256 AchievementLabs-iOS-0.8.1-UNSIGNED.ipa > SHA256.txt
+          /usr/bin/zip -qry AchievementLabs-iOS-0.8.2-UNSIGNED.ipa Payload
+          shasum -a 256 AchievementLabs-iOS-0.8.2-UNSIGNED.ipa > SHA256.txt
           cp ../Catalogue/catalogue-report.json .
           cp ../README.md .
           cp ../App/Assets.xcassets/AppIcon.appiconset/Icon.png AppIcon.png
@@ -78,4 +78,5 @@ jobs:
           path: mobile/artifacts/
           retention-days: 30
           if-no-files-found: error
+
 

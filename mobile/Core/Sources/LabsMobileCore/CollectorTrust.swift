@@ -30,6 +30,8 @@ public final class CollectorTrust: NSObject, URLSessionTaskDelegate {
         else { completionHandler(.cancelAuthenticationChallenge,nil) }
     }
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        // No plaintext redirects, including unauthenticated connectivity probes.
+        guard request.url?.scheme == "https" else { completionHandler(nil); return }
         // Event credentials must never follow a redirect, even to another Microsoft host.
         if task.originalRequest?.value(forHTTPHeaderField:"tickets") != nil { completionHandler(nil) }
         else { completionHandler(request) }
@@ -41,3 +43,4 @@ public enum XboxSessions {
 #else
 public enum XboxSessions { public static let shared = URLSession.shared }
 #endif
+
