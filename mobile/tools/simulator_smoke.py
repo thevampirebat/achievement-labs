@@ -13,7 +13,7 @@ subprocess.run(['xcrun','simctl','boot',device],check=False)
 subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True)
 app='mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app'
 subprocess.run(['xcrun','simctl','install',device,app],check=True)
-output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile')
+output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--storage-self-test')
 print(output)
 pid=output.strip().rsplit(':',1)[-1].strip()
 time.sleep(5)

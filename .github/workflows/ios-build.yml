@@ -33,6 +33,7 @@ jobs:
       - name: Build for simulator and verify launch
         run: |
           xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath mobile/simulator CODE_SIGNING_ALLOWED=NO build
+          codesign --force --sign - --entitlements mobile/Simulator.entitlements --timestamp=none mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app
           python3 mobile/tools/simulator_smoke.py
       - name: Package unsigned IPA for user signing
         run: |

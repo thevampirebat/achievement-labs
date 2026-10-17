@@ -45,6 +45,18 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         UNUserNotificationCenter.current().delegate = NotificationPresentation.shared
         directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("AchievementLabs", isDirectory: true)
         catalogue = Bundle.main.resourceURL.map { try? Catalogue(folder: $0.appendingPathComponent("Catalogue")) } ?? nil
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--storage-self-test") {
+            do {
+                guard try SecureStore.read() == nil else { throw LabsError.message("Synthetic storage check requires an empty simulator Keychain.") }
+                let fixture = Data("synthetic-storage-fixture".utf8)
+                try SecureStore.save(fixture)
+                guard try SecureStore.read() == fixture else { throw LabsError.message("Synthetic storage read did not match.") }
+                try SecureStore.remove()
+                guard try SecureStore.read() == nil else { throw LabsError.message("Synthetic storage delete failed.") }
+            } catch { fatalError("Synthetic Keychain check failed: \(error.localizedDescription)") }
+        }
+        #endif
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             if let data = try SecureStore.read() { account = try JSONDecoder().decode(Account.self, from: data); status = "Saved account loaded. Refresh the library to verify authorization."; loadQueue() }
