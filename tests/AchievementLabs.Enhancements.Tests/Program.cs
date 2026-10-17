@@ -54,11 +54,11 @@ static class Test
    {
        var transfer = AchievementLabs.Core.MobileTransfer.Create("XBL3.0 x=123;synthetic","42","synthetic-event",null);
        using var doc = System.Text.Json.JsonDocument.Parse(transfer.Bytes);
-       var root = doc.RootElement;
+       var transferRoot = doc.RootElement;
        var keyText = transfer.PairingKey.Replace('-','+').Replace('_','/'); keyText += new string('=',(4-keyText.Length%4)%4);
-       var key = Convert.FromBase64String(keyText); var ciphertext = Convert.FromBase64String(root.GetProperty("ciphertext").GetString()!); var plain = new byte[ciphertext.Length];
+       var key = Convert.FromBase64String(keyText); var ciphertext = Convert.FromBase64String(transferRoot.GetProperty("ciphertext").GetString()!); var plain = new byte[ciphertext.Length];
        using var aes = new System.Security.Cryptography.AesGcm(key,16);
-       aes.Decrypt(Convert.FromBase64String(root.GetProperty("nonce").GetString()!),ciphertext,Convert.FromBase64String(root.GetProperty("tag").GetString()!),plain,System.Text.Encoding.UTF8.GetBytes("AchievementLabs-PC-Transfer-v1"));
+       aes.Decrypt(Convert.FromBase64String(transferRoot.GetProperty("nonce").GetString()!),ciphertext,Convert.FromBase64String(transferRoot.GetProperty("tag").GetString()!),plain,System.Text.Encoding.UTF8.GetBytes("AchievementLabs-PC-Transfer-v1"));
        using var payload = System.Text.Json.JsonDocument.Parse(plain);
        Assert(payload.RootElement.GetProperty("xuid").GetString()=="42","Mobile transfer retains the explicitly connected account");
        Assert(payload.RootElement.GetProperty("eventToken").GetString()=="synthetic-event","Mobile transfer retains the current event token");

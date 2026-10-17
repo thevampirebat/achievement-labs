@@ -47,6 +47,7 @@ jobs:
           shasum -a 256 AchievementLabs-iOS-0.3.0-UNSIGNED.ipa > SHA256.txt
           cp ../Catalogue/catalogue-report.json .
           cp ../README.md .
+          cp ../App/Assets.xcassets/AppIcon.appiconset/Icon.png AppIcon.png
           rm -rf Payload
       - uses: actions/upload-artifact@v4
         with:
