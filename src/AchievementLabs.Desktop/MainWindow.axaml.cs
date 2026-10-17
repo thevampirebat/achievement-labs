@@ -449,7 +449,7 @@ public partial class MainWindow : Window
         if (!model.CanQuery) return;
         try {
             var frames = AchievementLabs.Core.MobileTransfer.QrFrames(model.CreateMobileTransfer());
-            var dialog = new Window { Title="Sync with iPhone / iPad",Width=570,Height=700,MinWidth=500,MinHeight=600,WindowStartupLocation=WindowStartupLocation.CenterOwner };
+            var dialog = new Window { Title="Sync with iPhone / iPad",Width=570,Height=800,MinWidth=500,MinHeight=600,WindowStartupLocation=WindowStartupLocation.CenterOwner };
             var image = new Avalonia.Controls.Image { Width=410,Height=410,Stretch=Avalonia.Media.Stretch.Uniform };
             var status = new TextBlock { TextWrapping=TextWrapping.Wrap,HorizontalAlignment=Avalonia.Layout.HorizontalAlignment.Center };
             var close = new Button { Content="Close" }; close.Click += (_,_)=>dialog.Close();
@@ -470,10 +470,10 @@ public partial class MainWindow : Window
             var timer=new Avalonia.Threading.DispatcherTimer { Interval=TimeSpan.FromSeconds(1.2) };
             timer.Tick += (_,_)=>{ if(DateTimeOffset.UtcNow>=expires) { image.Source=null; status.Text="Expired. Close and generate a new code."; timer.Stop(); previous.IsEnabled=false; next.IsEnabled=false; }
                 else if(automatic.IsChecked==true) { index=(index+1)%frames.Length; ShowFrame(); } };
-            dialog.Content = new StackPanel { Margin=new Thickness(20),Spacing=12,Children={
+            dialog.Content = new ScrollViewer { Content = new StackPanel { Margin=new Thickness(20),Spacing=12,Children={
                 new TextBlock { Text="On iPhone / iPad, open Home → Sync from PC → Scan PC QR codes. Keep the camera pointed here until every code is collected.",TextWrapping=TextWrapping.Wrap },
                 image,status,new StackPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Spacing=12,Children={previous,next,automatic} },
-                new TextBlock { Text="Private sign-in codes: do not share screenshots. Transfers include current authorization and event token; Microsoft renewal credentials stay on PC.",TextWrapping=TextWrapping.Wrap },close } };
+                new TextBlock { Text="Private sign-in codes: do not share screenshots. Transfers include current authorization and event token; Microsoft renewal credentials stay on PC.",TextWrapping=TextWrapping.Wrap },close } } };
             ShowFrame(); timer.Start();
             try { await dialog.ShowDialog(this); } finally { timer.Stop(); image.Source=null; bitmap?.Dispose(); Array.Clear(frames); }
         } catch { model.Notice="Could not create mobile QR transfer. Connect an Xbox account first."; }
