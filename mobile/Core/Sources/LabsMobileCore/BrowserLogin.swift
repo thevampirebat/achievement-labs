@@ -6,6 +6,7 @@ public final class BrowserLogin {
     private let verifier: String
     private let state: String
     private var consumed = false
+    private let created = Date()
     private let session: URLSession
     private static let client = "000000004c12ae6f"
     private static let scope = "service::user.auth.xboxlive.com::MBI_SSL"
@@ -35,10 +36,10 @@ public final class BrowserLogin {
         if let signature { r.setValue(signature, forHTTPHeaderField:"Signature") }
         let (data,response) = try await session.data(for:r)
         guard let h = response as? HTTPURLResponse, (200...299).contains(h.statusCode) else { throw LabsError.message("\(stage) failed (HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0)). Start a new browser sign-in. Your saved account was retained.") }
-        return try JSON.object(data)
+        guard data.count <= 1024 * 1024 else { throw LabsError.message("Authorization response is too large.") }; return try JSON.object(data)
     }
     public func complete(_ redirect: String) async throws -> Account {
-        guard !consumed else { throw LabsError.message("Start a new browser sign-in.") }
+        guard !consumed, Date().timeIntervalSince(created) < 600 else { throw LabsError.message("Start a new browser sign-in.") }
         let code = try Self.validateRedirect(redirect, state:state); consumed = true
         var form = URLComponents(); form.queryItems = ["client_id":Self.client,"scope":Self.scope,"code":code,"code_verifier":verifier,"redirect_uri":Self.redirect,"grant_type":"authorization_code"].map { URLQueryItem(name:$0.key,value:$0.value) }
         let encoded = form.percentEncodedQuery!.replacingOccurrences(of:"+",with:"%2B")

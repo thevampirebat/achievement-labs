@@ -66,6 +66,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     private func saveAccount(_ next: Account) throws { try SecureStore.save(JSONEncoder().encode(next)); account = next }
     func connect(_ token: String) async {
         guard !busy, !running, presenceStarted == nil else { return }; busy = true; defer { busy = false }
+        browserLogin = nil; browserPending = false
         let version = generation
         do {
             var next = try await api.connect(token)
@@ -102,6 +103,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func disconnect() async {
         guard !busy else { return }
         busy = true; defer { busy = false }
+        browserLogin = nil; browserPending = false
         pauseQueue(); if let queueTask { await queueTask.value }; await stopPresence(); generation = UUID()
         do { try SecureStore.remove(); account = nil; games = []; rows = []; queue = []; selectedGame = nil; baseCompleted = []; status = "Disconnected." }
         catch { self.error = "Could not remove the Keychain session." }

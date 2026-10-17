@@ -8,12 +8,14 @@ Native SwiftUI app for iPhone and iPad, iOS/iPadOS 17 or later. No PC companion 
 - Modern and legacy achievement reads, search/filter/sorting, expandable verified DLC/base/update sections matched by Title ID, platform, achievement ID and name.
 - Manual unlock/retry, multi-selection into an account-specific persisted queue, per-item delays, pause/resume, remove items and remove achievements confirmed unlocked by Xbox.
 - Foreground title-presence heartbeats and elapsed timer alongside the queue, failure/completion notification options and stop-on-presence-failure.
-- Manual account authorization verified with Xbox, separate event-token entry, iOS Keychain storage. No passwords, tokens or real accounts in tests, logs or artifacts.
+- Microsoft browser sign-in with PKCE and a pasted final redirect, optional manual authorization, separate event-token entry, iOS Keychain storage. No passwords, tokens or real accounts in tests, logs or artifacts.
 - Bundled current fork catalogue, prepared from committed source. Only deterministic Replace operations with checked targets, placeholders and title/service identity are enabled. Unsupported edition routes (including Minecraft's hosted route and the three guarded edition aliases) remain disabled until their full guards are ported. Disabled author titles stay disabled. See catalogue-report.json in the build artifact for exact coverage.
 
 ## First connection
 
-In Settings paste a current **Xbox service authorization** (`XBL3.0 x=…;…`) and tap Connect. This is separate from the **event token** (`x:XBL3.0 x=…;…`), which is saved in its own section after connecting. Neither value is an account password. Manual tokens expire and must be replaced. Browser-based Microsoft sign-in and automatic event-token acquisition are not implemented in this beta. A standalone app still needs valid service credentials; it cannot read another app's protected account store.
+In Settings choose **Sign in with Microsoft in browser**. Complete Microsoft sign-in, copy the entire final address from the browser address bar, return to the app and choose **Finish browser sign-in**. The final Microsoft page can appear blank. Do not share the final URL; it contains a short-lived authorization code. This beta uses the existing OAuth profile's registered desktop redirect and therefore requires this manual return step.
+
+Alternatively paste a current **Xbox service authorization** (`XBL3.0 x=…;…`) and tap Connect. This is separate from the **event token** (`x:XBL3.0 x=…;…`), saved in its own section after connecting. Automatic event-token acquisition is not included. A standalone app still needs valid service credentials; it cannot read another app's protected account store.
 
 The app does not unlock anything on launch, sign-in, refresh or queue load. Manual Unlock/Retry and Start/Resume send actions. Collector acceptance is shown separately from confirmed Xbox progress. Queues skip achievements Xbox already reports unlocked; manual Retry can resend them. Refresh to confirm progress, including delayed credit.
 
