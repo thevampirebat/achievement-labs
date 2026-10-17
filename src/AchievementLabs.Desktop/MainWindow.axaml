@@ -237,32 +237,52 @@
     </StackPanel></Border>
     <TabControl Grid.Row="1" Margin="0,15,0,0"><TabItem Header="Discovered stats"><Grid RowDefinitions="Auto,*"><StackPanel Spacing="8"><Grid ColumnDefinitions="*,Auto"><TextBox Text="{Binding StatsEditor.TitleId, Mode=TwoWay}" IsEnabled="{Binding StatsEditor.CanEditTitle}" PlaceholderText="Title ID"/><Button Grid.Column="1" Content="Load stats" Command="{Binding StatsEditor.LoadStatsCommand}" IsEnabled="{Binding CanQuery}"/></Grid><StackPanel Orientation="Horizontal" Spacing="8"><Button Content="Save discovered stats" Command="{Binding StatsEditor.SaveDiscoveredStatsCommand}"/><Button Content="Update changed stats" Command="{Binding StatsEditor.UpdateAllStatsCommand}" IsEnabled="{Binding CanQuery}"/></StackPanel><TextBlock Name="StatModeLabel" Text="{Binding StatsEditor.StatModeLabel}" FontWeight="SemiBold"/><TextBlock Name="StatSupportLabel" Text="{Binding StatsEditor.StatSupportLabel}" TextWrapping="Wrap" Classes="muted"/><TextBlock Text="{Binding StatsEditor.StatusText}" TextWrapping="Wrap"/></StackPanel><ListBox Grid.Row="1" ItemsSource="{Binding StatsEditor.StatItems}" IsEnabled="{Binding StatsEditor.CanEditTitle}"><ListBox.ItemTemplate><DataTemplate x:DataType="workflows:StatsEditorViewModel+StatDisplayItem"><Grid ColumnDefinitions="*,100,140,Auto" Margin="8"><StackPanel><TextBlock Text="{Binding DisplayLabel}" TextWrapping="Wrap"/><TextBlock Text="{Binding Source}" Classes="muted"/><TextBlock Text="{Binding EditStatus}" Classes="muted"/></StackPanel><TextBlock Grid.Column="1" Text="{Binding CurrentValue}"/><TextBox Grid.Column="2" Text="{Binding NewValue, Mode=TwoWay}" IsEnabled="{Binding IsEditable}"/><Button Grid.Column="3" Content="Set" Tag="{Binding}" Click="SetDiscoveredStat" IsEnabled="{Binding IsEditable}"/></Grid></DataTemplate></ListBox.ItemTemplate></ListBox></Grid></TabItem><TabItem Header="Raw response"><TextBox Text="{Binding StatsOutput}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/></TabItem></TabControl>
    </Grid>
-   <ScrollViewer Grid.Row="1" IsVisible="{Binding IsSettings}">
-    <StackPanel Spacing="18" MaxWidth="760" HorizontalAlignment="Stretch">
-     <Button Name="SaveAllSettings" Content="Save all settings" Classes="primary" Click="SaveSettings" HorizontalAlignment="Left"/>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="12">
-      <TextBlock Text="Window and appearance" FontSize="22"/>
-      <CheckBox Content="Remember window size and position" IsChecked="{Binding RememberWindowSize, Mode=TwoWay}"/>
-      <CheckBox Content="Always open maximized" IsChecked="{Binding AutoMaximize, Mode=TwoWay}"/>
-      <TextBlock Text="When both are enabled, the app opens maximized and keeps your last normal window size and position for restoring. Save settings to remember these options." Classes="muted" TextWrapping="Wrap"/>
-      <CheckBox Content="Mint accent" IsChecked="{Binding MintAccent, Mode=TwoWay}"/>
-      <CheckBox Content="Privacy mode" IsChecked="{Binding PrivacyMode, Mode=TwoWay}"/>
+   <Grid Grid.Row="1" IsVisible="{Binding IsSettings}" RowDefinitions="Auto,*" RowSpacing="16">
+    <Button Name="SaveAllSettings" Content="Save all settings" Classes="primary" Click="SaveSettings" HorizontalAlignment="Left"/>
+    <TabControl Name="DesktopSettingsTabs" Grid.Row="1">
+     <TabItem Header="Account"><ScrollViewer><StackPanel Spacing="18" MaxWidth="900" Margin="0,14,14,14">
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Account and event settings" FontSize="22"/>
+      <TextBlock Text="Events folder"/>
+      <Grid ColumnDefinitions="*,Auto"><TextBox Text="{Binding EventsDirectory, Mode=TwoWay}"/><Button Grid.Column="1" Content="Browse…" Click="ChooseEvents" Margin="10,0,0,0"/></Grid>
+      <TextBlock Text="Saved Xbox session file"/>
+      <Grid ColumnDefinitions="*,Auto"><TextBox Text="{Binding SessionPath, Mode=TwoWay}"/><Button Grid.Column="1" Content="Browse…" Click="ChooseSession" Margin="10,0,0,0"/></Grid>
+      <CheckBox Content="Region override (applies on next connection)" IsChecked="{Binding RegionOverride, Mode=TwoWay}"/>
+      <Border Classes="panel" Padding="16"><StackPanel Spacing="10"><TextBlock Text="Event token" FontSize="18"/><TextBlock Text="Paste a current Xbox events token here. It is encrypted for this Windows user and checked before every event-based unlock." Classes="muted" TextWrapping="Wrap"/><TextBox Text="{Binding EventTokenInput, Mode=TwoWay}" PasswordChar="●" PlaceholderText="Paste event token" Tag="save-token" KeyDown="SubmitTextField"/><TextBlock Text="{Binding EventTokenStatus}" Classes="muted" TextWrapping="Wrap"/><TextBlock Text="{Binding AuthorizationStatus}" Classes="muted" TextWrapping="Wrap"/><WrapPanel><Button Name="AcquireConnectedAccountEventToken" Content="Get token for connected account" Click="AcquireAccountEventToken" IsEnabled="{Binding CanAcquireAccountEventToken}"/><Button Content="Save event token" Click="SaveEventToken" Classes="primary"/><Button Content="Remove saved token" Click="ClearEventToken"/></WrapPanel></StackPanel></Border>
+      </StackPanel></Border>
+<Border Classes="panel" Padding="24"><StackPanel Spacing="14">
+      <Border Classes="panel" Padding="14"><TextBlock Text="Legacy local API disabled: unauthenticated account and token export is not available." TextWrapping="Wrap" Classes="muted"/></Border>
+<TextBlock Text="Xbox account" FontSize="22"/><TextBlock Text="{Binding ProfileName}"/>
+      <TextBlock Text="Achievement Labs first attaches to the account already signed in to the Xbox PC app. No browser or pasted link is needed for this method." TextWrapping="Wrap" Classes="muted"/>
+      <Border Classes="panel" Padding="16"><StackPanel Spacing="9"><TextBlock Text="{Binding XboxPcAttachmentLabel}" Foreground="#91CFB1" FontWeight="SemiBold"/><TextBlock Text="{Binding XboxPcAttachmentDetail}" Classes="muted" TextWrapping="Wrap"/><WrapPanel><Button Content="Attach to Xbox PC app" Click="ConnectXbox" IsEnabled="{Binding CanConnect}" Classes="primary"/><Button Content="Open Xbox app and retry" Click="LaunchXboxAndAttach" IsEnabled="{Binding CanConnect}" Margin="8,0,0,0"/></WrapPanel></StackPanel></Border>
+      <Border Classes="panel" Padding="16" IsVisible="{Binding OAuthFallbackAvailable}"><StackPanel Spacing="10"><TextBlock Text="Microsoft OAuth fallback" FontSize="18"/><TextBlock Text="Use this only when Xbox PC app attachment fails. Try a protected saved sign-in first. For a new sign-in, copy the final login.live.com address and use the single paste-and-finish button." TextWrapping="Wrap" Classes="muted"/><Button Content="Use saved OAuth fallback" Click="ConnectSavedOAuth" IsEnabled="{Binding CanConnect}"/><ComboBox ItemsSource="{Binding OAuthProfiles}" SelectedItem="{Binding OAuthProfile, Mode=TwoWay}"/><Button Content="Open Microsoft sign-in" Click="StartBrowserLogin" IsEnabled="{Binding CanConnect}"/><TextBox Text="{Binding LoginRedirect, Mode=TwoWay}" PasswordChar="●" PlaceholderText="Final login.live.com redirect URL"/><CheckBox Content="Remember this fallback sign-in for this Windows user" IsChecked="{Binding RememberBrowserSession, Mode=TwoWay}"/><WrapPanel><Button Content="Paste copied address and finish" Click="PasteAndCompleteBrowserLogin" IsEnabled="{Binding CanConnect}" Classes="primary"/><Button Content="Complete typed OAuth sign-in" Click="CompleteBrowserLogin" IsEnabled="{Binding CanConnect}" Margin="8,0,0,0"/></WrapPanel><Expander Header="Advanced: manual authorization"><StackPanel Spacing="10"><TextBox Text="{Binding ManualAuthorization, Mode=TwoWay}" PasswordChar="●" PlaceholderText="XBL3.0 authorization"/><Button Content="Attach manual authorization" Click="AttachManual" IsEnabled="{Binding CanConnect}"/></StackPanel></Expander></StackPanel></Border>
+<WrapPanel><Button Content="Disconnect" Click="Disconnect" IsEnabled="{Binding CanDisconnect}"/><Button Content="Forget saved native sign-in" Click="ForgetSavedSession" IsEnabled="{Binding CanConnect}"/></WrapPanel>
+      <TextBlock Text="Disconnecting keeps the saved session file. Native preferences are saved separately from the existing app's settings." TextWrapping="Wrap" Classes="muted"/>
      </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="12">
+     </StackPanel></ScrollViewer></TabItem>
+     <TabItem Header="Sync"><ScrollViewer><StackPanel Spacing="18" MaxWidth="900" Margin="0,14,14,14">
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12">
       <TextBlock Text="Event catalogue updates" FontSize="22"/>
       <CheckBox Content="Automatically check the original repo for new event games" IsChecked="{Binding AutoRefreshEvents, Mode=TwoWay}"/>
       <TextBlock Text="Checks published Events.zip releases at startup and hourly. New validated titles are cached and labelled Testing. Existing local mappings and edition fixes are preserved. Refresh a game's achievement page after new data arrives." TextWrapping="Wrap" Classes="muted"/>
       <Button Content="Check for new event games now" Click="RefreshEventCatalogue" IsEnabled="{Binding CanRefreshEventCatalogue}"/>
       <TextBlock Text="{Binding EventCatalogueStatus}" TextWrapping="Wrap" Classes="muted"/>
      </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="12">
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12">
       <TextBlock Text="DLC and title-update sections" FontSize="22"/>
       <CheckBox Content="Automatically check for catalogue updates daily" IsChecked="{Binding AutoRefreshDlc, Mode=TwoWay}"/>
       <TextBlock Text="Checks run at startup and while the app is open. This downloads verified grouping metadata; it does not scan your account or unlock achievements." TextWrapping="Wrap" Classes="muted"/>
       <Button Name="RefreshDlcCatalogueNow" Content="Refresh DLC catalogue now" Click="RefreshDlcCatalogue" IsEnabled="{Binding CanRefreshDlcCatalogue}"/>
       <TextBlock Text="{Binding DlcCatalogueStatus}" TextWrapping="Wrap" Classes="muted"/>
      </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="12">
+<Border Classes="panel" Padding="24"><StackPanel Spacing="16">
+      <TextBlock Text="iPhone / iPad sync" FontSize="22"/>
+      <TextBlock Text="Export the connected account's current authorization and event token in an encrypted file. The separate pairing key expires with the file after 10 minutes. OAuth renewal credentials remain on this PC." TextWrapping="Wrap" Classes="muted"/>
+      <Button Content="Show mobile QR code" Click="ShowMobileSync" IsEnabled="{Binding CanQuery}"/>
+      <Button Content="Export encrypted mobile sign-in" Click="ExportMobileTransfer" IsEnabled="{Binding CanQuery}"/>
+     </StackPanel></Border>
+     </StackPanel></ScrollViewer></TabItem>
+     <TabItem Header="Library"><ScrollViewer><StackPanel Spacing="18" MaxWidth="900" Margin="0,14,14,14">
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12">
       <TextBlock Text="Library completion appearance" FontSize="22"/>
       <CheckBox Name="MythicIconSetting" Content="Show Mythic icon for completed base games" IsChecked="{Binding ShowMythicIcon, Mode=TwoWay}"/>
       <CheckBox Name="CompletedDlcSetting" Content="Highlight 100% completed games (including DLC and title updates)" IsChecked="{Binding HighlightCompletedDlcs, Mode=TwoWay}"/>
@@ -274,43 +294,32 @@
       <TextBlock Text="Saved bulk exports are imported automatically for the connected account. Scans read one title at a time and save progress as they go." TextWrapping="Wrap" Classes="muted"/>
       <TextBlock Text="{Binding CompletionStatus}" TextWrapping="Wrap" Classes="muted"/>
      </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Achievement exports" FontSize="22"/><Button Name="ExportAllAchievements" Content="Export all achievements…" Click="OpenBulkAchievementExport" IsEnabled="{Binding CanQuery}"/></StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="16">
-      <TextBlock Text="iPhone / iPad sync" FontSize="22"/>
-      <TextBlock Text="Export the connected account's current authorization and event token in an encrypted file. The separate pairing key expires with the file after 10 minutes. OAuth renewal credentials remain on this PC." TextWrapping="Wrap" Classes="muted"/>
-      <Button Content="Show mobile QR code" Click="ShowMobileSync" IsEnabled="{Binding CanQuery}"/>
-      <Button Content="Export encrypted mobile sign-in" Click="ExportMobileTransfer" IsEnabled="{Binding CanQuery}"/>
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Achievement exports" FontSize="22"/><Button Name="ExportAllAchievements" Content="Export all achievements…" Click="OpenBulkAchievementExport" IsEnabled="{Binding CanQuery}"/></StackPanel></Border>
+     </StackPanel></ScrollViewer></TabItem>
+     <TabItem Header="App"><ScrollViewer><StackPanel Spacing="18" MaxWidth="900" Margin="0,14,14,14">
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12">
+      <TextBlock Text="Window and appearance" FontSize="22"/>
+      <CheckBox Content="Remember window size and position" IsChecked="{Binding RememberWindowSize, Mode=TwoWay}"/>
+      <CheckBox Content="Always open maximized" IsChecked="{Binding AutoMaximize, Mode=TwoWay}"/>
+      <TextBlock Text="When both are enabled, the app opens maximized and keeps your last normal window size and position for restoring. Save settings to remember these options." Classes="muted" TextWrapping="Wrap"/>
+      <CheckBox Content="Mint accent" IsChecked="{Binding MintAccent, Mode=TwoWay}"/>
+      <CheckBox Content="Privacy mode" IsChecked="{Binding PrivacyMode, Mode=TwoWay}"/>
      </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="16">
+<Border Classes="panel" Padding="24"><StackPanel Spacing="16">
       <TextBlock Text="App updates" FontSize="22"/>
       <CheckBox Content="Automatically check and download updates on launch" IsChecked="{Binding AutomaticallyCheckUpdates, Mode=TwoWay}"/>
       <TextBlock Text="{Binding UpdateStatus}" TextWrapping="Wrap"/>
       <WrapPanel><Button Content="Check for updates" Click="CheckUpdates" IsEnabled="{Binding CanCheckUpdates}"/><Button Content="Install and restart" Click="InstallUpdate" IsVisible="{Binding UpdateReady}" Margin="10,0,0,0"/></WrapPanel>
       <TextBlock Text="Save settings to remember your update preference." Classes="muted"/>
       </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Account and event settings" FontSize="22"/>
-      <TextBlock Text="Events folder"/>
-      <Grid ColumnDefinitions="*,Auto"><TextBox Text="{Binding EventsDirectory, Mode=TwoWay}"/><Button Grid.Column="1" Content="Browse…" Click="ChooseEvents" Margin="10,0,0,0"/></Grid>
-      <TextBlock Text="Saved Xbox session file"/>
-      <Grid ColumnDefinitions="*,Auto"><TextBox Text="{Binding SessionPath, Mode=TwoWay}"/><Button Grid.Column="1" Content="Browse…" Click="ChooseSession" Margin="10,0,0,0"/></Grid>
-      <CheckBox Content="Region override (applies on next connection)" IsChecked="{Binding RegionOverride, Mode=TwoWay}"/>
-      <Border Classes="panel" Padding="16"><StackPanel Spacing="10"><TextBlock Text="Event token" FontSize="18"/><TextBlock Text="Paste a current Xbox events token here. It is encrypted for this Windows user and checked before every event-based unlock." Classes="muted" TextWrapping="Wrap"/><TextBox Text="{Binding EventTokenInput, Mode=TwoWay}" PasswordChar="●" PlaceholderText="Paste event token" Tag="save-token" KeyDown="SubmitTextField"/><TextBlock Text="{Binding EventTokenStatus}" Classes="muted" TextWrapping="Wrap"/><TextBlock Text="{Binding AuthorizationStatus}" Classes="muted" TextWrapping="Wrap"/><WrapPanel><Button Name="AcquireConnectedAccountEventToken" Content="Get token for connected account" Click="AcquireAccountEventToken" IsEnabled="{Binding CanAcquireAccountEventToken}"/><Button Content="Save event token" Click="SaveEventToken" Classes="primary"/><Button Content="Remove saved token" Click="ClearEventToken"/></WrapPanel></StackPanel></Border>
-      </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Unlock and startup behaviour" FontSize="22"/><CheckBox Content="Enable unlock-all for title-based achievements" IsChecked="{Binding UnlockAllEnabled, Mode=TwoWay}"/><CheckBox Content="Automatic title presence while viewing achievements" IsChecked="{Binding AutoSpoof, Mode=TwoWay}"/><CheckBox Content="Launch Xbox app at startup" IsChecked="{Binding AutoLaunchXboxApp, Mode=TwoWay}"/><CheckBox Content="Launch Xbox app hidden" IsChecked="{Binding LaunchXboxAppHidden, Mode=TwoWay}"/><CheckBox Content="Fake signature compatibility" IsChecked="{Binding FakeSignature, Mode=TwoWay}"/>
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Unlock and startup behaviour" FontSize="22"/><CheckBox Content="Enable unlock-all for title-based achievements" IsChecked="{Binding UnlockAllEnabled, Mode=TwoWay}"/><CheckBox Content="Automatic title presence while viewing achievements" IsChecked="{Binding AutoSpoof, Mode=TwoWay}"/><CheckBox Content="Launch Xbox app at startup" IsChecked="{Binding AutoLaunchXboxApp, Mode=TwoWay}"/><CheckBox Content="Launch Xbox app hidden" IsChecked="{Binding LaunchXboxAppHidden, Mode=TwoWay}"/><CheckBox Content="Fake signature compatibility" IsChecked="{Binding FakeSignature, Mode=TwoWay}"/>
 
       </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Notifications" FontSize="22"/><CheckBox Content="Windows notifications" IsChecked="{Binding WindowsNotificationsEnabled, Mode=TwoWay}"/><CheckBox Content="Notify when the spoofer stops unexpectedly" IsChecked="{Binding NotifySpooferStops, Mode=TwoWay}"/><CheckBox Content="Stop auto unlock if spoofing fails" IsChecked="{Binding StopAutoUnlockOnSpoofFailure, Mode=TwoWay}"/><CheckBox Content="Notify when auto unlock completes" IsChecked="{Binding NotifyAutoUnlockCompletion, Mode=TwoWay}"/><Button Content="Test Windows notification" Click="TestWindowsNotification" IsEnabled="{Binding WindowsNotificationsEnabled}"/><Button Classes="primary" Content="Save settings" Click="SaveSettings"/>
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Notifications" FontSize="22"/><CheckBox Content="Windows notifications" IsChecked="{Binding WindowsNotificationsEnabled, Mode=TwoWay}"/><CheckBox Content="Notify when the spoofer stops unexpectedly" IsChecked="{Binding NotifySpooferStops, Mode=TwoWay}"/><CheckBox Content="Stop auto unlock if spoofing fails" IsChecked="{Binding StopAutoUnlockOnSpoofFailure, Mode=TwoWay}"/><CheckBox Content="Notify when auto unlock completes" IsChecked="{Binding NotifyAutoUnlockCompletion, Mode=TwoWay}"/><Button Content="Test Windows notification" Click="TestWindowsNotification" IsEnabled="{Binding WindowsNotificationsEnabled}"/><Button Classes="primary" Content="Save settings" Click="SaveSettings"/>
      </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><StackPanel Spacing="14">
-      <Border Classes="panel" Padding="14"><TextBlock Text="Legacy local API disabled: unauthenticated account and token export is not available." TextWrapping="Wrap" Classes="muted"/></Border>
-<TextBlock Text="Xbox account" FontSize="22"/><TextBlock Text="{Binding ProfileName}"/>
-      <TextBlock Text="Achievement Labs first attaches to the account already signed in to the Xbox PC app. No browser or pasted link is needed for this method." TextWrapping="Wrap" Classes="muted"/>
-      <Border Classes="panel" Padding="16"><StackPanel Spacing="9"><TextBlock Text="{Binding XboxPcAttachmentLabel}" Foreground="#91CFB1" FontWeight="SemiBold"/><TextBlock Text="{Binding XboxPcAttachmentDetail}" Classes="muted" TextWrapping="Wrap"/><WrapPanel><Button Content="Attach to Xbox PC app" Click="ConnectXbox" IsEnabled="{Binding CanConnect}" Classes="primary"/><Button Content="Open Xbox app and retry" Click="LaunchXboxAndAttach" IsEnabled="{Binding CanConnect}" Margin="8,0,0,0"/></WrapPanel></StackPanel></Border>
-      <Border Classes="panel" Padding="16" IsVisible="{Binding OAuthFallbackAvailable}"><StackPanel Spacing="10"><TextBlock Text="Microsoft OAuth fallback" FontSize="18"/><TextBlock Text="Use this only when Xbox PC app attachment fails. Try a protected saved sign-in first. For a new sign-in, copy the final login.live.com address and use the single paste-and-finish button." TextWrapping="Wrap" Classes="muted"/><Button Content="Use saved OAuth fallback" Click="ConnectSavedOAuth" IsEnabled="{Binding CanConnect}"/><ComboBox ItemsSource="{Binding OAuthProfiles}" SelectedItem="{Binding OAuthProfile, Mode=TwoWay}"/><Button Content="Open Microsoft sign-in" Click="StartBrowserLogin" IsEnabled="{Binding CanConnect}"/><TextBox Text="{Binding LoginRedirect, Mode=TwoWay}" PasswordChar="●" PlaceholderText="Final login.live.com redirect URL"/><CheckBox Content="Remember this fallback sign-in for this Windows user" IsChecked="{Binding RememberBrowserSession, Mode=TwoWay}"/><WrapPanel><Button Content="Paste copied address and finish" Click="PasteAndCompleteBrowserLogin" IsEnabled="{Binding CanConnect}" Classes="primary"/><Button Content="Complete typed OAuth sign-in" Click="CompleteBrowserLogin" IsEnabled="{Binding CanConnect}" Margin="8,0,0,0"/></WrapPanel><Expander Header="Advanced: manual authorization"><StackPanel Spacing="10"><TextBox Text="{Binding ManualAuthorization, Mode=TwoWay}" PasswordChar="●" PlaceholderText="XBL3.0 authorization"/><Button Content="Attach manual authorization" Click="AttachManual" IsEnabled="{Binding CanConnect}"/></StackPanel></Expander></StackPanel></Border>
-<WrapPanel><Button Content="Disconnect" Click="Disconnect" IsEnabled="{Binding CanDisconnect}"/><Button Content="Forget saved native sign-in" Click="ForgetSavedSession" IsEnabled="{Binding CanConnect}"/></WrapPanel>
-      <TextBlock Text="Disconnecting keeps the saved session file. Native preferences are saved separately from the existing app's settings." TextWrapping="Wrap" Classes="muted"/>
-     </StackPanel></Border>
-     <Border Classes="panel" Padding="24"><Expander Header="Debug" IsExpanded="{Binding DebugExpanded, Mode=TwoWay}"><StackPanel Spacing="12" Margin="0,12,0,0">
+     </StackPanel></ScrollViewer></TabItem>
+     <TabItem Header="Debug"><ScrollViewer><StackPanel Spacing="18" MaxWidth="900" Margin="0,14,14,14">
+<Border Classes="panel" Padding="24"><Expander Header="Debug" IsExpanded="{Binding DebugExpanded, Mode=TwoWay}"><StackPanel Spacing="12" Margin="0,12,0,0">
       <TextBlock Text="Diagnostic reports and catalogue checks" FontSize="18"/>
       <WrapPanel><Button Content="Open export/debug reports" Click="OpenDebugReports"/><Button Content="Export verified totals" Click="ExportVerifiedTotals" IsEnabled="{Binding CanExportVerifiedTotals}" Margin="8,0,0,0"/></WrapPanel>
       <TextBlock Text="New export scan-error reports are stored in the export's debug folder. Older reports stay where they were saved." TextWrapping="Wrap" Classes="muted"/>
@@ -319,8 +328,9 @@
       <TextBlock Text="{Binding CatalogSummary}" TextWrapping="Wrap" Classes="muted"/>
       <ListBox ItemsSource="{Binding CatalogFindings}" MaxHeight="260" Background="Transparent"><ListBox.ItemTemplate><DataTemplate x:DataType="core:CatalogFinding"><StackPanel Margin="8" Spacing="4"><TextBlock Text="{Binding TitleId}"/><TextBlock Text="{Binding Status}"/><TextBlock Text="{Binding Detail}" TextWrapping="Wrap" Classes="muted"/></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox>
      </StackPanel></Expander></Border>
-    </StackPanel>
-   </ScrollViewer>
+     </StackPanel></ScrollViewer></TabItem>
+    </TabControl>
+   </Grid>
    <Grid Grid.Row="1" IsVisible="{Binding IsDiagnostics}" RowDefinitions="Auto,Auto,*">
     <Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Event catalog integrity" FontSize="24"/><TextBlock Text="Check title blocks, supported IDs, and standalone template files. This inspection does not modify the catalog." TextWrapping="Wrap" Classes="muted"/><TextBlock Text="{Binding EventsDirectory}" TextWrapping="Wrap"/><WrapPanel><Button Content="Inspect catalog" Click="InspectCatalog" IsEnabled="{Binding CanInteract}"/><Button Content="Test event replacements" Click="TestEventReplacements" IsEnabled="{Binding CanInteract}" Margin="10,0"/></WrapPanel></StackPanel></Border>
     <TextBlock Grid.Row="1" Text="{Binding CatalogSummary}" Margin="0,18" TextWrapping="Wrap"/>
