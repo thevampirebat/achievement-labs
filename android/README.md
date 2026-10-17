@@ -1,4 +1,4 @@
-# Achievement Labs Android 0.2.0 beta
+# Achievement Labs Android 0.2.1 beta
 
 Standalone Android 8+ APK. The interface is packaged inside the APK; Xbox traffic, QR decoding, encryption, authentication and queue execution run on the device. No PC server or hosted website is needed.
 
@@ -26,4 +26,4 @@ Active queues and title spoofing now use an application-owned runtime and a data
 Settings → App can download and verify a published Android release APK, then open Android's installer. Package ID, newer version code, GitHub asset SHA-256 digest, and identical signing certificates are required. Install permission and final installation remain under Android/user control. There must first be a public Android release asset with a GitHub SHA-256 digest.
 
 ### Permanent release signing
-Configure these GitHub Actions repository secrets once: `LABS_ANDROID_KEYSTORE_BASE64`, `LABS_ANDROID_KEY_ALIAS`, `LABS_ANDROID_STORE_PASSWORD`, `LABS_ANDROID_KEY_PASSWORD`. The workflow signs the delivered APK with that key and removes its temporary keystore. Keep a secure backup of the permanent keystore; never commit it. Without those secrets builds retain temporary test signatures and cannot reliably update an existing installation. A different key requires a one-time reinstall; the updater refuses to erase existing data.
+Configure these GitHub Actions repository secrets once: `LABS_ANDROID_KEYSTORE_BASE64`, `LABS_ANDROID_KEY_ALIAS`, `LABS_ANDROID_STORE_PASSWORD`, `LABS_ANDROID_KEY_PASSWORD`. The workflow signs the delivered APK with that key and removes its temporary keystore. Keep a secure backup of the permanent keystore; never commit it. The build now fails when any signing secret is missing; it never falls back to a temporary test key. A different key requires a one-time reinstall; the updater refuses to erase existing data.

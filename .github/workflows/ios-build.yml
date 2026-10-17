@@ -13,10 +13,14 @@ jobs:
   build:
     runs-on: macos-15
     timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Verify iOS 26 SDK
+        run: xcodebuild -version
       - name: Prepare mobile catalogue without changing desktop data
         run: python3 mobile/tools/prepare_catalogue.py
       - name: Run synthetic core and generated catalogue checks
@@ -32,6 +36,8 @@ jobs:
       - name: Build iPhone and iPad device app without a signing identity
         run: |
           xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath mobile/build CODE_SIGNING_ALLOWED=NO build
+          /usr/libexec/PlistBuddy -c 'Print :BGTaskSchedulerPermittedIdentifiers' mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app/Info.plist
+          /usr/libexec/PlistBuddy -c 'Print :UIBackgroundModes' mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app/Info.plist
       - name: Build for simulator and verify launch
         run: |
           xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath mobile/simulator CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- CODE_SIGN_ENTITLEMENTS="$PWD/mobile/Simulator.entitlements" build
@@ -43,8 +49,8 @@ jobs:
           mkdir -p mobile/artifacts/Payload
           cp -R mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app mobile/artifacts/Payload/
           cd mobile/artifacts
-          /usr/bin/zip -qry AchievementLabs-iOS-0.6.0-UNSIGNED.ipa Payload
-          shasum -a 256 AchievementLabs-iOS-0.6.0-UNSIGNED.ipa > SHA256.txt
+          /usr/bin/zip -qry AchievementLabs-iOS-0.7.0-UNSIGNED.ipa Payload
+          shasum -a 256 AchievementLabs-iOS-0.7.0-UNSIGNED.ipa > SHA256.txt
           cp ../Catalogue/catalogue-report.json .
           cp ../README.md .
           cp ../App/Assets.xcassets/AppIcon.appiconset/Icon.png AppIcon.png

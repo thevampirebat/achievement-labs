@@ -15,9 +15,9 @@ enum SecureStore {
         guard status == errSecSuccess else { throw Failure(status: status) }
         return result as? Data
     }
-    static func save(_ data: Data) throws {
+    static func save(_ data: Data, allowBackground: Bool = false) throws {
         let query: [String: Any] = [kSecClass as String:kSecClassGenericPassword, kSecAttrService as String:service, kSecAttrAccount as String:"current"]
-        let update: [String: Any] = [kSecValueData as String:data, kSecAttrAccessible as String:kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
+        let update: [String: Any] = [kSecValueData as String:data, kSecAttrAccessible as String:(allowBackground ? kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly : kSecAttrAccessibleWhenUnlockedThisDeviceOnly)]
         let status = SecItemUpdate(query as CFDictionary, update as CFDictionary)
         if status == errSecItemNotFound {
             var item = query; update.forEach { item[$0] = $1 }

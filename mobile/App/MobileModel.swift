@@ -3,6 +3,7 @@ import LabsMobileCore
 import UserNotifications
 import UIKit
 import WebKit
+import Combine
 
 final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationPresentation()
@@ -78,6 +79,11 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }()
     let catalogue: Catalogue?
     private var generation = UUID()
+    @AppStorage("continueQueueInBackground") var continueQueueInBackground = false
+    @AppStorage("continueSpoofWithQueue") var continueSpoofWithQueue = true
+    let continuedQueue = ContinuedQueue()
+    private var continuedObservation: AnyCancellable?
+    var queueBackgroundAllowed: Bool { continueQueueInBackground && running && continuedQueue.active }
     private var queueTask: Task<Void, Never>?
     private var presenceTask: Task<Void, Never>?
     private var foreground = true
@@ -88,6 +94,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         UNUserNotificationCenter.current().delegate = NotificationPresentation.shared
         directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("AchievementLabs", isDirectory: true)
         catalogue = Bundle.main.resourceURL.map { try? Catalogue(folder: $0.appendingPathComponent("Catalogue")) } ?? nil
+        continuedObservation = continuedQueue.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() }
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--storage-self-test") {
             do {
@@ -117,7 +124,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     private func saveAccount(_ input: Account) throws {
         var next = input
-        if rememberSignIn { try SecureStore.save(JSONEncoder().encode(next)) }
+        if rememberSignIn { try SecureStore.save(JSONEncoder().encode(next),allowBackground:continueQueueInBackground) }
         else { next.refreshToken = nil; try SecureStore.remove() }
         account = next
     }
@@ -257,13 +264,13 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         } else if UUID(uuidString: row.serviceConfigID) == nil { return "Missing service configuration." }
         return nil
     }
-    private func send(_ row: Achievement, game: Game, account: Account) async throws {
-        guard foreground else { throw CancellationError() }
+    private func send(_ row: Achievement, game: Game, account: Account, allowBackground: Bool = false) async throws {
+        guard foreground || (allowBackground && queueBackgroundAllowed) else { throw CancellationError() }
         if let reason = unavailable(row, game: game) { throw LabsError.message(reason) }
         if row.eventBased {
             guard let catalogue else { throw LabsError.message("Catalogue unavailable.") }
             let bodies = try catalogue.payloads(title: game.id, achievement: row.id, xuid: account.xuid)
-            for body in bodies { try Task.checkCancellation(); try await api.sendEvent(body, account: account) }
+            for body in bodies { try Task.checkCancellation(); guard foreground || (allowBackground && queueBackgroundAllowed) else { throw CancellationError() }; try await api.sendEvent(body, account: account) }
         } else { try await api.titleUnlock(row, game: game, account: account) }
     }
     func unlock(_ row: Achievement, game: Game) async {
@@ -280,7 +287,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     @discardableResult func saveQueue() -> Bool {
         guard let url = queueURL else { return false }
-        do { try JSONEncoder().encode(queue).write(to: url, options: [.atomic, .completeFileProtection]); return true }
+        do { try JSONEncoder().encode(queue).write(to: url, options: [.atomic, continueQueueInBackground ? .completeFileProtectionUntilFirstUserAuthentication : .completeFileProtection]); return true }
         catch { self.error = "Could not save queue changes."; queueTask?.cancel(); return false }
     }
     private func loadQueue() {
@@ -297,26 +304,39 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func startQueue() {
         guard let account, foreground, !running, !busy, queue.contains(where: { $0.status == "Waiting" }) else { return }
         running = true; let version = generation
+        if continueQueueInBackground {
+            continuedQueue.start(total:queue.filter { $0.status == "Waiting" }.count) { [weak self] in
+                guard let self else { return }; self.pauseQueue()
+                if !self.foreground { self.presenceTask?.cancel(); Task { await self.stopPresence() } }
+                self.status = "iOS background time ended. Review the saved queue before resuming."
+            }
+        }
         queueTask = Task { [weak self] in
             guard let self else { return }
-            defer { self.running = false; self.nextAction = nil; self.queueTask = nil; UIApplication.shared.isIdleTimerDisabled = self.presenceStarted != nil }
+            defer {
+                let success = !Task.isCancelled && !self.queue.contains { $0.status == "Waiting" || $0.status.hasPrefix("Failed") || $0.status.hasPrefix("Interrupted") }
+                self.continuedQueue.finish(success:success)
+                self.running = false; self.nextAction = nil; self.queueTask = nil
+                UIApplication.shared.isIdleTimerDisabled = self.presenceStarted != nil
+                if !self.foreground { self.presenceTask?.cancel(); Task { await self.stopPresence() } }
+            }
             UIApplication.shared.isIdleTimerDisabled = true
             while let index = self.queue.firstIndex(where: { $0.status == "Waiting" }) {
-                if Task.isCancelled || !self.foreground || version != self.generation { break }
+                if Task.isCancelled || (!self.foreground && !self.queueBackgroundAllowed) || version != self.generation { break }
                 let item = self.queue[index]
                 do {
                     // Re-read current account progress and event metadata before each action.
                     let current = try await self.readWithAccount { try await self.api.achievements(item.game,account:$0) }
                     guard var row = current.first(where: { $0.id == item.achievement.id }), row.name == item.achievement.name else { throw LabsError.message("Achievement metadata changed; rebuild this queue item.") }
                     row.eventBased = current.contains(where: \.eventBased)
-                    if row.unlocked { self.queue[index].status = "Already unlocked"; self.saveQueue(); continue }
+                    if row.unlocked { self.queue[index].status = "Already unlocked"; self.saveQueue(); self.continuedQueue.advance(); continue }
                     self.nextAction = Date().addingTimeInterval(item.delay)
                     try await Task.sleep(nanoseconds: UInt64(max(0,min(item.delay,31_536_000)) * 1_000_000_000))
                     try Task.checkCancellation()
                     self.queue[index].status = "Submitting"
                     guard self.saveQueue() else { throw LabsError.message("Queue could not be saved; action was not sent.") }
-                    let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.send(row, game: item.game, account: active)
-                    self.queue[index].status = "Accepted — verify progress"; self.saveQueue()
+                    let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.send(row, game: item.game, account: active, allowBackground:true)
+                    self.queue[index].status = "Accepted — verify progress"; self.saveQueue(); self.continuedQueue.advance()
                 } catch is CancellationError {
                     if self.queue[index].status == "Submitting" { self.queue[index].status = "Interrupted — refresh before retrying" }; self.saveQueue(); break
                 } catch {
@@ -324,7 +344,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                         if self.queue[index].status == "Submitting" { self.queue[index].status = "Interrupted — refresh before retrying" }
                         self.saveQueue(); break
                     }
-                    self.queue[index].status = "Failed: \(error.localizedDescription)"; self.saveQueue()
+                    self.queue[index].status = "Failed: \(error.localizedDescription)"; self.saveQueue(); self.continuedQueue.advance()
                     if self.stopOnFailure { break }
                 }
             }
@@ -334,7 +354,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
-    func pauseQueue() { queueTask?.cancel(); nextAction = nil; status = "Queue paused. Saved items can be reviewed before resuming." }
+    func pauseQueue() { continuedQueue.finish(success:false); queueTask?.cancel(); nextAction = nil; status = "Queue paused. Saved items can be reviewed before resuming." }
     func removeCompleted() async {
         guard let account, !running, !busy else { return }; busy = true; defer { busy = false }
         do {
@@ -354,7 +374,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             defer { self.presenceStarted = nil; self.presenceRunning = false; self.presenceTask = nil; UIApplication.shared.isIdleTimerDisabled = self.running }
             do {
                 let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.api.presence(title, account: active); self.presenceStarted = Date(); self.spoofStatus = "Heartbeat accepted. Xbox-recorded playtime can update later."; UIApplication.shared.isIdleTimerDisabled = true
-                while !Task.isCancelled { try await Task.sleep(nanoseconds: 240_000_000_000); try Task.checkCancellation(); let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.api.presence(title, account: active); self.spoofStatus = "Heartbeat accepted at " + Date().formatted(date:.omitted,time:.standard) }
+                while !Task.isCancelled { try await Task.sleep(nanoseconds: 240_000_000_000); try Task.checkCancellation(); guard self.foreground || (self.continueSpoofWithQueue && self.queueBackgroundAllowed) else { throw CancellationError() }; let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.api.presence(title, account: active); self.spoofStatus = "Heartbeat accepted at " + Date().formatted(date:.omitted,time:.standard) }
             } catch is CancellationError { }
             catch {
                 if Task.isCancelled { return }
@@ -387,11 +407,44 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         spoofStatus = "Stopped locally."
         if let account { do { try await api.presence(nil, account: account) } catch { self.error = "Presence stopped locally; Xbox stop request failed: \(error.localizedDescription)" } }
     }
-    func background() {
-        foreground = false; pauseQueue(); presenceTask?.cancel()
-        if let account, presenceStarted != nil { Task { try? await api.presence(nil, account: account) } }
-        status = "Paused while the app is inactive. Review and resume when you return."
+    func updateBackgroundPreference() {
+        guard !running, !presenceRunning else { return }
+        do { if let account { try saveAccount(account) }; _ = saveQueue() }
+        catch { continueQueueInBackground = false; self.error = "Could not update protected storage for background access." }
     }
+    func background() {
+        foreground = false
+        if queueBackgroundAllowed {
+            status = "Queue continuing in background; iOS may end this time."
+            if !continueSpoofWithQueue { presenceTask?.cancel(); Task { await stopPresence() } }
+            return
+        }
+        continuedQueue.finish(success:false); pauseQueue(); presenceTask?.cancel()
+        if let account, presenceStarted != nil { Task { try? await api.presence(nil, account: account) } }
+        status = "Paused in background. Review and resume when you return."
+    }
+    #if DEBUG
+    func backgroundSelfTest() async {
+        // Only reachable in offline preview, which blocks every Xbox request.
+        guard ProcessInfo.processInfo.arguments.contains("--ui-preview=queue") else { return }
+        do { try await Task.sleep(nanoseconds:1_000_000_000) } catch { return }
+        continuedQueue.start(total:2,expired:{})
+        do { try await Task.sleep(nanoseconds:9_000_000_000) } catch { return }
+        let granted = continuedQueue.active
+        if granted {
+            // Two completed synthetic local jobs, never a heartbeat or unlock.
+            _ = Data("offline-one".utf8).base64EncodedString(); continuedQueue.advance()
+            _ = Data("offline-two".utf8).base64EncodedString(); continuedQueue.advance()
+        }
+        continuedQueue.finish(success:granted)
+        let identifiers = Bundle.main.object(forInfoDictionaryKey:"BGTaskSchedulerPermittedIdentifiers") as? [String] ?? []
+        let modes = Bundle.main.object(forInfoDictionaryKey:"UIBackgroundModes") as? [String] ?? []
+        let result: [String:Any] = ["available":continuedQueue.available,"granted":granted,"finishedInactive":!continuedQueue.active,"manifestValid":identifiers.contains("org.achievementlabs.mobile.queue.*") && modes.contains("processing")]
+        if let url = FileManager.default.urls(for:.documentDirectory,in:.userDomainMask).first?.appendingPathComponent("Background-self-test.json") {
+            try? JSONSerialization.data(withJSONObject:result).write(to:url,options:.atomic)
+        }
+    }
+    #endif
     func active() { foreground = true; Task { await maintainOnOpen() } }
     func requestNotifications() async { do { _ = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert,.sound]) } catch { self.error = error.localizedDescription } }
     private func notify(_ title: String, body: String) async {

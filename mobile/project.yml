@@ -11,8 +11,8 @@ settings:
     SWIFT_VERSION: "5.0"
     TARGETED_DEVICE_FAMILY: "1,2"
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: "0.6.0"
-    CURRENT_PROJECT_VERSION: "8"
+    MARKETING_VERSION: "0.7.0"
+    CURRENT_PROJECT_VERSION: "9"
 targets:
   AchievementLabsMobile:
     type: application
@@ -22,6 +22,11 @@ targets:
       - path: Catalogue
         type: folder
         buildPhase: resources
+    info:
+      path: GeneratedInfo.plist
+      properties:
+        UIBackgroundModes: [processing]
+        BGTaskSchedulerPermittedIdentifiers: [org.achievementlabs.mobile.queue.*]
     dependencies:
       - package: LabsMobileCore
     settings:

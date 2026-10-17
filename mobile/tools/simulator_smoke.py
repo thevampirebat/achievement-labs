@@ -6,7 +6,8 @@ from pathlib import Path
 
 def run(*args): return subprocess.check_output(args,text=True)
 devices=json.loads(run('xcrun','simctl','list','devices','available','--json'))['devices']
-available=[d for group in devices.values() for d in group if d['name'].startswith('iPhone')]
+available=[d for runtime,group in devices.items() if 'iOS-26' in runtime for d in group if d['name'].startswith('iPhone')]
+assert available, 'No iOS 26 simulator for background API checks'
 assert available, 'No available iPhone simulator'
 device=available[0]['udid']
 subprocess.run(['xcrun','simctl','boot',device],check=False)
@@ -46,3 +47,12 @@ marker=container/'Documents'/'Callback-self-test.txt'
 assert marker.read_text() == 'passed', 'Embedded WebKit did not capture and validate the synthetic redirect'
 subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
 print('Embedded WebKit automatic callback capture and full redirect validation passed without credentials or OAuth requests.')
+
+output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--ui-preview=queue','--background-self-test')
+time.sleep(12)
+container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.mobile','data').strip())
+result=json.loads((container/'Documents'/'Background-self-test.json').read_text())
+assert result['available'] and result['finishedInactive'], 'Background request did not finish safely'
+assert result['manifestValid'], 'Background identifiers/modes missing from the built app'
+print('iOS 26 background API request completed or safely declined with no network: '+str(result))
+subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
