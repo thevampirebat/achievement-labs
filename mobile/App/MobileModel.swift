@@ -162,6 +162,10 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 } catch is CancellationError {
                     if self.queue[index].status == "Submitting" { self.queue[index].status = "Interrupted — refresh before retrying" }; self.saveQueue(); break
                 } catch {
+                    if Task.isCancelled {
+                        if self.queue[index].status == "Submitting" { self.queue[index].status = "Interrupted — refresh before retrying" }
+                        self.saveQueue(); break
+                    }
                     self.queue[index].status = "Failed: \(error.localizedDescription)"; self.saveQueue()
                     if self.stopOnFailure { break }
                 }
@@ -195,6 +199,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 while !Task.isCancelled { try await Task.sleep(nanoseconds: 240_000_000_000); try Task.checkCancellation(); try await self.api.presence(title, account: account) }
             } catch is CancellationError { }
             catch {
+                if Task.isCancelled { return }
                 self.error = "Title presence stopped: \(error.localizedDescription)"
                 if self.stopOnPresenceFailure { self.pauseQueue() }
                 if self.notifyPresenceFailure { await self.notify("Title presence stopped", body: "Open Achievement Labs to check authorization.") }
