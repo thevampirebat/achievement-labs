@@ -444,6 +444,73 @@ public partial class MainWindow : Window
     private void ShowSettings(object? s, RoutedEventArgs e) => model.Navigate("Settings");
     private void ShowDiagnostics(object? s, RoutedEventArgs e) => model.Navigate("Diagnostics");
     private void TestWindowsNotification(object? s, RoutedEventArgs e) => model.TestWindowsNotification();
+    private async void ShowMobileSync(object? sender, RoutedEventArgs args)
+    {
+        if (!model.CanQuery) return;
+        try {
+            var frames = AchievementLabs.Core.MobileTransfer.QrFrames(model.CreateMobileTransfer());
+            var eventOnly=false;
+            var dialog = new Window { Title="Mobile sync · iPhone / iPad / Android",Width=570,Height=800,MinWidth=500,MinHeight=600,WindowStartupLocation=WindowStartupLocation.CenterOwner };
+            var image = new Avalonia.Controls.Image { Width=410,Height=410,Stretch=Avalonia.Media.Stretch.Uniform };
+            var status = new TextBlock { TextWrapping=TextWrapping.Wrap,HorizontalAlignment=Avalonia.Layout.HorizontalAlignment.Center };
+            var close = new Button { Content="Close" }; close.Click += (_,_)=>dialog.Close();
+            var previous = new Button { Content="Previous" }; var next = new Button { Content="Next" };
+            var automatic = new CheckBox { Content="Cycle automatically",IsChecked=true };
+            var index=0; var expires=DateTimeOffset.UtcNow.AddMinutes(10);
+            Avalonia.Media.Imaging.Bitmap? bitmap=null;
+            void ShowFrame() {
+                using var generator = new QRCoder.QRCodeGenerator();
+                using var data = generator.CreateQrCode(frames[index],QRCoder.QRCodeGenerator.ECCLevel.M);
+                using var qr = new QRCoder.PngByteQRCode(data);
+                using var stream = new MemoryStream(qr.GetGraphic(5));
+                var old=bitmap; bitmap=new Avalonia.Media.Imaging.Bitmap(stream); image.Source=bitmap; old?.Dispose();
+                status.Text=$"{(eventOnly ? "Event token only" : "Sign-in + event token")} · code {index+1} of {frames.Length} · expires {expires.LocalDateTime:t}";
+            }
+            var timer=new Avalonia.Threading.DispatcherTimer { Interval=TimeSpan.FromSeconds(0.5) };
+            var accountMode = new RadioButton { Content="Sign-in + event token",GroupName="MobileTransferMode",IsChecked=true };
+            var eventMode = new RadioButton { Content="Event token only",GroupName="MobileTransferMode" };
+            var modeHeading = new TextBlock { Text="SIGN-IN + EVENT TOKEN",FontSize=20,FontWeight=Avalonia.Media.FontWeight.Bold,Foreground=Avalonia.Media.Brushes.LimeGreen };
+            var speed = new ComboBox { ItemsSource=new[]{"Fast · 0.5 seconds","Balanced · 0.8 seconds","Slow · 1.2 seconds"},SelectedIndex=0,MinWidth=220 };
+            speed.SelectionChanged += (_,_)=> { timer.Interval=TimeSpan.FromSeconds(speed.SelectedIndex==0 ? 0.5 : speed.SelectedIndex==1 ? 0.8 : 1.2); };
+            void ChangeMode(bool only) {
+                modeHeading.Text=only ? "EVENT TOKEN ONLY" : "SIGN-IN + EVENT TOKEN";
+                try { var replacement=AchievementLabs.Core.MobileTransfer.QrFrames(model.CreateMobileTransfer(only)); Array.Clear(frames); frames=replacement; eventOnly=only; index=0; expires=DateTimeOffset.UtcNow.AddMinutes(10); previous.IsEnabled=true; next.IsEnabled=true; ShowFrame(); timer.Start(); }
+                catch { timer.Stop(); image.Source=null; previous.IsEnabled=false; next.IsEnabled=false; status.Text="Save an event token in PC Settings before creating an event-token QR."; }
+            }
+            accountMode.Click += (_,_)=>ChangeMode(false); eventMode.Click += (_,_)=>ChangeMode(true);
+            previous.Click += (_,_)=>{ index=(index+frames.Length-1)%frames.Length; ShowFrame(); };
+            next.Click += (_,_)=>{ index=(index+1)%frames.Length; ShowFrame(); };
+            timer.Tick += (_,_)=>{ if(DateTimeOffset.UtcNow>=expires) { image.Source=null; status.Text="Expired. Close and generate a new code."; timer.Stop(); previous.IsEnabled=false; next.IsEnabled=false; }
+                else if(automatic.IsChecked==true) { index=(index+1)%frames.Length; ShowFrame(); } };
+            dialog.Content = new ScrollViewer { Content = new StackPanel { Margin=new Thickness(20),Spacing=12,Children={
+                new TextBlock { Text="On iPhone / iPad, open Home → Sync from PC → Scan PC QR codes. Keep the camera pointed here until every code is collected.",TextWrapping=TextWrapping.Wrap },
+                new StackPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Spacing=18,Children={accountMode,eventMode} },
+                modeHeading,
+                new StackPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Spacing=10,Children={new TextBlock { Text="QR speed",VerticalAlignment=Avalonia.Layout.VerticalAlignment.Center },speed} },
+                image,status,new StackPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Spacing=12,Children={previous,next,automatic} },
+                new TextBlock { Text="Private sign-in codes: do not share screenshots. Event-token mode excludes account authorization. Microsoft renewal credentials always stay on PC.",TextWrapping=TextWrapping.Wrap },close } } };
+            ShowFrame(); timer.Start();
+            try { await dialog.ShowDialog(this); } finally { timer.Stop(); image.Source=null; bitmap?.Dispose(); Array.Clear(frames); }
+        } catch { model.Notice="Could not create mobile QR transfer. Connect an Xbox account first."; }
+    }
+    private async void ExportMobileTransfer(object? sender, RoutedEventArgs args)
+    {
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title="Export encrypted mobile sign-in",SuggestedFileName="AchievementLabs-PC.labslink",DefaultExtension="labslink" });
+        if (file?.TryGetLocalPath() is not { } path) return;
+        try {
+            var transfer = model.CreateMobileTransfer();
+            await File.WriteAllBytesAsync(path,transfer.Bytes);
+            var dialog = new Window { Title="Mobile sync · iPhone / iPad / Android",Width=580,Height=340,CanResize=false,WindowStartupLocation=WindowStartupLocation.CenterOwner };
+            var copy = new Button { Content="Copy pairing key" }; var close = new Button { Content="Close" };
+            copy.Click += async (_,_) => { if (Clipboard != null) await Clipboard.SetTextAsync(transfer.PairingKey); };
+            close.Click += (_,_) => dialog.Close();
+            dialog.Content = new StackPanel { Margin=new Thickness(24),Spacing=14,Children={
+                new TextBlock { Text="Encrypted file saved. Import it in the mobile app's Settings → PC sync, then enter this key. The file expires in 10 minutes.",TextWrapping=Avalonia.Media.TextWrapping.Wrap },
+                new SelectableTextBlock { Text=transfer.PairingKey,TextWrapping=Avalonia.Media.TextWrapping.Wrap,FontSize=17 },
+                new TextBlock { Text="Keep the file and key private. This exports the current authorization and event token, not Microsoft renewal credentials.",TextWrapping=Avalonia.Media.TextWrapping.Wrap },copy,close } };
+            await dialog.ShowDialog(this); model.Notice="Encrypted mobile transfer exported.";
+        } catch { model.Notice="Could not export mobile sign-in. Connect Xbox and check the destination."; }
+    }
     private async void CheckUpdates(object? s, RoutedEventArgs e) => await model.CheckForUpdatesAsync(true);
     private void InstallUpdate(object? s, RoutedEventArgs e) { if (model.InstallUpdate()) Close(); }
     private async void SaveSettings(object? s, RoutedEventArgs e) => await model.SavePreferencesAsync();
