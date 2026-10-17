@@ -466,10 +466,14 @@ public partial class MainWindow : Window
                 var old=bitmap; bitmap=new Avalonia.Media.Imaging.Bitmap(stream); image.Source=bitmap; old?.Dispose();
                 status.Text=$"{(eventOnly ? "Event token only" : "Sign-in + event token")} · code {index+1} of {frames.Length} · expires {expires.LocalDateTime:t}";
             }
-            var timer=new Avalonia.Threading.DispatcherTimer { Interval=TimeSpan.FromSeconds(1.2) };
-            var accountMode = new Button { Content="Sign-in + event token QR" };
-            var eventMode = new Button { Content="Event token QR only" };
+            var timer=new Avalonia.Threading.DispatcherTimer { Interval=TimeSpan.FromSeconds(0.5) };
+            var accountMode = new RadioButton { Content="Sign-in + event token",GroupName="MobileTransferMode",IsChecked=true };
+            var eventMode = new RadioButton { Content="Event token only",GroupName="MobileTransferMode" };
+            var modeHeading = new TextBlock { Text="SIGN-IN + EVENT TOKEN",FontSize=20,FontWeight=Avalonia.Media.FontWeight.Bold,Foreground=Avalonia.Media.Brushes.LimeGreen };
+            var speed = new ComboBox { ItemsSource=new[]{"Fast · 0.5 seconds","Balanced · 0.8 seconds","Slow · 1.2 seconds"},SelectedIndex=0,MinWidth=220 };
+            speed.SelectionChanged += (_,_)=> { timer.Interval=TimeSpan.FromSeconds(speed.SelectedIndex==0 ? 0.5 : speed.SelectedIndex==1 ? 0.8 : 1.2); };
             void ChangeMode(bool only) {
+                modeHeading.Text=only ? "EVENT TOKEN ONLY" : "SIGN-IN + EVENT TOKEN";
                 try { var replacement=AchievementLabs.Core.MobileTransfer.QrFrames(model.CreateMobileTransfer(only)); Array.Clear(frames); frames=replacement; eventOnly=only; index=0; expires=DateTimeOffset.UtcNow.AddMinutes(10); previous.IsEnabled=true; next.IsEnabled=true; ShowFrame(); timer.Start(); }
                 catch { timer.Stop(); image.Source=null; previous.IsEnabled=false; next.IsEnabled=false; status.Text="Save an event token in PC Settings before creating an event-token QR."; }
             }
@@ -480,7 +484,9 @@ public partial class MainWindow : Window
                 else if(automatic.IsChecked==true) { index=(index+1)%frames.Length; ShowFrame(); } };
             dialog.Content = new ScrollViewer { Content = new StackPanel { Margin=new Thickness(20),Spacing=12,Children={
                 new TextBlock { Text="On iPhone / iPad, open Home → Sync from PC → Scan PC QR codes. Keep the camera pointed here until every code is collected.",TextWrapping=TextWrapping.Wrap },
-                new WrapPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Children={accountMode,eventMode} },
+                new StackPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Spacing=18,Children={accountMode,eventMode} },
+                modeHeading,
+                new StackPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Spacing=10,Children={new TextBlock { Text="QR speed",VerticalAlignment=Avalonia.Layout.VerticalAlignment.Center },speed} },
                 image,status,new StackPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Spacing=12,Children={previous,next,automatic} },
                 new TextBlock { Text="Private sign-in codes: do not share screenshots. Event-token mode excludes account authorization. Microsoft renewal credentials always stay on PC.",TextWrapping=TextWrapping.Wrap },close } } };
             ShowFrame(); timer.Start();

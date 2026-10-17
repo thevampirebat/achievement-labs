@@ -88,3 +88,9 @@ The encrypted file/key fallback remains available. Its picker accepts the custom
 PC mobile sync offers separate Sign-in + event token QR and Event token QR only modes. Event-only packets exclude account authorization and Microsoft renewal credentials; iOS requires an existing sign-in for the matching XUID and only offers event-token import. Account and event transfers retain their ten-minute import expiry.
 
 Home now displays a larger gamerpic, gamerscore, games, unlocked achievements, known Mythic completions and fully completed games, with recent games, quick navigation and pull-to-refresh. Counts use the same account-specific library and completion data as Library.
+
+## Categorized settings and QR speed (0.6.0)
+
+Settings now has Account, Sync, Library and App tabs. A toolbar QR scanner is available from every tab; Sync also includes direct scanning and file import. Account settings explain the full PC sign-in QR route for heartbeat refusals; event-only sync preserves account authorization. A PC-transferred session working where browser sign-in fails is evidence of a session-specific difference, not proof of the exact server-side permission rule.
+
+The PC QR window uses mutually exclusive radio selectors and a large active-mode heading. Cycle speed defaults to 0.5 seconds, with 0.8-second Balanced and the previous 1.2-second Slow options. Manual navigation and repeated loops remain available when a phone misses frames.

@@ -370,7 +370,11 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                         catch { self.spoofDiagnostics += "\nIndependent profile check: unavailable." }
                     }
                 }
-                self.error = "Title spoofing stopped: \(error.localizedDescription)"
+                var guidance = ""
+                if let failure = error as? XboxHTTPFailure, failure.status == 403, self.account?.loginProfile != "PC transfer" {
+                    guidance = "\nUse Settings → Scan PC QR and import the full Sign-in + event token QR. Event-token-only sync does not change heartbeat authorization."
+                }
+                self.error = "Title spoofing stopped: \(error.localizedDescription)" + guidance
                 if self.stopOnPresenceFailure { self.pauseQueue() }
                 if self.notifyPresenceFailure { await self.notify("Title spoofing stopped", body: "Open Achievement Labs to review the heartbeat error.") }
             }
@@ -463,7 +467,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         updateStatus = "Checking published iOS releases…"
         do {
             let latest = try await PublicSync().release(); lastUpdateCheck = Date()
-            let current = Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "0.5.0"
+            let current = Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "0.6.0"
             if let latest, MobileRelease.newer(latest.version,than:current) {
                 availableUpdate = latest; updateStatus = "iOS \(latest.version) is available. Sign and install its IPA through Signulous."
                 if notifyMobileUpdates, UserDefaults.standard.string(forKey:"lastNotifiedMobileVersion") != latest.version {
@@ -520,7 +524,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         queue = [QueueItem(game:second,achievement:row,delay:120)]
         referenceInfo = "Reference profile · 1 queued · 2 skipped"; status = "Timing queue loaded. Review delays, then start when ready."
         spoofStatus = "No heartbeat sent."; playedHours[second.id] = 12.5
-        selectedTab = page == "queue" ? 1 : page == "spoof" ? 2 : page == "settings" ? 3 : page == "home" ? 4 : 0
+        selectedTab = page == "queue" ? 1 : page == "spoof" ? 2 : page.hasPrefix("settings") ? 3 : page == "home" ? 4 : 0
     }
     #endif
     private struct CompletionCache: Codable { var mythic: Set<String>; var checked: Set<String>; var totals: [String:Int] }

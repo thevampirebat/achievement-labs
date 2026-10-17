@@ -2,22 +2,31 @@ import SwiftUI
 import UniformTypeIdentifiers
 import LabsMobileCore
 
+enum SettingsCategory: String, CaseIterable, Identifiable {
+    case account = "Account", sync = "Sync", library = "Library", app = "App"
+    var id: String { rawValue }
+    static var previewDefault: SettingsCategory {
+        #if DEBUG
+        let args = ProcessInfo.processInfo.arguments
+        if args.contains("--ui-preview=settings-sync") { return .sync }
+        if args.contains("--ui-preview=settings-library") { return .library }
+        if args.contains("--ui-preview=settings-app") { return .app }
+        #endif
+        return .account
+    }
+}
 struct SyncSettings: View {
     @EnvironmentObject var m: MobileModel
+    let category: SettingsCategory
     @State private var pcSync = false
+    @State private var scanImmediately = false
     var body: some View {
         Group {
+            if category == .app {
             Section("Launch") {
                 Picker("Open app to",selection:$m.launchPage) {
                     Text("Home / sign-in").tag(4); Text("Library").tag(0); Text("Auto Unlock").tag(1); Text("Title Spoofing").tag(2); Text("Settings").tag(3)
                 }
-            }
-            Section("Library") { Toggle("Refresh on opening and sign-in",isOn:$m.autoRefreshLibrary) }
-            Section("Event data sync") {
-                Toggle("Sync new event games automatically",isOn:$m.autoSyncEvents)
-                Button("Sync event data now") { Task { await m.syncEvents() } }.disabled(m.eventsSyncing || m.running)
-                Text(m.eventSyncStatus).font(.caption).foregroundStyle(.secondary)
-                Text("The public feed checks the original repo hourly. New validated titles are marked Testing. Existing mappings and edition fixes are retained.").font(.caption2).foregroundStyle(.secondary)
             }
             Section("App updates") {
                 Toggle("Check for updates on opening",isOn:$m.checkMobileUpdates)
@@ -27,14 +36,29 @@ struct SyncSettings: View {
                 if let update = m.availableUpdate { Link("Open iOS " + update.version + " download",destination:update.page) }
                 Text("Checks run while the app is open. Download the IPA and sign/install through Signulous; this app cannot replace its own installed build.").font(.caption2).foregroundStyle(.secondary)
             }
-            Section("PC sync") {
-                Button("Import encrypted PC sign-in",systemImage:"desktopcomputer") { pcSync = true }.disabled(m.busy || m.running || m.presenceRunning)
-                Text("In the matching PC build, open Settings → iPhone / iPad sync. Export the encrypted file and pairing key, then import them here within 10 minutes.").font(.caption2).foregroundStyle(.secondary)
             }
-        }.sheet(isPresented:$pcSync) { PCSyncView() }
+            if category == .library {
+            Section("Library") { Toggle("Refresh on opening and sign-in",isOn:$m.autoRefreshLibrary) }
+            }
+            if category == .sync {
+            Section("PC sync") {
+                Button("Scan PC QR codes",systemImage:"qrcode.viewfinder") { scanImmediately = true; pcSync = true }.disabled(m.busy || m.running || m.presenceRunning)
+                Button("PC sync / import file",systemImage:"desktopcomputer") { scanImmediately = false; pcSync = true }.disabled(m.busy || m.running || m.presenceRunning)
+                Text("Click the mobile icon on PC. Select full sign-in or event-token-only QR. Transfers expire after 10 minutes; encrypted file import remains available.").font(.caption2).foregroundStyle(.secondary)
+            }
+            Section("Event data sync") {
+                Toggle("Sync new event games automatically",isOn:$m.autoSyncEvents)
+                Button("Sync event data now") { Task { await m.syncEvents() } }.disabled(m.eventsSyncing || m.running)
+                Text(m.eventSyncStatus).font(.caption).foregroundStyle(.secondary)
+                Text("The public feed checks the original repo hourly. New validated titles are marked Testing. Existing mappings and edition fixes are retained.").font(.caption2).foregroundStyle(.secondary)
+            }
+            }
+        }.sheet(isPresented:$pcSync) { PCSyncView(startScanning:scanImmediately) }
     }
 }
 struct PCSyncView: View {
+    var startScanning = false
+    @State private var startedScan = false
     @EnvironmentObject var m: MobileModel
     @Environment(\.dismiss) private var dismiss
     @State private var importing = false
@@ -78,6 +102,11 @@ struct PCSyncView: View {
                     guard try url.resourceValues(forKeys:[.fileSizeKey]).fileSize ?? 0 <= 128*1024 else { throw LabsError.message("Transfer file is too large.") }
                     file = try Data(contentsOf:url); m.pcSyncStatus = "File selected. Enter its separate pairing key."
                 } catch { m.pcSyncStatus = error.localizedDescription }
+            }
+        }.task {
+            if startScanning && !startedScan {
+                startedScan = true
+                do { try await Task.sleep(nanoseconds:350_000_000); try Task.checkCancellation(); scanning = true } catch {}
             }
         }.onDisappear { key = ""; file = nil; m.pendingPCAccount = nil }
     }

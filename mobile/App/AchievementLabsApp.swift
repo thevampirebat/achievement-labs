@@ -268,13 +268,42 @@ struct SettingsView: View {
     @State private var authorization = ""
     @State private var eventToken = ""
     @State private var reveal = false
+    @State private var pcSync = false
+    @State private var category: SettingsCategory = SettingsCategory.previewDefault
     var body: some View {
         NavigationStack {
-            Form {
+            VStack(spacing:0) {
+                Picker("Settings category",selection:$category) {
+                    ForEach(SettingsCategory.allCases) { Text($0.rawValue).tag($0) }
+                }.pickerStyle(.segmented).padding(.horizontal).padding(.vertical,8)
+                Form {
+                    if category == .account { accountSettings }
+                    SyncSettings(category:category)
+                    if category == .library { librarySettings }
+                    if category == .app { appSettings }
+                }
+            }.navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
+            .toolbar { Button { pcSync = true } label: { Label("Scan PC QR",systemImage:"qrcode.viewfinder") }.disabled(m.busy || m.running || m.presenceRunning) }
+            .sheet(isPresented:$pcSync) { PCSyncView(startScanning:true) }
+            .sheet(item:$embeddedLogin) { page in
+                EmbeddedSignIn(url:page.url, onComplete: { redirect in
+                    embeddedLogin = nil
+                    Task { await m.finishBrowserLogin(redirect) }
+                }, onCancel: { embeddedLogin = nil; m.cancelBrowserLogin() }, remember:m.rememberSignIn)
+                .interactiveDismissDisabled()
+            }
+            .onAppear { eventToken = m.account?.eventToken ?? "" }
+            .onChange(of:m.account?.eventToken) { _,value in eventToken = value ?? "" }
+            .onChange(of: m.account?.xuid) { _, _ in eventToken = m.account?.eventToken ?? "" }
+        }
+    }
+    @ViewBuilder private var accountSettings: some View {
                 Section("Xbox account") {
                     Text(m.account?.gamertag ?? "Not connected")
                     if let profile = m.account?.loginProfile { Text("Current session: " + profile).font(.caption).foregroundStyle(.secondary) }
                     Picker("Sign-in profile",selection:$m.loginProfile) { ForEach(LoginProfile.allCases) { Text($0.rawValue).tag($0.rawValue) } }.disabled(m.busy || m.running || m.presenceRunning)
+                    Button("Scan PC sign-in QR",systemImage:"qrcode.viewfinder") { pcSync = true }.disabled(m.busy || m.running || m.presenceRunning)
+                    Text("For title spoofing, use the PC’s full Sign-in + event token QR if browser sign-in returns a heartbeat 403. Event-token-only sync leaves account authorization unchanged.").font(.caption).foregroundStyle(.secondary)
                     Text("Profile changes apply when you sign in again.").font(.caption2).foregroundStyle(.secondary)
                     Toggle("Remember sign-in",isOn:$m.rememberSignIn).disabled(m.busy || m.refreshingSignIn || m.running || m.presenceRunning).onChange(of:m.rememberSignIn) { _,_ in Task { await m.updateRememberSignIn() } }
                     Picker("Sign-in browser",selection:$m.signInBrowser) { Text("In app").tag("In app"); Text("Safari").tag("Safari") }.disabled(m.busy || m.refreshingSignIn)
@@ -308,7 +337,8 @@ struct SettingsView: View {
                     Button("Remove event token",role: .destructive) { m.removeEventToken(); eventToken = "" }.disabled(m.account == nil || m.running || m.busy)
                     Text("Stored in the iOS Keychain for this device. Changing accounts clears the previous account's event token from the active session. Retrieval from other apps is not available.").font(.caption).foregroundStyle(.secondary)
                 }
-                SyncSettings()
+    }
+    @ViewBuilder private var librarySettings: some View {
                 Section("Appearance") { Toggle("Show Mythic for base completion", isOn: $m.showMythic); Toggle("Highlight 100% completed games", isOn: $m.highlightCompleted) }
                 Section("Completion indicators") {
                     Text("Mythic is the same local base-completion marker as desktop. The profile count includes verified base completions and titles with every achievement unlocked; it can increase after scanning.").font(.caption).foregroundStyle(.secondary)
@@ -317,24 +347,14 @@ struct SettingsView: View {
                     if m.scanningCompletion { Button("Stop after current title",role:.destructive) { m.scanningCompletion = false } }
                     Text(m.status).font(.caption2).foregroundStyle(.secondary)
                 }
+    }
+    @ViewBuilder private var appSettings: some View {
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.5.0").font(.headline)
-                    Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. Windows-specific tools and automatic catalogue updates are not included in this first beta.").font(.caption).foregroundStyle(.secondary)
+                    Text("Standalone iPhone and iPad app · 0.6.0").font(.headline)
+                    Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. New event games sync from the public upstream feed; Windows-specific tools are not included.").font(.caption).foregroundStyle(.secondary)
                     Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)
                 }
-            }.navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
-            .sheet(item:$embeddedLogin) { page in
-                EmbeddedSignIn(url:page.url, onComplete: { redirect in
-                    embeddedLogin = nil
-                    Task { await m.finishBrowserLogin(redirect) }
-                }, onCancel: { embeddedLogin = nil; m.cancelBrowserLogin() }, remember:m.rememberSignIn)
-                .interactiveDismissDisabled()
-            }
-            .onAppear { eventToken = m.account?.eventToken ?? "" }
-            .onChange(of:m.account?.eventToken) { _,value in eventToken = value ?? "" }
-            .onChange(of: m.account?.xuid) { _, _ in eventToken = m.account?.eventToken ?? "" }
-        }
     }
 }
