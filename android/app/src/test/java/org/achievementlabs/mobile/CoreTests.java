@@ -1,6 +1,17 @@
 package org.achievementlabs.mobile;
 import org.junit.Test;import static org.junit.Assert.*;import org.json.*;import java.nio.file.*;import java.util.*;import javax.crypto.*;import javax.crypto.spec.*;
 public class CoreTests {
+ @Test public void androidUpdaterIgnoresOtherPlatformsAndUntrustedDownloads()throws Exception{
+  String page="https://github.com/thevampirebat/achievement-labs/releases/tag/android-v0.3.0";
+  String download="https://github.com/thevampirebat/achievement-labs/releases/download/android-v0.3.0/AchievementLabs-Android-0.3.0.apk";
+  JSONObject asset=new JSONObject().put("name","AchievementLabs-Android-0.3.0.apk").put("browser_download_url",download).put("size",100).put("digest","sha256:"+"a".repeat(64));
+  JSONObject release=new JSONObject().put("html_url",page).put("assets",new JSONArray().put(asset));
+  assertEquals("0.3.0",Updater.choose(new JSONArray().put(release)).getString("version"));
+  asset.put("browser_download_url","https://example.com/other.apk");assertNull(Updater.choose(new JSONArray().put(release)));
+  asset.put("browser_download_url",download).put("name","AchievementLabs-Windows.exe");assertNull(Updater.choose(new JSONArray().put(release)));
+  asset.put("name","AchievementLabs-Android-0.3.0.apk");release.put("draft",true);assertNull(Updater.choose(new JSONArray().put(release)));
+ }
+
  @Test public void finalAchievementPageNeverRequestsLiteralNull()throws Exception{
   assertEquals("",Net.nextPage(null));assertEquals("",Net.nextPage(new JSONObject()));
   JSONObject androidNull=new JSONObject(){@Override public String optString(String key){return "null";}};

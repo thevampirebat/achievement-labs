@@ -1,4 +1,4 @@
-# Achievement Labs Android 0.1.1 beta
+# Achievement Labs Android 0.2.0 beta
 
 Standalone Android 8+ APK. The interface is packaged inside the APK; Xbox traffic, QR decoding, encryption, authentication and queue execution run on the device. No PC server or hosted website is needed.
 
@@ -17,3 +17,13 @@ JDK 17, Gradle 8.11.1, Android SDK 35 and Android Gradle plugin 8.9.2. Generate 
 This is a debug-signed test APK, not a Google Play release. The CI debug signing key is temporary; a stable user-owned signing key is needed before promising seamless upgrades or publishing. Back up account-independent settings if replacing builds signed with a different key; Android requires uninstalling the previous app in that case.
 
 0.1.1 fixes Android null continuation tokens on the last achievement page, normalizes artwork URL shapes and allows the Xbox store image host. Library sorting is cached, search is debounced without rebuilding its input, and costly navigation blur is removed.
+
+## Android 0.2.0
+Achievements can be sorted within their existing DLC groups (original, A–Z, Z–A, highest/lowest gamerscore), and filtered All / Locked / Unlocked. Preferences are saved.
+
+Active queues and title spoofing now use an application-owned runtime and a data-sync foreground service. Allow notifications before starting. The notification has Pause queue and Stop all actions; background operation can be disabled in Settings → App. No automatic restart after force-stop, reboot or process death. All sessions pause after six hours; Android 15 can enforce an earlier shared data-sync allowance. Battery restrictions and network loss may delay requests.
+
+Settings → App can download and verify a published Android release APK, then open Android's installer. Package ID, newer version code, GitHub asset SHA-256 digest, and identical signing certificates are required. Install permission and final installation remain under Android/user control. There must first be a public Android release asset with a GitHub SHA-256 digest.
+
+### Permanent release signing
+Configure these GitHub Actions repository secrets once: `LABS_ANDROID_KEYSTORE_BASE64`, `LABS_ANDROID_KEY_ALIAS`, `LABS_ANDROID_STORE_PASSWORD`, `LABS_ANDROID_KEY_PASSWORD`. The workflow signs the delivered APK with that key and removes its temporary keystore. Keep a secure backup of the permanent keystore; never commit it. Without those secrets builds retain temporary test signatures and cannot reliably update an existing installation. A different key requires a one-time reinstall; the updater refuses to erase existing data.
