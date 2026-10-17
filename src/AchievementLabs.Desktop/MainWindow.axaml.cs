@@ -450,7 +450,7 @@ public partial class MainWindow : Window
         try {
             var frames = AchievementLabs.Core.MobileTransfer.QrFrames(model.CreateMobileTransfer());
             var dialog = new Window { Title="Sync with iPhone / iPad",Width=570,Height=700,MinWidth=500,MinHeight=600,WindowStartupLocation=WindowStartupLocation.CenterOwner };
-            var image = new Image { Width=410,Height=410,Stretch=Avalonia.Media.Stretch.Uniform };
+            var image = new Avalonia.Controls.Image { Width=410,Height=410,Stretch=Avalonia.Media.Stretch.Uniform };
             var status = new TextBlock { TextWrapping=TextWrapping.Wrap,HorizontalAlignment=Avalonia.Layout.HorizontalAlignment.Center };
             var close = new Button { Content="Close" }; close.Click += (_,_)=>dialog.Close();
             var previous = new Button { Content="Previous" }; var next = new Button { Content="Next" };
