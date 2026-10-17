@@ -5,7 +5,7 @@ import FoundationNetworking
 
 public struct XboxService {
     private let session: URLSession
-    public init(session: URLSession = .shared) { self.session = session }
+    public init(session: URLSession = XboxSessions.shared) { self.session = session }
     private func request(_ url: String, authorization: String, version: String = "2", method: String = "GET", body: Any? = nil) async throws -> Data {
         guard let endpoint = URL(string: url), endpoint.scheme == "https", endpoint.host?.hasSuffix(".xboxlive.com") == true else { throw LabsError.message("Invalid Xbox endpoint.") }
         var r = URLRequest(url: endpoint); r.timeoutInterval = 45; r.httpMethod = method
@@ -126,7 +126,7 @@ public struct XboxService {
         let body: Any? = title.map { ["titles":[["id":$0,"expiration":600,"state":"active","sandbox":"RETAIL"]]] }
         _ = try await request("https://presence-heartbeat.xboxlive.com/users/xuid(\(account.xuid))/devices/current/", authorization: account.authorization, version: "3", method: title == nil ? "DELETE" : "POST", body: body)
     }
-    public func sendEvent(_ payload: String, account: Account, route: CollectorRoute = .mobile) async throws {
+    public func sendEvent(_ payload: String, account: Account, route: CollectorRoute = .windows) async throws {
         let token = try Tokens.normalize(account.eventToken, event: true)
         var r = URLRequest(url:route.url)
         r.httpMethod = "POST"; r.timeoutInterval = 45; r.httpBody = payload.data(using: .utf8)

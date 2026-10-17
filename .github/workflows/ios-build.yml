@@ -20,7 +20,10 @@ jobs:
         with:
           persist-credentials: false
       - name: Probe public TLS endpoints without credentials or event data
-        run: swift mobile/tools/tls_probe.swift
+        run: |
+          cat mobile/Core/Sources/LabsMobileCore/CollectorTrust.swift mobile/tools/tls_probe.swift > /tmp/collector-probe.swift
+          swift /tmp/collector-probe.swift
+        # The core tests below also exercise the scoped collector trust.
   build:
     runs-on: macos-15
     timeout-minutes: 30
@@ -63,8 +66,8 @@ jobs:
           mkdir -p mobile/artifacts/Payload
           cp -R mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app mobile/artifacts/Payload/
           cd mobile/artifacts
-          /usr/bin/zip -qry AchievementLabs-iOS-0.8.0-UNSIGNED.ipa Payload
-          shasum -a 256 AchievementLabs-iOS-0.8.0-UNSIGNED.ipa > SHA256.txt
+          /usr/bin/zip -qry AchievementLabs-iOS-0.8.1-UNSIGNED.ipa Payload
+          shasum -a 256 AchievementLabs-iOS-0.8.1-UNSIGNED.ipa > SHA256.txt
           cp ../Catalogue/catalogue-report.json .
           cp ../README.md .
           cp ../App/Assets.xcassets/AppIcon.appiconset/Icon.png AppIcon.png

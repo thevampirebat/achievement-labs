@@ -80,12 +80,13 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     let catalogue: Catalogue?
     private var generation = UUID()
     @AppStorage("continueQueueInBackground") var continueQueueInBackground = false
-    @AppStorage("collectorRoute") var collectorRoute = CollectorRoute.mobile.rawValue
     @Published var transportDiagnostics = ""
     @Published var checkingConnections = false
     @Published var editingQueueDelay = false
     @AppStorage("continueSpoofInBackground") var continueSpoofInBackground = false
     @AppStorage("spoofBackgroundMinutes") var spoofBackgroundMinutes = 30.0
+    @Published var spoofStopReason = ""
+    @Published var spoofCleanupStatus = ""
     private var presenceDeadline: Date?
     private var sessionStatusTask: Task<Void,Never>?
     private var sessionStatusGeneration = UUID()
@@ -281,7 +282,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         if row.eventBased {
             guard let catalogue else { throw LabsError.message("Catalogue unavailable.") }
             let bodies = try catalogue.payloads(title: game.id, achievement: row.id, xuid: account.xuid)
-            for body in bodies { try Task.checkCancellation(); guard foreground || (allowBackground && queueBackgroundAllowed) else { throw CancellationError() }; try await api.sendEvent(body, account: account,route:CollectorRoute(rawValue:collectorRoute) ?? .mobile) }
+            for body in bodies { try Task.checkCancellation(); guard foreground || (allowBackground && queueBackgroundAllowed) else { throw CancellationError() }; try await api.sendEvent(body, account: account,route:.windows) }
         } else { try await api.titleUnlock(row, game: game, account: account) }
     }
     func unlock(_ row: Achievement, game: Game) async {
@@ -323,12 +324,12 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 self.running = false; self.nextAction = nil; self.queueTask = nil
                 UIApplication.shared.isIdleTimerDisabled = self.presenceStarted != nil
                 self.finishSessionIfIdle()
-                if !self.foreground && !self.presenceBackgroundAllowed { self.presenceTask?.cancel(); Task { await self.stopPresence() } }
+                if !self.foreground && !self.presenceBackgroundAllowed { self.presenceTask?.cancel(); Task { await self.stopPresence(reason:"Queue ended without separate background spoofing permission.") } }
             }
             UIApplication.shared.isIdleTimerDisabled = true
             if self.continueQueueInBackground {
                 do {
-                    if self.queue.contains(where:{ $0.status == "Waiting" && $0.achievement.eventBased }) { try await self.api.checkCollector(CollectorRoute(rawValue:self.collectorRoute) ?? .mobile) }
+                    if self.queue.contains(where:{ $0.status == "Waiting" && $0.achievement.eventBased }) { try await self.api.checkCollector(.windows) }
                     try Task.checkCancellation()
                     guard self.foreground else { return }
                     self.requestBackgroundSession(units:self.queue.filter { $0.status == "Waiting" }.count)
@@ -386,7 +387,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func startPresence(_ title: String) {
         guard let account, presenceTask == nil, !presenceStopping, foreground, JSON.numeric(title) else { return }
-        presenceTitle = title; presenceRunning = true; spoofDiagnostics = ""; spoofStatus = "Sending heartbeat…"
+        spoofStopReason = ""; spoofCleanupStatus = ""; presenceTitle = title; presenceRunning = true; spoofDiagnostics = ""; spoofStatus = "Sending heartbeat…"
         presenceTask = Task { [weak self] in
             guard let self else { return }
             defer { self.presenceStarted = nil; self.presenceRunning = false; self.presenceTask = nil; self.presenceDeadline = nil; self.finishSessionIfIdle(); UIApplication.shared.isIdleTimerDisabled = self.running }
@@ -402,7 +403,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             } catch is CancellationError { }
             catch {
                 if Task.isCancelled { return }
-                self.rememberTransport(error); self.backgroundHadFailure = true; self.spoofStatus = error.localizedDescription
+                self.rememberTransport(error); self.backgroundHadFailure = true; self.spoofStopReason = "Heartbeat failed: " + error.localizedDescription; self.spoofStatus = self.spoofStopReason
                 if let failure = error as? XboxHTTPFailure {
                     self.spoofDiagnostics = "Title spoofing · " + Date().formatted(date:.numeric,time:.standard) + "\nTitle ID: " + title + "\nSign-in profile: " + (self.account?.loginProfile ?? "Manual / previous beta") + "\n" + failure.diagnostic
                     if failure.status == 403 {
@@ -424,12 +425,18 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
-    func stopPresence() async {
+    func stopPresence(reason: String = "Stopped by user.") async {
         guard !presenceStopping, presenceTask != nil || presenceStarted != nil else { return }
         presenceStopping = true; defer { presenceStopping = false }
+        if spoofStopReason.isEmpty { spoofStopReason = reason }
         presenceTask?.cancel(); if let presenceTask { await presenceTask.value }
-        spoofStatus = "Stopped locally."
-        if let account { do { try await api.presence(nil, account: account) } catch { self.error = "Presence stopped locally; Xbox stop request failed: \(error.localizedDescription)" } }
+        spoofStatus = spoofStopReason
+        if let account {
+            do { try await api.presence(nil, account: account); spoofCleanupStatus = "Xbox stop request accepted." }
+            catch { spoofCleanupStatus = "Xbox stop request failed (\((error as NSError).domain) \((error as NSError).code)). The last heartbeat may take time to expire." }
+        }
+        spoofDiagnostics = "Stopped: " + spoofStopReason + "\nBackground status: " + continuedQueue.status + "\n" + spoofCleanupStatus
+
     }
     func updateBackgroundPreference() {
         guard !running, !presenceRunning else { return }
@@ -443,6 +450,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             guard let self else { return }; self.pauseQueue(); self.presenceTask?.cancel()
             Task { await self.stopPresence() }
             self.status = "iOS ended background time. Review before resuming."
+            self.spoofStopReason = "iOS ended background permission."
         }
         updateSessionCard()
         if sessionStatusTask == nil {
@@ -451,7 +459,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 guard let self else { return }; defer { if self.sessionStatusGeneration == token { self.sessionStatusTask = nil } }
                 while self.continuedQueue.hasRequest && !Task.isCancelled {
                     do { try await Task.sleep(nanoseconds:15_000_000_000); try Task.checkCancellation() } catch { return }
-                    if let end = self.presenceDeadline, end <= Date(), !(self.continueSpoofWithQueue && self.queueBackgroundAllowed) { Task { await self.stopPresence() }; return }
+                    if let end = self.presenceDeadline, end <= Date(), !(self.continueSpoofWithQueue && self.queueBackgroundAllowed) { Task { await self.stopPresence(reason:"Configured spoof session limit reached.") }; return }
                     self.updateSessionCard()
                 }
             }
@@ -476,6 +484,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func rememberTransport(_ error: Error) {
         if let failure = error as? XboxTransportFailure { transportDiagnostics = failure.localizedDescription }
+        else if let failure = error as? XboxHTTPFailure { transportDiagnostics = failure.diagnostic }
     }
     func checkSecureConnections() async {
         guard !checkingConnections, !running, !presenceRunning else { return }
@@ -488,7 +497,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func background() {
         foreground = false
         if running && !queueBackgroundAllowed { pauseQueue() }
-        if !presenceBackgroundAllowed { presenceTask?.cancel(); Task { await stopPresence() } }
+        if !presenceBackgroundAllowed { spoofStopReason = continueSpoofInBackground ? "iOS did not grant or no longer permits background spoofing." : "Background spoofing is off. Enable it in Settings → App."; presenceTask?.cancel(); Task { await stopPresence(reason:spoofStopReason) } }
         if queueBackgroundAllowed || presenceBackgroundAllowed { status = "Session continuing while iOS permits background time." }
         else { finishSessionIfIdle(); status = "Paused in background. Review and resume when you return." }
     }

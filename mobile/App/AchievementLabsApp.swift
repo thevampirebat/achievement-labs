@@ -397,9 +397,9 @@ struct SettingsView: View {
                     } else { Text("Requires iOS 26 or later. Keep this app open for queues and spoofing.").font(.caption) }
                 }
                 Section("Secure connections") {
-                    Picker("Event collector",selection:$m.collectorRoute) { ForEach(CollectorRoute.allCases) { Text($0.rawValue).tag($0.rawValue) } }.disabled(m.running || m.presenceRunning)
+                    Text("Xbox event collector: Windows · Microsoft root validated")
                     Button("Test secure connections") { Task { await m.checkSecureConnections() } }.disabled(m.running || m.presenceRunning || m.checkingConnections)
-                    Text("Connection checks send no account credentials or achievement events. Certificate validation stays enabled. Mobile is Microsoft's standard collector route; Windows remains available for comparison.").font(.caption2).foregroundStyle(.secondary)
+                    Text("Connection checks send no account credentials or achievement events. Certificate validation stays enabled. Xbox event templates use the Windows collector. Its Microsoft root is validated only for that exact host.").font(.caption2).foregroundStyle(.secondary)
                     if !m.transportDiagnostics.isEmpty {
                         Text(m.transportDiagnostics).font(.caption.monospaced()).textSelection(.enabled)
                         Button("Copy connection diagnostics") { UIPasteboard.general.string = m.transportDiagnostics }
@@ -407,7 +407,7 @@ struct SettingsView: View {
                 }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.8.0").font(.headline)
+                    Text("Standalone iPhone and iPad app · 0.8.1").font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. New event games sync from the public upstream feed; Windows-specific tools are not included.").font(.caption).foregroundStyle(.secondary)
                     Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)

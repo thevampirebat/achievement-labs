@@ -10,7 +10,10 @@ final class TrustProbe: NSObject, URLSessionDelegate {
                 for (i,cert) in chain.enumerated() { print("CERT \(challenge.protectionSpace.host) \(i) \((SecCertificateCopyData(cert) as Data).base64EncodedString())") }
             }
         }
-        completionHandler(.performDefaultHandling,nil)
+        if challenge.protectionSpace.host == CollectorTrust.host, let trust = challenge.protectionSpace.serverTrust, CollectorTrust.validate(trust,host:CollectorTrust.host) {
+            print("Scoped Microsoft anchor: validated full chain and hostname")
+            completionHandler(.useCredential,URLCredential(trust:trust))
+        } else { completionHandler(.performDefaultHandling,nil) }
     }
 }
 // Unauthenticated HEAD probes only. No user accounts, event tokens or event data.

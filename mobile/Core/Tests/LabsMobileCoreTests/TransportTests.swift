@@ -13,12 +13,12 @@ final class TransportTests: XCTestCase {
         XCTAssertTrue(failure.isTLS); XCTAssertTrue(failure.localizedDescription.contains("-9806"))
         XCTAssertFalse(failure.localizedDescription.contains("secret")); XCTAssertFalse(failure.localizedDescription.contains("token="))
     }
-    func testEventRouteUsesMobileCollectorAndTLSFailureDoesNotReplay() async throws {
+    func testEventRouteUsesWindowsCollectorAndTLSFailureDoesNotReplay() async throws {
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [LoginProtocol.self]
         let session = URLSession(configuration:config); defer { session.invalidateAndCancel(); LoginProtocol.handler = nil }
         var count = 0
         LoginProtocol.handler = { request in
-            count += 1; XCTAssertEqual(request.url?.host,"mobile.events.data.microsoft.com")
+            count += 1; XCTAssertEqual(request.url?.host,"v20.events.data.microsoft.com")
             XCTAssertEqual(request.httpMethod,"POST")
             throw NSError(domain:NSURLErrorDomain,code:-1200)
         }
