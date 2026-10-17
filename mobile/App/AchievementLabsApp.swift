@@ -25,6 +25,7 @@ import LabsMobileCore
             .alert("Achievement Labs", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("OK") { model.error = nil } } message: { Text(model.error ?? "") }
             .task {
                 #if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("--audio-self-test") { await model.audioSelfTest(); return }
                 if ProcessInfo.processInfo.arguments.contains("--collector-self-test") { await model.collectorSelfTest(); return }
                 if ProcessInfo.processInfo.arguments.contains("--background-self-test") { await model.backgroundSelfTest(); return }
                 #endif

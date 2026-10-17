@@ -47,6 +47,17 @@ print('Actual iOS app collector TLS check: '+str(result),flush=True)
 assert result['scopedATS'] and result['passed'], 'Actual iOS app collector TLS failed'
 subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
 
+output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--audio-self-test')
+container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.mobile','data').strip())
+marker=container/'Documents'/'Audio-self-test.json'
+for _ in range(15):
+    if marker.exists(): break
+    time.sleep(1)
+result=json.loads(marker.read_text())
+print('Offline audio start/stop check: '+str(result),flush=True)
+assert result.get('playing') and result.get('stopped') and result['audioManifest'] and result['liveManifest'], 'Audio/session manifest check failed'
+subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+
 for page in ['library','queue','spoof','settings','settings-sync','settings-library','settings-app','home']:
     output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--ui-preview='+page)
     preview_pid=output.strip().rsplit(':',1)[-1].strip()

@@ -451,6 +451,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             do { try await api.presence(nil, account: account); spoofCleanupStatus = "Xbox stop request accepted." }
             catch { spoofCleanupStatus = "Xbox stop request failed (\((error as NSError).domain) \((error as NSError).code)). The last heartbeat may take time to expire." }
         }
+        extendedAudio.stop()
         spoofDiagnostics = "Stopped: " + spoofStopReason + "\nBackground status: " + continuedQueue.status + "\nAudio mode: " + (useExtendedAudio ? "Extended" : "System task") + " · " + extendedAudio.status + "\n" + spoofCleanupStatus
 
     }
@@ -524,6 +525,19 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         else { finishSessionIfIdle(); status = "Paused in background. Review and resume when you return." }
     }
     #if DEBUG
+    func audioSelfTest() async {
+        guard account == nil else { return }
+        var result: [String:Any] = [:]
+        do {
+            try extendedAudio.start(interrupted:{ _ in })
+            try await Task.sleep(nanoseconds:1_000_000_000)
+            result["playing"] = extendedAudio.playing && extendedAudio.active
+            extendedAudio.stop(); result["stopped"] = !extendedAudio.active && !extendedAudio.playing
+        } catch { result["playing"] = false; result["error"] = (error as NSError).domain + " " + String((error as NSError).code) }
+        result["audioManifest"] = (Bundle.main.object(forInfoDictionaryKey:"UIBackgroundModes") as? [String])?.contains("audio") == true
+        result["liveManifest"] = Bundle.main.object(forInfoDictionaryKey:"NSSupportsLiveActivities") as? Bool == true
+        if let url = FileManager.default.urls(for:.documentDirectory,in:.userDomainMask).first?.appendingPathComponent("Audio-self-test.json") { try? JSONSerialization.data(withJSONObject:result).write(to:url,options:.atomic) }
+    }
     func collectorSelfTest() async {
         guard account == nil else { return }
         let result = await XboxService().probe(CollectorRoute.windows.url)
