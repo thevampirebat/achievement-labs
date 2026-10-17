@@ -38,6 +38,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     private var queueTask: Task<Void, Never>?
     private var presenceTask: Task<Void, Never>?
     private var foreground = true
+    private var presenceStopping = false
     private let directory: URL
     private var queueURL: URL? { account.map { directory.appendingPathComponent("queue-\($0.xuid).json") } }
     init() {
@@ -70,6 +71,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func removeEventToken() { guard var current = account, !running, !busy else { return }; current.eventToken = ""; do { try saveAccount(current) } catch { self.error = error.localizedDescription } }
     func disconnect() async {
         guard !busy else { return }
+        busy = true; defer { busy = false }
         pauseQueue(); if let queueTask { await queueTask.value }; await stopPresence(); generation = UUID()
         do { try SecureStore.remove(); account = nil; games = []; rows = []; queue = []; selectedGame = nil; baseCompleted = []; status = "Disconnected." }
         catch { self.error = "Could not remove the Keychain session." }
@@ -189,7 +191,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         } catch { self.error = error.localizedDescription }
     }
     func startPresence(_ title: String) {
-        guard let account, presenceTask == nil, foreground, JSON.numeric(title) else { return }
+        guard let account, presenceTask == nil, !presenceStopping, foreground, JSON.numeric(title) else { return }
         presenceTitle = title; presenceRunning = true
         presenceTask = Task { [weak self] in
             guard let self else { return }
@@ -206,7 +208,12 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
-    func stopPresence() async { presenceTask?.cancel(); if let presenceTask { await presenceTask.value }; if let account { do { try await api.presence(nil, account: account) } catch { self.error = "Presence stopped locally; Xbox stop request failed: \(error.localizedDescription)" } } }
+    func stopPresence() async {
+        guard !presenceStopping, presenceTask != nil || presenceStarted != nil else { return }
+        presenceStopping = true; defer { presenceStopping = false }
+        presenceTask?.cancel(); if let presenceTask { await presenceTask.value }
+        if let account { do { try await api.presence(nil, account: account) } catch { self.error = "Presence stopped locally; Xbox stop request failed: \(error.localizedDescription)" } }
+    }
     func background() {
         foreground = false; pauseQueue(); presenceTask?.cancel()
         if let account, presenceStarted != nil { Task { try? await api.presence(nil, account: account) } }
