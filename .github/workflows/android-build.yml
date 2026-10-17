@@ -38,6 +38,7 @@ jobs:
       - name: Check JavaScript and build the signed test APK
         run: |
           node --check android/app/src/main/assets/app.js
+          node android/ui-checks.cjs
           gradle -p android testDebugUnitTest assembleDebug lintDebug --stacktrace
       - name: Enable emulator acceleration
         run: |
@@ -56,11 +57,11 @@ jobs:
       - name: Package APK and checksums
         run: |
           mkdir -p android/artifacts
-          cp android/app/build/outputs/apk/debug/app-debug.apk android/artifacts/AchievementLabs-Android-0.1.0.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk android/artifacts/AchievementLabs-Android-0.1.1.apk
           cp android/README.md android/artifacts/
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose android/artifacts/AchievementLabs-Android-0.1.0.apk > android/artifacts/APK-SIGNATURE.txt
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging android/artifacts/AchievementLabs-Android-0.1.0.apk > android/artifacts/APK-INFO.txt
-          sha256sum android/artifacts/AchievementLabs-Android-0.1.0.apk > android/artifacts/SHA256.txt
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose android/artifacts/AchievementLabs-Android-0.1.1.apk > android/artifacts/APK-SIGNATURE.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging android/artifacts/AchievementLabs-Android-0.1.1.apk > android/artifacts/APK-INFO.txt
+          sha256sum android/artifacts/AchievementLabs-Android-0.1.1.apk > android/artifacts/SHA256.txt
       - uses: actions/upload-artifact@v4
         with:
           name: AchievementLabs-Android-Beta

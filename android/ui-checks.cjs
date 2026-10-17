@@ -1,0 +1,22 @@
+// Regression checks use the packaged UI; no network or Xbox credentials.
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const listeners={},nodes={},timers=new Map();let timerID=0;
+const context={URL,Intl,console,window:{},document:{getElementById:id=>nodes[id],addEventListener:(name,fn)=>listeners[name]=fn},LabsNative:{call(){}},setInterval(){},setTimeout(fn){timers.set(++timerID,fn);return timerID;},clearTimeout(id){timers.delete(id);}};
+vm.createContext(context);vm.runInContext(fs.readFileSync(__dirname+'/app/src/main/assets/app.js','utf8'),context);
+const run=code=>vm.runInContext(code,context);
+assert.equal(run(`artwork({BoxArt:{uri:'//store-images.s-microsoft.com/image/apps/example'}})`),'https://store-images.s-microsoft.com/image/apps/example');
+assert.equal(run(`artwork([{type:'Screenshot',url:'https://example.com/screen'},{type:'BoxArt',url:'http://example.com/box'}])`),'https://example.com/box');
+for(const bad of ['javascript:alert(1)','file:///etc/passwd','https://user:password@example.com/image'])assert.equal(run(`artwork(${JSON.stringify(bad)})`),'');
+run(`state={games:Array.from({length:1500},(_,i)=>({titleId:String(i),name:'Game '+i,achievement:{}})),prefs:{}};sort='A–Z';page='library';`);
+assert.equal(run(`libraryGames()[2].name`),'Game 2');
+assert.equal(run(`let cached=libraryCache.ordered;libraryGames();cached===libraryCache.ordered`),true);
+for(const id of ['search','libraryResults','libraryCount','libraryMore'])nodes[id]={value:'',textContent:'',innerHTML:'',hidden:false};
+const input=nodes.search;input.value='Game 1499';listeners.input({target:{id:'search',value:input.value}});
+assert.equal(nodes.libraryResults.innerHTML,'');
+for(const fn of timers.values())fn();
+assert.equal(nodes.search,input);assert.match(nodes.libraryResults.innerHTML,/Game 1499/);
+assert.equal(run(`libraryGames().length`),1);
+run(`search='';limit=40;updateLibrary()`);
+assert.equal((nodes.libraryResults.innerHTML.match(/data-action="game"/g)||[]).length,40);
+assert.equal(nodes.libraryMore.hidden,false);
+console.log('Artwork shapes, unsafe URL rejection, 1,500-game sorting cache, debounced search and bounded rendering passed.');

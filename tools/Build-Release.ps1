@@ -29,7 +29,7 @@ foreach ($taskHelper in @(
     @{ Project='AchievementLabs.SteamIdle'; Rid='win-x64'; Folder='steam-idle'; Platform='AnyCPU' },
     @{ Project='AchievementLabs.GfwlInjector'; Rid='win-x86'; Folder='gfwl'; Platform='x86' }
 )) {
-    & dotnet publish (Join-Path $taskRoot "src/$($taskHelper.Project)") -c Release -r $taskHelper.Rid --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false "-p:Platform=$($taskHelper.Platform)" -p:NuGetAudit=false -o (Join-Path $taskHelpers $taskHelper.Folder) -v:q
+    & dotnet publish (Join-Path $taskRoot "src/$($taskHelper.Project)") -c Release -r $taskHelper.Rid --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=false -p:DebugType=None -p:DebugSymbols=false "-p:Platform=$($taskHelper.Platform)" -p:NuGetAudit=false -o (Join-Path $taskHelpers $taskHelper.Folder) -v:q
     if ($LASTEXITCODE -ne 0) { throw "Helper publish failed: $($taskHelper.Project)" }
 }
 & dotnet publish (Join-Path $taskRoot 'src/AchievementLabs.Desktop') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=false -p:DebugType=None -p:DebugSymbols=false -p:LabsSingleFile=true "-p:LabsHelperDirectory=$taskHelpers" "-p:LabsEventsSource=$([System.IO.Path]::GetFullPath($EventsSource))" "-p:Version=$Version" "-p:AssemblyVersion=$Version.$BuildRevision" "-p:FileVersion=$Version.$BuildRevision" "-p:InformationalVersion=$Version" -p:UsedAvaloniaProducts= -p:NuGetAudit=false -o $taskOutput -v:q

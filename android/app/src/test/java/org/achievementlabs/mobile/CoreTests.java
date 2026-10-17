@@ -1,6 +1,17 @@
 package org.achievementlabs.mobile;
 import org.junit.Test;import static org.junit.Assert.*;import org.json.*;import java.nio.file.*;import java.util.*;import javax.crypto.*;import javax.crypto.spec.*;
 public class CoreTests {
+ @Test public void finalAchievementPageNeverRequestsLiteralNull()throws Exception{
+  assertEquals("",Net.nextPage(null));assertEquals("",Net.nextPage(new JSONObject()));
+  JSONObject androidNull=new JSONObject(){@Override public String optString(String key){return "null";}};
+  androidNull.put("continuationToken",JSONObject.NULL);
+  assertEquals("",Net.nextPage(androidNull));
+  assertEquals("",Net.nextPage(new JSONObject().put("continuationToken","null")));
+  assertEquals("",Net.nextPage(new JSONObject().put("continuationToken","")));
+  assertEquals("page+two/=",Net.nextPage(new JSONObject().put("continuationToken","page+two/=")));
+  try{Net.nextPage(new JSONObject().put("continuationToken",17));fail();}catch(Exception expected){}
+ }
+
  @Test public void pausedRequestMustFinishBeforeResumeAndCancelledStartDoesNotBlock()throws Exception{Core.SessionGate g=new Core.SessionGate();long first=g.start();assertTrue(g.begin(first));g.pause();assertTrue(g.finishing());try{g.start();fail();}catch(Exception expected){}g.finish(first);long next=g.start();g.pause();assertFalse(g.begin(next));assertFalse(g.busy());long finalRun=g.start();assertTrue(g.begin(finalRun));assertTrue(g.running(finalRun));g.finish(finalRun);assertFalse(g.busy());}
  @Test public void sessionsRejectAccountSwitches()throws Exception{Core.sameOwner("42","42");try{Core.sameOwner("42","43");fail();}catch(InterruptedException expected){}try{Core.sameOwner("","42");fail();}catch(InterruptedException expected){}}
  @Test public void requirementIdsSelectEventRouteRatherThanProgressValue()throws Exception{assertTrue(Core.eventRequirements(new JSONArray("[{\"id\":\"12345678-1111-2222-3333-444444444444\",\"current\":\"0\"}]")));assertFalse(Core.eventRequirements(new JSONArray("[{\"id\":\"00000000-0000-0000-0000-000000000000\",\"current\":null}]")));assertFalse(Core.eventRequirements(null));}
