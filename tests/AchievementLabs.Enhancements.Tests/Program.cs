@@ -71,6 +71,17 @@ static class Test
        Assert(payload.RootElement.GetProperty("eventToken").GetString()=="synthetic-event","Mobile transfer retains the current event token");
        Assert(!System.Text.Encoding.UTF8.GetString(transfer.Bytes).Contains("synthetic-event"),"Mobile file is encrypted");
        Assert(!payload.RootElement.TryGetProperty("refreshToken",out _),"PC renewal credentials are excluded");
+       var only = AchievementLabs.Core.MobileTransfer.Create("must-not-transfer","42","synthetic-event",null,true);
+       using var onlyEnvelope=System.Text.Json.JsonDocument.Parse(only.Bytes);
+       var onlyKey=only.PairingKey.Replace('-','+').Replace('_','/')+"=";
+       using var onlyAes=new System.Security.Cryptography.AesGcm(Convert.FromBase64String(onlyKey),16);
+       var onlyCipher=Convert.FromBase64String(onlyEnvelope.RootElement.GetProperty("ciphertext").GetString()!);var onlyPlain=new byte[onlyCipher.Length];
+       onlyAes.Decrypt(Convert.FromBase64String(onlyEnvelope.RootElement.GetProperty("nonce").GetString()!),onlyCipher,Convert.FromBase64String(onlyEnvelope.RootElement.GetProperty("tag").GetString()!),onlyPlain,System.Text.Encoding.UTF8.GetBytes("AchievementLabs-PC-Transfer-v1"));
+       using var onlyPayload=System.Text.Json.JsonDocument.Parse(onlyPlain);
+       Assert(onlyPayload.RootElement.GetProperty("authorization").GetString()=="","Event-only transfer excludes account authorization");
+       Assert(onlyPayload.RootElement.GetProperty("kind").GetString()=="eventToken","Event-only transfer cannot be mistaken for sign-in");
+       System.Security.Cryptography.CryptographicOperations.ZeroMemory(onlyPlain);
+
        System.Security.Cryptography.CryptographicOperations.ZeroMemory(plain); System.Security.Cryptography.CryptographicOperations.ZeroMemory(key);
    }
    Assert(Desc<ProgressBar>(window).Any(p=>p.Name=="LibraryRefreshProgressBar"),"Library refresh progress control present");

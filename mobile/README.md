@@ -82,3 +82,9 @@ Home offers Microsoft sign-in and Sync from PC. Settings → Launch selects Home
 In the matching Windows build, click the mobile icon beside Attach Xbox PC app. On mobile choose Home → Sync from PC → Scan PC QR codes. Keep the camera pointed at the looping codes until all are collected, then verify and connect the shown account or import only its event token. The codes contain private session information; do not share screenshots. QR collection happens entirely between the screen and camera, without a LAN listener or third-party relay. Transfers expire after ten minutes and do not include Microsoft renewal credentials.
 
 The encrypted file/key fallback remains available. Its picker accepts the custom extension as a document; content, size, encryption, expiry and account identity are still validated.
+
+## Event-only QR and homepage (0.5.0)
+
+PC mobile sync offers separate Sign-in + event token QR and Event token QR only modes. Event-only packets exclude account authorization and Microsoft renewal credentials; iOS requires an existing sign-in for the matching XUID and only offers event-token import. Account and event transfers retain their ten-minute import expiry.
+
+Home now displays a larger gamerpic, gamerscore, games, unlocked achievements, known Mythic completions and fully completed games, with recent games, quick navigation and pull-to-refresh. Counts use the same account-specific library and completion data as Library.

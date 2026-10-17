@@ -46,7 +46,7 @@ struct PCSyncView: View {
             Form {
                 Section("QR sync") {
                     Button("Scan PC QR codes",systemImage:"qrcode.viewfinder") { scanning = true }
-                    Text("On PC, click the mobile icon beside Attach Xbox PC app. Point the camera at the looping codes until all are collected.").font(.caption).foregroundStyle(.secondary)
+                    Text("On PC, click the mobile icon beside Attach Xbox PC app. Choose sign-in or Event token QR only, then keep the camera pointed at the looping codes.").font(.caption).foregroundStyle(.secondary)
                 }
                 Section("Encrypted file fallback") {
                     Button(file == nil ? "Choose .labslink file" : "Choose another file") { importing = true }
@@ -60,9 +60,9 @@ struct PCSyncView: View {
                 if let imported = m.pendingPCAccount {
                     Section("Verified account") {
                         Text(imported.gamertag).font(.headline)
-                        Button("Connect this PC account") { m.usePCTransfer(eventOnly:false) }
+                        if !m.pendingPCEventOnly { Button("Connect this PC account") { m.usePCTransfer(eventOnly:false) } }
                         if m.account?.xuid == imported.xuid, !imported.eventToken.isEmpty { Button("Import event token only") { m.usePCTransfer(eventOnly:true) } }
-                        Text("Connecting imports current authorization and the event token. Microsoft renewal credentials remain on PC. Event-only import preserves your remembered mobile sign-in.").font(.caption2).foregroundStyle(.secondary)
+                        Text(m.pendingPCEventOnly ? "This QR contains only the event token. Your existing mobile sign-in and renewal stay in place." : "Connecting imports current authorization and the event token. Microsoft renewal credentials remain on PC. Event-only import preserves your remembered mobile sign-in.").font(.caption2).foregroundStyle(.secondary)
                     }
                 }
             }.disabled(m.running || m.presenceRunning)

@@ -41,6 +41,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     @Published var updateChecking = false
     @Published var updateStatus = "No update check yet."
     @Published var availableUpdate: MobileRelease?
+    @Published var pendingPCEventOnly = false
     @Published var pendingPCAccount: Account?
     private var pendingPCExpiry: Date?
     @Published var pcSyncStatus = "Import an encrypted transfer exported from the PC app."
@@ -462,7 +463,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         updateStatus = "Checking published iOS releases…"
         do {
             let latest = try await PublicSync().release(); lastUpdateCheck = Date()
-            let current = Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "0.4.0"
+            let current = Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "0.5.0"
             if let latest, MobileRelease.newer(latest.version,than:current) {
                 availableUpdate = latest; updateStatus = "iOS \(latest.version) is available. Sign and install its IPA through Signulous."
                 if notifyMobileUpdates, UserDefaults.standard.string(forKey:"lastNotifiedMobileVersion") != latest.version {
@@ -474,21 +475,28 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func preparePCTransfer(_ data: Data, key: String) async {
         guard !busy, !running, !presenceRunning else { return }; busy = true; defer { busy = false }
-        pendingPCAccount = nil; pcSyncStatus = "Verifying the transferred Xbox account…"
+        pendingPCAccount = nil; pendingPCEventOnly = false; pcSyncStatus = "Verifying the transferred Xbox account…"
         do {
             let transfer = try PCTransfer.open(data,key:key)
-            var verified = try await api.connect(transfer.authorization)
+            let authorization: String
+            if transfer.eventOnly {
+                guard account?.xuid == transfer.xuid else { throw LabsError.message("Sign in to the same Xbox account on iOS before importing this event-token-only QR.") }
+                authorization = try await authorizedAccount().authorization
+            } else { authorization = transfer.authorization }
+            var verified = try await api.connect(authorization)
             guard verified.xuid == transfer.xuid else { throw LabsError.message("The transferred authorization belongs to a different account.") }
             verified.eventToken = transfer.eventToken.isEmpty ? "" : try Tokens.normalize(transfer.eventToken,event:true)
             verified.authorizationExpiresAt = transfer.authorizationExpiresAt.flatMap(ServiceDates.parse)
+            pendingPCEventOnly = transfer.eventOnly
             verified.loginProfile = "PC transfer"; pendingPCAccount = verified; pendingPCExpiry = Date(timeIntervalSince1970:Double(transfer.expiresAt))
-            pcSyncStatus = "Verified \(verified.gamertag). Choose whether to connect this account or import only its event token."
+            pcSyncStatus = transfer.eventOnly ? "Verified \(verified.gamertag). Import the event token to your existing mobile sign-in." : "Verified \(verified.gamertag). Choose whether to connect this account or import only its event token."
         } catch { pcSyncStatus = error.localizedDescription }
     }
     func usePCTransfer(eventOnly: Bool) {
         guard let imported = pendingPCAccount, !busy, !running, !presenceRunning else { return }
         do {
             guard let pendingPCExpiry, pendingPCExpiry > Date() else { pendingPCAccount = nil; throw LabsError.message("The transfer expired. Export a fresh file from PC.") }
+            guard !pendingPCEventOnly || eventOnly else { throw LabsError.message("This QR contains only an event token. Choose Import event token only.") }
             if eventOnly {
                 guard var current = account, current.xuid == imported.xuid else { throw LabsError.message("Event-only sync requires the same Xbox account on both devices.") }
                 guard !imported.eventToken.isEmpty else { throw LabsError.message("The PC transfer contains no event token.") }

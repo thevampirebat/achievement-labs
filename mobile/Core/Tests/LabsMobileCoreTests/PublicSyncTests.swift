@@ -2,6 +2,14 @@ import XCTest
 import CryptoKit
 @testable import LabsMobileCore
 final class PublicSyncTests: XCTestCase {
+    func testEventOnlyTransferOmitsAuthorizationAndRejectsInvalidKinds() throws {
+        let key = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+        let valid = try PCTransfer.open(Data(#"{"schemaVersion":1,"nonce":"AAECAwQFBgcICQoL","ciphertext":"PCCleK2Ar3rbJOX42IYWT7n2thjQWTQVVgPHvz1LZcRkftqowKp39laIX8/w8kFczGNAr27kgfYftUtsbIuanJlGpw66vkhDJnSITMOvLI1O76cWIgw4DZPfpOxaiIPVibRqyJRhsCevLg2JOwxPC9ICFsKA6EDsKJEj767GTGvDImm00aSKJyrbaJYN6jE=","tag":"CdsHdKsRyKPZNy+WRoR7gg=="}"#.utf8),key:key,now:Date(timeIntervalSince1970:100))
+        XCTAssertTrue(valid.eventOnly); XCTAssertTrue(valid.authorization.isEmpty); XCTAssertEqual(valid.xuid,"42")
+        XCTAssertThrowsError(try PCTransfer.open(Data(#"{"schemaVersion":1,"nonce":"AAECAwQFBgcICQoL","ciphertext":"PCCleK2Ar3rbJOX42IYWT7n2thjQWTQVVgPHvz1LZcRkftqowKp39laIX8/w8kFczGNAr27kgfYftUtsbIuanJlGpw66vkhDJnSINq3DPcYIqrFfR1FgU4iT+7QIldr5rpx7yoRjrWz7ckrmJx5EEZhdQomb/33YAcx5/aKeUz+JYTu1zbm/O22VIcIQvzqnWIDBGRUz9jL8NpoSiZOdzKm3qSXZgg==","tag":"y+ZH/MOJecRuYCfprzupMw=="}"#.utf8),key:key,now:Date(timeIntervalSince1970:100)))
+        XCTAssertThrowsError(try PCTransfer.open(Data(#"{"schemaVersion":1,"nonce":"AAECAwQFBgcICQoL","ciphertext":"PCCleK2Ar3rbJOX42IYWT7n2thjQWTQVVgPHvz1Lb8Zpddzeg+Ew4AHNG8+ypwoM3HtMrXi31q5X+FhwYoKBh59S5EDz8wRNPHbPGIrherxX4awMVFlzSoXHxo40w5e964Bk15Zy82nnckraLQFIHJcCFM6NsQe2bd0ytfKPHGvIE3Tkjvf8Yzic","tag":"s7w/ln/3AN6mawaQOBH2pw=="}"#.utf8),key:key,now:Date(timeIntervalSince1970:100)))
+        XCTAssertThrowsError(try PCTransfer.open(Data(#"{"schemaVersion":1,"nonce":"AAECAwQFBgcICQoL","ciphertext":"PCCleK2Ar3rbJOX42IYWT7n2thjQWTQVVgPHvz1LZcRkftqowKp39laIX8/w8kFczGNAr27kgfYftUtsbIuanJlGpw66vkhDJnSITMOvLI1O76cWIgw4DZPfpOxa0pWt6Z0hls0zrWnfaByIaEIRT8c=","tag":"GF1KD7/q2z2Kd2X0+JG9+Q=="}"#.utf8),key:key,now:Date(timeIntervalSince1970:100)))
+    }
     func testQRReassemblyAndIsolation() throws {
         let bytes = try JSONSerialization.data(withJSONObject:["key":String(repeating:"A",count:43),"file":Data("synthetic".utf8).base64EncodedString()])
         let digest = SHA256.hash(data:bytes).map { String(format:"%02x",$0) }.joined()

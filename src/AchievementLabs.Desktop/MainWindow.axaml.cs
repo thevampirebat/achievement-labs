@@ -449,6 +449,7 @@ public partial class MainWindow : Window
         if (!model.CanQuery) return;
         try {
             var frames = AchievementLabs.Core.MobileTransfer.QrFrames(model.CreateMobileTransfer());
+            var eventOnly=false;
             var dialog = new Window { Title="Sync with iPhone / iPad",Width=570,Height=800,MinWidth=500,MinHeight=600,WindowStartupLocation=WindowStartupLocation.CenterOwner };
             var image = new Avalonia.Controls.Image { Width=410,Height=410,Stretch=Avalonia.Media.Stretch.Uniform };
             var status = new TextBlock { TextWrapping=TextWrapping.Wrap,HorizontalAlignment=Avalonia.Layout.HorizontalAlignment.Center };
@@ -463,17 +464,25 @@ public partial class MainWindow : Window
                 using var qr = new QRCoder.PngByteQRCode(data);
                 using var stream = new MemoryStream(qr.GetGraphic(5));
                 var old=bitmap; bitmap=new Avalonia.Media.Imaging.Bitmap(stream); image.Source=bitmap; old?.Dispose();
-                status.Text=$"Code {index+1} of {frames.Length} · expires {expires.LocalDateTime:t}";
+                status.Text=$"{(eventOnly ? "Event token only" : "Sign-in + event token")} · code {index+1} of {frames.Length} · expires {expires.LocalDateTime:t}";
             }
+            var timer=new Avalonia.Threading.DispatcherTimer { Interval=TimeSpan.FromSeconds(1.2) };
+            var accountMode = new Button { Content="Sign-in + event token QR" };
+            var eventMode = new Button { Content="Event token QR only" };
+            void ChangeMode(bool only) {
+                try { var replacement=AchievementLabs.Core.MobileTransfer.QrFrames(model.CreateMobileTransfer(only)); Array.Clear(frames); frames=replacement; eventOnly=only; index=0; expires=DateTimeOffset.UtcNow.AddMinutes(10); previous.IsEnabled=true; next.IsEnabled=true; ShowFrame(); timer.Start(); }
+                catch { timer.Stop(); image.Source=null; previous.IsEnabled=false; next.IsEnabled=false; status.Text="Save an event token in PC Settings before creating an event-token QR."; }
+            }
+            accountMode.Click += (_,_)=>ChangeMode(false); eventMode.Click += (_,_)=>ChangeMode(true);
             previous.Click += (_,_)=>{ index=(index+frames.Length-1)%frames.Length; ShowFrame(); };
             next.Click += (_,_)=>{ index=(index+1)%frames.Length; ShowFrame(); };
-            var timer=new Avalonia.Threading.DispatcherTimer { Interval=TimeSpan.FromSeconds(1.2) };
             timer.Tick += (_,_)=>{ if(DateTimeOffset.UtcNow>=expires) { image.Source=null; status.Text="Expired. Close and generate a new code."; timer.Stop(); previous.IsEnabled=false; next.IsEnabled=false; }
                 else if(automatic.IsChecked==true) { index=(index+1)%frames.Length; ShowFrame(); } };
             dialog.Content = new ScrollViewer { Content = new StackPanel { Margin=new Thickness(20),Spacing=12,Children={
                 new TextBlock { Text="On iPhone / iPad, open Home → Sync from PC → Scan PC QR codes. Keep the camera pointed here until every code is collected.",TextWrapping=TextWrapping.Wrap },
+                new WrapPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Children={accountMode,eventMode} },
                 image,status,new StackPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Spacing=12,Children={previous,next,automatic} },
-                new TextBlock { Text="Private sign-in codes: do not share screenshots. Transfers include current authorization and event token; Microsoft renewal credentials stay on PC.",TextWrapping=TextWrapping.Wrap },close } } };
+                new TextBlock { Text="Private sign-in codes: do not share screenshots. Event-token mode excludes account authorization. Microsoft renewal credentials always stay on PC.",TextWrapping=TextWrapping.Wrap },close } } };
             ShowFrame(); timer.Start();
             try { await dialog.ShowDialog(this); } finally { timer.Stop(); image.Source=null; bitmap?.Dispose(); Array.Clear(frames); }
         } catch { model.Notice="Could not create mobile QR transfer. Connect an Xbox account first."; }

@@ -62,6 +62,8 @@ public struct PublicSync {
 
 public struct PCTransfer: Codable {
     public let schemaVersion: Int; public let xuid: String; public let authorization: String; public let eventToken: String
+    public let kind: String?
+    public var eventOnly: Bool { kind == "eventToken" }
     public let expiresAt: Int64; public let authorizationExpiresAt: String?
     public static func open(_ data: Data, key text: String, now: Date = Date()) throws -> PCTransfer {
         guard data.count <= 128*1024 else { throw LabsError.message("Transfer file is too large.") }
@@ -76,7 +78,12 @@ public struct PCTransfer: Codable {
         catch { throw LabsError.message("The pairing key does not match this file.") }
         let transfer = try JSONDecoder().decode(PCTransfer.self,from:plain)
         guard transfer.schemaVersion == 1, JSON.numeric(transfer.xuid), Double(transfer.expiresAt) > now.timeIntervalSince1970, Double(transfer.expiresAt) <= now.timeIntervalSince1970 + 900 else { throw LabsError.message("The PC transfer expired. Export a fresh file on PC.") }
-        _ = try Tokens.normalize(transfer.authorization,event:false)
+        if transfer.eventOnly {
+            guard transfer.authorization.isEmpty, !transfer.eventToken.isEmpty else { throw LabsError.message("Invalid event-token-only transfer.") }
+        } else {
+            guard transfer.kind == nil || transfer.kind == "account" else { throw LabsError.message("Unsupported PC transfer type.") }
+            _ = try Tokens.normalize(transfer.authorization,event:false)
+        }
         if !transfer.eventToken.isEmpty { _ = try Tokens.normalize(transfer.eventToken,event:true) }
         return transfer
     }
