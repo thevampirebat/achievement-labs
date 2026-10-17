@@ -20,6 +20,7 @@ public final class Core {
   s=s.trim();if(event){if(s.startsWith("XBL3.0 "))s="x:"+s;}else if(s.startsWith("x:XBL3.0 "))s=s.substring(2);
   if(s.length()>65536 || !s.matches((event?"x:":"")+"XBL3\\.0 x=[^;\\s]+;[^\\s]+"))throw new Exception("Enter a complete Xbox "+(event?"event token":"authorization")+".");return s;
  }
+ static boolean eventRequirements(JSONArray requirements){if(requirements==null)return false;for(int i=0;i<requirements.length();i++){JSONObject r=requirements.optJSONObject(i);String id=r==null?"":r.optString("id");if(!id.isEmpty()&&!id.equals("00000000-0000-0000-0000-000000000000"))return true;}return false;}
  static boolean eventOnly(JSONObject p){return "eventToken".equals(p.optString("kind"));}
  static JSONObject openTransfer(byte[] bytes,String key,long now)throws Exception{
   if(bytes.length>128*1024)throw new Exception("Transfer too large.");JSONObject envelope=new JSONObject(text(bytes));

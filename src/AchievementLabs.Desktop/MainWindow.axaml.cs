@@ -450,7 +450,7 @@ public partial class MainWindow : Window
         try {
             var frames = AchievementLabs.Core.MobileTransfer.QrFrames(model.CreateMobileTransfer());
             var eventOnly=false;
-            var dialog = new Window { Title="Sync with iPhone / iPad",Width=570,Height=800,MinWidth=500,MinHeight=600,WindowStartupLocation=WindowStartupLocation.CenterOwner };
+            var dialog = new Window { Title="Mobile sync · iPhone / iPad / Android",Width=570,Height=800,MinWidth=500,MinHeight=600,WindowStartupLocation=WindowStartupLocation.CenterOwner };
             var image = new Avalonia.Controls.Image { Width=410,Height=410,Stretch=Avalonia.Media.Stretch.Uniform };
             var status = new TextBlock { TextWrapping=TextWrapping.Wrap,HorizontalAlignment=Avalonia.Layout.HorizontalAlignment.Center };
             var close = new Button { Content="Close" }; close.Click += (_,_)=>dialog.Close();
@@ -500,7 +500,7 @@ public partial class MainWindow : Window
         try {
             var transfer = model.CreateMobileTransfer();
             await File.WriteAllBytesAsync(path,transfer.Bytes);
-            var dialog = new Window { Title="Sync with iPhone / iPad",Width=580,Height=340,CanResize=false,WindowStartupLocation=WindowStartupLocation.CenterOwner };
+            var dialog = new Window { Title="Mobile sync · iPhone / iPad / Android",Width=580,Height=340,CanResize=false,WindowStartupLocation=WindowStartupLocation.CenterOwner };
             var copy = new Button { Content="Copy pairing key" }; var close = new Button { Content="Close" };
             copy.Click += async (_,_) => { if (Clipboard != null) await Clipboard.SetTextAsync(transfer.PairingKey); };
             close.Click += (_,_) => dialog.Close();

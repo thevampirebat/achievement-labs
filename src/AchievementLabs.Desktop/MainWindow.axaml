@@ -33,7 +33,7 @@
      <Button Content="←" Click="GoBack" IsEnabled="{Binding CanGoBack}" Margin="0,0,12,0"/>
      <TextBlock Grid.Column="1" Text="{Binding PageTitle}" FontSize="29" FontWeight="SemiBold" LetterSpacing="-0.8" VerticalAlignment="Center"/>
      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-     <Button Content="Install update and restart" Click="InstallUpdate" IsVisible="{Binding UpdateReady}"/><Button Content="Attach Xbox PC app" Click="ConnectXbox" IsEnabled="{Binding CanConnect}"/><Button Click="ShowMobileSync" IsEnabled="{Binding CanQuery}" ToolTip.Tip="Sync with iPhone / iPad" AutomationProperties.Name="Sync with iPhone / iPad"><PathIcon Width="18" Height="18" Data="M 6,1 L 18,1 L 18,23 L 6,23 Z M 8,3 L 8,19 L 16,19 L 16,3 Z M 11,20 L 11,22 L 13,22 L 13,20 Z"/></Button><Button Content="Open export" Click="OpenExport" IsEnabled="{Binding CanInteract}"/>
+     <Button Content="Install update and restart" Click="InstallUpdate" IsVisible="{Binding UpdateReady}"/><Button Content="Attach Xbox PC app" Click="ConnectXbox" IsEnabled="{Binding CanConnect}"/><Button Click="ShowMobileSync" IsEnabled="{Binding CanQuery}" ToolTip.Tip="Sync with iPhone / iPad / Android" AutomationProperties.Name="Sync with iPhone / iPad / Android"><PathIcon Width="18" Height="18" Data="M 6,1 L 18,1 L 18,23 L 6,23 Z M 8,3 L 8,19 L 16,19 L 16,3 Z M 11,20 L 11,22 L 13,22 L 13,20 Z"/></Button><Button Content="Open export" Click="OpenExport" IsEnabled="{Binding CanInteract}"/>
      <Border Background="#21352E" CornerRadius="15" Padding="12,7" VerticalAlignment="Center"><TextBlock Text="{Binding ConnectionLabel}" Foreground="#91CFB1" FontSize="11"/></Border>
     </StackPanel>
    </Grid>
@@ -275,7 +275,7 @@
       <TextBlock Text="{Binding DlcCatalogueStatus}" TextWrapping="Wrap" Classes="muted"/>
      </StackPanel></Border>
 <Border Classes="panel" Padding="24"><StackPanel Spacing="16">
-      <TextBlock Text="iPhone / iPad sync" FontSize="22"/>
+      <TextBlock Text="Mobile sync (iOS / Android)" FontSize="22"/>
       <TextBlock Text="Export the connected account's current authorization and event token in an encrypted file. The separate pairing key expires with the file after 10 minutes. OAuth renewal credentials remain on this PC." TextWrapping="Wrap" Classes="muted"/>
       <Button Content="Show mobile QR code" Click="ShowMobileSync" IsEnabled="{Binding CanQuery}"/>
       <Button Content="Export encrypted mobile sign-in" Click="ExportMobileTransfer" IsEnabled="{Binding CanQuery}"/>
