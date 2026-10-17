@@ -14,6 +14,7 @@ public final class Core {
  static byte[] un64(String s){return Base64.getDecoder().decode(s);}
  static String hash(byte[] b)throws Exception{return hex(MessageDigest.getInstance("SHA-256").digest(b));}
  static String hex(byte[] b){StringBuilder s=new StringBuilder();for(byte v:b)s.append(String.format(Locale.ROOT,"%02x",v));return s.toString();}
+ static void sameOwner(String expected,String actual)throws InterruptedException{if(expected.isEmpty()||!expected.equals(actual))throw new InterruptedException("Account changed; session stopped.");}
  static String uuid(String value)throws Exception{if(!UUID.fromString(value).toString().equalsIgnoreCase(value))throw new Exception("Invalid service configuration ID.");return value;}
  static String numeric(String s)throws Exception{if(!s.matches("[0-9]{1,20}"))throw new Exception("Invalid numeric identifier.");return s;}
  static String token(String s,boolean event)throws Exception{
