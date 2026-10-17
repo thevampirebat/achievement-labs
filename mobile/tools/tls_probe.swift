@@ -1,6 +1,20 @@
 import Foundation
+import Security
+final class TrustProbe: NSObject, URLSessionDelegate {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        if let trust = challenge.protectionSpace.serverTrust {
+            var error: CFError?
+            let valid = SecTrustEvaluateWithError(trust,&error)
+            print("TRUST \(challenge.protectionSpace.host) valid=\(valid) reason=\(error.map { CFErrorCopyDescription($0) as String } ?? "none")")
+            if let chain = SecTrustCopyCertificateChain(trust) as? [SecCertificate] {
+                for (i,cert) in chain.enumerated() { print("CERT \(challenge.protectionSpace.host) \(i) \((SecCertificateCopyData(cert) as Data).base64EncodedString())") }
+            }
+        }
+        completionHandler(.performDefaultHandling,nil)
+    }
+}
 // Unauthenticated HEAD probes only. No user accounts, event tokens or event data.
-let session = URLSession(configuration:.ephemeral)
+let session = URLSession(configuration:.ephemeral,delegate:TrustProbe(),delegateQueue:nil)
 let group = DispatchGroup()
 for host in ["mobile.events.data.microsoft.com","v20.events.data.microsoft.com","achievements.xboxlive.com","presence-heartbeat.xboxlive.com"] {
     group.enter(); var request = URLRequest(url:URL(string:"https://"+host+(host.contains("events.data") ? "/OneCollector/1.0/" : "/"))!)
