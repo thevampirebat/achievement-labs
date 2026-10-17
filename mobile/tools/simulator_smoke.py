@@ -38,3 +38,11 @@ for page in ['library','queue','spoof','settings']:
     subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPhone-'+page+'.png'],check=True)
     subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
 print('Four offline refinement screens launched. All preview network requests are blocked.')
+
+output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--web-callback-self-test')
+time.sleep(5)
+container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.mobile','data').strip())
+marker=container/'Documents'/'Callback-self-test.txt'
+assert marker.read_text() == 'passed', 'Embedded WebKit did not capture and validate the synthetic redirect'
+subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+print('Embedded WebKit automatic callback capture and full redirect validation passed without credentials or OAuth requests.')

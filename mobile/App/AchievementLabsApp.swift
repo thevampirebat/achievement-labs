@@ -16,6 +16,11 @@ import LabsMobileCore
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if model.busy { ProgressView(model.status).font(.caption).padding(8).frame(maxWidth: .infinity).background(.ultraThinMaterial) }
             }
+            .overlay {
+                #if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("--web-callback-self-test") { CallbackCaptureTestView() }
+                #endif
+            }
             .alert("Achievement Labs", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("OK") { model.error = nil } } message: { Text(model.error ?? "") }
             .onChange(of: phase) { _, value in if value == .active { model.active() } else { model.background() } }
         }
@@ -88,7 +93,6 @@ struct AchievementView: View {
         List {
             Section {
                 GameHeader(game:m.gameForTitle(game.id) ?? game)
-                if loaded { HStack { Text("\(m.rows.filter(\.unlocked).count)/\(m.rows.count) achievements").font(.caption); if m.showMythic && m.hasMythic(m.gameForTitle(game.id) ?? game) { MythicMark() } }.foregroundStyle(.green) }
                 if let status = m.catalogue?.index[game.id] { Text("Event data: \(status.classification) · \(status.count) mobile mappings").font(.caption).foregroundStyle(.secondary) }
                 HStack {
                     Button("Auto Unlock") { m.queueTitle = game.id; m.titleDetails[game.id] = game; if !selected.isEmpty { m.enqueue(m.rows.filter { selected.contains($0.id) }, game:game) }; m.selectedTab = 1 }
@@ -260,7 +264,9 @@ struct SettingsView: View {
             Form {
                 Section("Xbox account") {
                     Text(m.account?.gamertag ?? "Not connected")
+                    if let profile = m.account?.loginProfile { Text("Current session: " + profile).font(.caption).foregroundStyle(.secondary) }
                     Picker("Sign-in profile",selection:$m.loginProfile) { ForEach(LoginProfile.allCases) { Text($0.rawValue).tag($0.rawValue) } }.disabled(m.busy || m.running || m.presenceRunning)
+                    Text("Profile changes apply when you sign in again.").font(.caption2).foregroundStyle(.secondary)
                     Button("Sign in with Microsoft",systemImage:"person.crop.circle.badge.checkmark") { if let url = m.beginBrowserLogin() { embeddedLogin = SignInPage(url:url) } }.disabled(m.busy || m.running || m.presenceRunning)
                     DisclosureGroup("Safari / manual sign-in",isExpanded:$advanced) {
                     Button("Sign in using Safari") { if let url = m.beginBrowserLogin() { signInURL = ""; openURL(url) } }.disabled(m.busy || m.running || m.presenceRunning)
@@ -288,6 +294,7 @@ struct SettingsView: View {
                     Text("Mythic is the same local base-completion marker as desktop. The profile count includes verified base completions and titles with every achievement unlocked; it can increase after scanning.").font(.caption).foregroundStyle(.secondary)
                     Text("Checked \(m.checkedCompletion.count) of \(m.games.count) titles").font(.caption)
                     Button("Scan unchecked titles, one at a time") { Task { await m.scanCompletion() } }.disabled(m.account == nil || m.busy || m.running || m.games.isEmpty)
+                    if m.scanningCompletion { Button("Stop after current title",role:.destructive) { m.scanningCompletion = false } }
                     Text(m.status).font(.caption2).foregroundStyle(.secondary)
                 }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }

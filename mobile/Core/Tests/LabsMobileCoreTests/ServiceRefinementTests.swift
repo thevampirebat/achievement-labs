@@ -7,7 +7,7 @@ final class ServiceRefinementTests: XCTestCase {
         let session = URLSession(configuration:config); defer { session.invalidateAndCancel(); LoginProtocol.handler = nil }
         LoginProtocol.handler = { request in
             XCTAssertEqual(request.url?.host,"presence-heartbeat.xboxlive.com")
-            XCTAssertEqual(request.url?.path,"/users/xuid(42)/devices/current/")
+            XCTAssertEqual(request.url?.absoluteString,"https://presence-heartbeat.xboxlive.com/users/xuid(42)/devices/current/")
             XCTAssertEqual(request.value(forHTTPHeaderField:"x-xbl-contract-version"),"3")
             var body = request.httpBody ?? Data()
             if let stream = request.httpBodyStream {
@@ -35,4 +35,17 @@ final class ServiceRefinementTests: XCTestCase {
         let rows = try await XboxService(session:session).achievements(try Game(["titleId":"7"]),account:Account(authorization:"synthetic-own",xuid:"42",gamertag:"Test"),xuid:"99")
         XCTAssertNotNil(rows.first?.unlockedAt)
     }
+    func testPresence403IsNotMisreportedAsExpiredLogin() async throws {
+        let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [LoginProtocol.self]
+        let session = URLSession(configuration:config); defer { session.invalidateAndCancel(); LoginProtocol.handler = nil; LoginProtocol.responseCode = 200 }
+        LoginProtocol.responseCode = 403; LoginProtocol.handler = { _ in Data() }
+        do {
+            try await XboxService(session:session).presence("7",account:Account(authorization:"synthetic",xuid:"42",gamertag:"Test"))
+            XCTFail("403 must fail")
+        } catch {
+            XCTAssertTrue(error.localizedDescription.contains("refused title spoofing"))
+            XCTAssertFalse(error.localizedDescription.contains("expired"))
+        }
+    }
+
 }

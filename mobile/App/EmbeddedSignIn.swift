@@ -34,6 +34,12 @@ struct SignInWebView: UIViewRepresentable {
         let config = WKWebViewConfiguration(); config.websiteDataStore = .nonPersistent()
         let view = WKWebView(frame:.zero,configuration:config)
         view.navigationDelegate = context.coordinator; view.uiDelegate = context.coordinator
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--web-callback-self-test") {
+            view.loadHTMLString("<html><head><meta http-equiv='refresh' content='0;url=https://login.live.com/oauth20_desktop.srf?state=synthetic-state&amp;code=synthetic-code'></head><body>Synthetic callback check</body></html>",baseURL:nil)
+            return view
+        }
+        #endif
         view.load(URLRequest(url:url)); return view
     }
     func updateUIView(_ uiView: WKWebView, context: Context) { context.coordinator.parent = self }
@@ -64,3 +70,22 @@ struct SignInWebView: UIViewRepresentable {
         }
     }
 }
+
+#if DEBUG
+struct CallbackCaptureTestView: View {
+    @StateObject private var state = SignInWebState()
+    @State private var passed = false
+    var body: some View {
+        VStack {
+            Text(passed ? "Automatic callback capture passed" : "Checking automatic callback capture…")
+            SignInWebView(url:URL(string:"https://login.live.com/")!,state:state) { redirect in
+                do {
+                    guard try BrowserLogin.validateRedirect(redirect,state:"synthetic-state") == "synthetic-code" else { fatalError("Synthetic callback mismatch") }
+                    let marker = FileManager.default.urls(for:.documentDirectory,in:.userDomainMask)[0].appendingPathComponent("Callback-self-test.txt")
+                    try Data("passed".utf8).write(to:marker,options:.atomic); passed = true
+                } catch { fatalError("Synthetic callback validation failed") }
+            }
+        }.background(Color.black)
+    }
+}
+#endif

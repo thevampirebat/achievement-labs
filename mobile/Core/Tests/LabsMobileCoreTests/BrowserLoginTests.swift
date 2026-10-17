@@ -3,13 +3,14 @@ import CryptoKit
 @testable import LabsMobileCore
 
 final class LoginProtocol: URLProtocol {
+    static var responseCode = 200
     static var handler: ((URLRequest) throws -> Data)?
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
         do {
             let data = try Self.handler!(request)
-            client?.urlProtocol(self, didReceive: HTTPURLResponse(url:request.url!, statusCode:200, httpVersion:nil, headerFields:nil)!, cacheStoragePolicy:.notAllowed)
+            client?.urlProtocol(self, didReceive: HTTPURLResponse(url:request.url!, statusCode:Self.responseCode, httpVersion:nil, headerFields:nil)!, cacheStoragePolicy:.notAllowed)
             client?.urlProtocol(self, didLoad:data); client?.urlProtocolDidFinishLoading(self)
         } catch { client?.urlProtocol(self, didFailWithError:error) }
     }

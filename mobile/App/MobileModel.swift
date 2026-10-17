@@ -39,6 +39,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     @Published var playedHours: [String:Double] = [:]
     @Published var titleDetails: [String:Game] = [:]
     @Published var checkedCompletion = Set<String>()
+    @Published var scanningCompletion = false
     @AppStorage("loginProfile") var loginProfile = LoginProfile.desktop.rawValue
     private var savedTotals: [String:Int] = [:]
     let api: XboxService = {
@@ -286,7 +287,13 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         let content = UNMutableNotificationContent(); content.title = title; content.body = body; content.sound = .default
         try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
     }
-    func gameForTitle(_ id: String) -> Game? { titleDetails[id] ?? games.first { $0.id == id } }
+    func gameForTitle(_ id: String) -> Game? {
+        if var game = games.first(where: { $0.id == id }) {
+            if game.image.isEmpty { game.image = titleDetails[id]?.image ?? "" }
+            return game
+        }
+        return titleDetails[id]
+    }
     func hasMythic(_ game: Game) -> Bool { catalogue?.isHub(game) != true && (baseCompleted.contains(game.id) || game.complete) }
     var mythicCount: Int { games.filter(hasMythic).count }
     var libraryAchievements: Int { games.reduce(0) { $0 + $1.unlocked } }
@@ -356,11 +363,11 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         return game
     }
     func scanCompletion() async {
-        guard let account, !busy, !running else { return }; busy = true; defer { busy = false }; let version = generation
+        guard let account, !busy, !running else { return }; busy = true; scanningCompletion = true; defer { busy = false; scanningCompletion = false }; let version = generation
         let pending = games.filter { !checkedCompletion.contains($0.id) }
         var failures = 0
         for (n,game) in pending.enumerated() {
-            guard foreground, version == generation, !Task.isCancelled else { break }
+            guard scanningCompletion, foreground, version == generation, !Task.isCancelled else { break }
             status = "Completion scan \(n+1)/\(pending.count) · \(game.name)"
             do {
                 let loaded = try await api.achievements(game,account:account); rememberCompletion(loaded,game:game)
