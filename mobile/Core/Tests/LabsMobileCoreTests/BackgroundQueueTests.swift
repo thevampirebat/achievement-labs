@@ -18,4 +18,14 @@ final class BackgroundQueueTests: XCTestCase {
         lease.advance(); lease.advance(); XCTAssertEqual(lease.completed,2)
         lease.finish(token); lease.advance(); XCTAssertEqual(lease.completed,2)
     }
+    func testAddingCompanionWorkKeepsSameGrantedSession() {
+        var lease = BackgroundQueueLease(); let token = lease.request(total:2)
+        XCTAssertTrue(lease.grant(token)); lease.advance()
+        lease.addWork(3)
+        XCTAssertEqual(lease.identifier,token); XCTAssertTrue(lease.granted)
+        XCTAssertEqual(lease.total,5); XCTAssertEqual(lease.completed,1)
+        XCTAssertTrue(lease.finish(token)); lease.addWork(4)
+        XCTAssertEqual(lease.total,5); XCTAssertFalse(lease.grant(token))
+    }
 }
+

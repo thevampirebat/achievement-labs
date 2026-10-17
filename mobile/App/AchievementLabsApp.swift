@@ -171,7 +171,7 @@ struct QueueView: View {
                             }.font(.caption)
                         }
                         HStack {
-                            Button(m.running ? "Pause" : "Start / Resume",systemImage:m.running ? "pause.fill" : "play.fill") { if m.running { m.pauseQueue() } else { m.startQueue() } }.disabled(m.account == nil || m.busy || m.queue.isEmpty)
+                            Button(m.running ? "Pause" : "Start / Resume",systemImage:m.running ? "pause.fill" : "play.fill") { if m.running { m.pauseQueue() } else { m.startQueue() } }.disabled(m.account == nil || m.busy || m.queue.isEmpty || m.editingQueueDelay)
                             Spacer()
                             Button("Remove completed") { Task { await m.removeCompleted() } }.disabled(m.running || m.busy)
                         }.font(.subheadline).buttonStyle(.borderless)
@@ -190,11 +190,11 @@ struct QueueView: View {
                 }.font(.subheadline)
                 Section("Achievements") {
                     ForEach(m.queue.indices,id: \.self) { i in
-                        QueueRow(index:i)
+                        QueueRow(index:i).id(m.queue[i].id)
                     }
                     if m.queue.isEmpty { Text("Build a timing queue above, or select achievements from Library.").font(.caption).foregroundStyle(.secondary) }
                 }
-            }.listSectionSpacing(.compact).navigationTitle("Auto Unlock").navigationBarTitleDisplayMode(.inline)
+            }.scrollDismissesKeyboard(.interactively).listSectionSpacing(.compact).navigationTitle("Auto Unlock").navigationBarTitleDisplayMode(.inline)
             .task(id:m.queueTitle) { do { try await Task.sleep(nanoseconds:400_000_000); try Task.checkCancellation(); await m.lookupTitle(m.queueTitle) } catch {} }
         }
     }
@@ -208,6 +208,21 @@ struct QueueView: View {
 struct QueueRow: View {
     @EnvironmentObject var m: MobileModel
     let index: Int
+    @FocusState private var delayFocused: Bool
+    @State private var delayText = ""
+    @State private var editingID = ""
+    private func loadDelay() {
+        guard m.queue.indices.contains(index) else { return }
+        editingID = m.queue[index].id
+        delayText = (m.queue[index].delay / 60).formatted(.number.precision(.fractionLength(0...4)).grouping(.never))
+    }
+    private func confirmDelay() {
+        guard m.queue.indices.contains(index), m.queue[index].id == editingID, !m.running else { delayFocused = false; m.editingQueueDelay = false; return }
+        guard let seconds = QueueDelayInput.seconds(delayText) else { m.error = "Enter a valid delay from 0 to 525600 minutes."; return }
+        m.queue[index].delay = seconds; m.saveQueue()
+        delayFocused = false; m.editingQueueDelay = false
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)
+    }
     var body: some View {
         if m.queue.indices.contains(index) {
             let item = m.queue[index]
@@ -220,13 +235,25 @@ struct QueueRow: View {
                 if let source = item.referenceGamertag, let date = item.referenceDate { Text(source + " · " + date.formatted(date:.abbreviated,time:.shortened)).font(.caption2).foregroundStyle(.secondary) }
                 HStack {
                     Text("Delay (minutes)").font(.caption)
-                    TextField("Minutes",value:Binding(get: { m.queue[index].delay / 60 },set: { if $0.isFinite { m.queue[index].delay = max(0,min($0*60,31_536_000)) } }),format:.number.precision(.fractionLength(0...2))).keyboardType(.decimalPad).multilineTextAlignment(.trailing).disabled(m.running)
+                    TextField("Minutes",text:$delayText).keyboardType(.decimalPad).submitLabel(.done).focused($delayFocused).onSubmit { confirmDelay() }.multilineTextAlignment(.trailing).disabled(m.running).accessibilityIdentifier("queue-delay-field")
                 }
                 HStack {
                     if item.status != "Waiting" { Button("Reset") { m.queue[index].status = "Waiting"; m.saveQueue() }.disabled(m.running) }
                     Spacer(); Button("Remove",role:.destructive) { m.queue.remove(at:index); m.saveQueue() }.disabled(m.running || m.busy)
                 }.font(.caption).buttonStyle(.borderless)
             }.padding(.vertical,2)
+            .onAppear(perform:loadDelay)
+            .onChange(of:m.queue[index].delay) { _,_ in if !delayFocused { loadDelay() } }
+            .onChange(of:delayFocused) { was,isFocused in
+                m.editingQueueDelay = isFocused
+                if was && !isFocused, m.queue.indices.contains(index), m.queue[index].id == editingID, let seconds = QueueDelayInput.seconds(delayText), !m.running { m.queue[index].delay = seconds; m.saveQueue() }
+            }
+            .onDisappear { if delayFocused { m.editingQueueDelay = false } }
+            .toolbar {
+                ToolbarItemGroup(placement:.keyboard) {
+                    if delayFocused { Spacer(); Button("Done",action:confirmDelay).fontWeight(.semibold).accessibilityIdentifier("queue-delay-done") }
+                }
+            }
         }
     }
 }
@@ -246,6 +273,7 @@ struct PresenceView: View {
                         Button("Stop",systemImage:"stop.fill",role:.destructive) { Task { await m.stopPresence() } }.disabled(!m.presenceRunning)
                     }.buttonStyle(.borderless)
                     Text(m.spoofStatus).font(.caption).foregroundStyle(.secondary)
+                    if m.continueSpoofInBackground || m.continueQueueInBackground { Text(m.continuedQueue.status).font(.caption2).foregroundStyle(.secondary) }
                 }
                 if !m.spoofDiagnostics.isEmpty {
                     Section("Spoofing diagnostics") {
@@ -257,7 +285,7 @@ struct PresenceView: View {
                 Section {
                     Toggle("Notify if spoofing stops",isOn:$m.notifyPresenceFailure)
                     Button("Refresh Xbox playtime") { Task { await m.readPlaytime(m.presenceTitle) } }.disabled(m.account == nil || !JSON.numeric(m.presenceTitle))
-                    Text("Can accompany an authorized background queue when enabled in Settings → App. Standalone spoofing pauses in background. Xbox-recorded playtime can update later.").font(.caption2).foregroundStyle(.secondary)
+                    Text("Background spoofing can use a finite session when enabled in Settings → App. Wait for iOS to grant background time before leaving. iOS can end it early; Xbox-recorded playtime can update later.").font(.caption2).foregroundStyle(.secondary)
                 }.font(.subheadline)
             }.listSectionSpacing(.compact).navigationTitle("Title Spoofing").navigationBarTitleDisplayMode(.inline)
             .task(id:m.presenceTitle) { do { try await Task.sleep(nanoseconds:400_000_000); try Task.checkCancellation(); await m.lookupTitle(m.presenceTitle); await m.readPlaytime(m.presenceTitle) } catch {} }
@@ -360,18 +388,30 @@ struct SettingsView: View {
                         Toggle("Continue queue in background",isOn:$m.continueQueueInBackground)
                             .disabled(m.running || m.presenceRunning)
                             .onChange(of:m.continueQueueInBackground) { _,_ in m.updateBackgroundPreference() }
+                        Toggle("Allow standalone background spoofing",isOn:$m.continueSpoofInBackground).disabled(m.running || m.presenceRunning).onChange(of:m.continueSpoofInBackground) { _,_ in m.updateBackgroundPreference() }
+                        if m.continueSpoofInBackground { Stepper("Spoof session limit: \(Int(m.spoofBackgroundMinutes)) min",value:$m.spoofBackgroundMinutes,in:5...120,step:5).disabled(m.running || m.presenceRunning) }
                         Toggle("Keep spoofing alongside queue",isOn:$m.continueSpoofWithQueue).disabled(m.running || m.presenceRunning || !m.continueQueueInBackground)
                         Text(m.continuedQueue.status).font(.caption)
-                        Text("Start the queue while this app is open and wait for iOS to grant background time. System progress counts processed actions, not confirmed unlocks. Long delays may expire; iOS can stop the task. Spoofing stops when the background queue ends. This needs testing on your Signulous-signed device.").font(.caption2).foregroundStyle(.secondary)
+                        Text("Start the queue while this app is open and wait for iOS to grant background time. One system request is shared by the queue and spoofer. Its status shows processed queue actions and spoofing elapsed time. Standalone spoofing has a finite limit; iOS can stop any session earlier. Failed system cards may need manual dismissal. Processed or accepted actions are not confirmed unlocks. This needs testing on your Signulous-signed device.").font(.caption2).foregroundStyle(.secondary)
                         Text("When enabled, remembered sign-in and queue files remain accessible after your first device unlock so background requests can save progress. They stay protected on this device.").font(.caption2).foregroundStyle(.secondary)
                     } else { Text("Requires iOS 26 or later. Keep this app open for queues and spoofing.").font(.caption) }
                 }
+                Section("Secure connections") {
+                    Picker("Event collector",selection:$m.collectorRoute) { ForEach(CollectorRoute.allCases) { Text($0.rawValue).tag($0.rawValue) } }.disabled(m.running || m.presenceRunning)
+                    Button("Test secure connections") { Task { await m.checkSecureConnections() } }.disabled(m.running || m.presenceRunning || m.checkingConnections)
+                    Text("Connection checks send no account credentials or achievement events. Certificate validation stays enabled. Mobile is Microsoft's standard collector route; Windows remains available for comparison.").font(.caption2).foregroundStyle(.secondary)
+                    if !m.transportDiagnostics.isEmpty {
+                        Text(m.transportDiagnostics).font(.caption.monospaced()).textSelection(.enabled)
+                        Button("Copy connection diagnostics") { UIPasteboard.general.string = m.transportDiagnostics }
+                    }
+                }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.7.0").font(.headline)
+                    Text("Standalone iPhone and iPad app · 0.8.0").font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. New event games sync from the public upstream feed; Windows-specific tools are not included.").font(.caption).foregroundStyle(.secondary)
                     Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)
                 }
     }
 }
+

@@ -12,10 +12,11 @@ import LabsMobileCore
     private var platformTask: AnyObject?
     private var requestIdentifier: String?
     private var watchdog: Task<Void,Never>?
+    var hasRequest: Bool { lease.identifier != nil }
     var available: Bool { if #available(iOS 26.0, *) { return true }; return false }
 
     func start(total: Int, expired: @escaping @MainActor () -> Void) {
-        finish(success:false)
+        guard !hasRequest else { addWork(total); return }
         guard #available(iOS 26.0, *) else { status = "Requires iOS 26. Keep this app open."; return }
         let token = lease.request(total:total)
         let identifier = (Bundle.main.bundleIdentifier ?? "org.achievementlabs.mobile") + ".queue." + token.uuidString
@@ -36,11 +37,11 @@ import LabsMobileCore
                         expired()
                     }
                 }
-                self.status = "iOS granted background queue time. It can end this permission at any time."
+                self.status = "iOS granted background session time. It can end this permission at any time."
             }
         }
         guard registered else { finish(success:false); status = "Background handler unavailable. Keep the app open."; return }
-        let request = BGContinuedProcessingTaskRequest(identifier:identifier,title:"Achievement Labs queue",subtitle:"\(total) actions · accepted requests still need verification")
+        let request = BGContinuedProcessingTaskRequest(identifier:identifier,title:"Achievement Labs session",subtitle:"Queue and spoofing · requests need verification")
         request.strategy = .fail // Never leave an unattended queued request to start later.
         do {
             try BGTaskScheduler.shared.submit(request)
@@ -51,6 +52,13 @@ import LabsMobileCore
                 self.finish(success:false); self.status = "iOS did not grant background time. Queue can run only while this app is open."
             }
         } catch { finish(success:false); status = "iOS declined background continuation (\((error as NSError).domain) \((error as NSError).code)). Keep the app open." }
+    }
+    func addWork(_ count: Int) {
+        lease.addWork(count)
+        if #available(iOS 26.0, *), let task = platformTask as? BGContinuedProcessingTask { task.progress.totalUnitCount = Int64(lease.total) }
+    }
+    func update(title: String, subtitle: String) {
+        if #available(iOS 26.0, *), let task = platformTask as? BGContinuedProcessingTask { task.updateTitle(title,subtitle:subtitle) }
     }
     func advance() {
         lease.advance()
@@ -63,11 +71,12 @@ import LabsMobileCore
         guard let token = lease.identifier, lease.finish(token) else { return }
         active = false
         if #available(iOS 26.0, *), let task = platformTask as? BGContinuedProcessingTask {
-            task.expirationHandler = nil; task.setTaskCompleted(success:success)
+            task.expirationHandler = nil; task.updateTitle(success ? "Session completed" : "Session paused",subtitle:"\(lease.completed) processed · verify Xbox progress"); task.setTaskCompleted(success:success)
         }
         platformTask = nil
         if let identifier = requestIdentifier { BGTaskScheduler.shared.cancel(taskRequestWithIdentifier:identifier) }
         requestIdentifier = nil
-        status = success ? "Background queue finished. Verify Xbox progress." : "Background queue paused."
+        status = success ? "Background session finished. Verify Xbox progress." : "Background session paused."
     }
 }
+

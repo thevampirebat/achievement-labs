@@ -15,6 +15,7 @@ public struct BackgroundQueueLease {
         guard identifier == token, !granted else { return false }
         granted = true; return true
     }
+    public mutating func addWork(_ count: Int) { if identifier != nil { total += max(0,count) } }
     public mutating func advance() {
         guard identifier != nil else { return }
         completed = min(total,completed + 1)
@@ -24,3 +25,4 @@ public struct BackgroundQueueLease {
         identifier = nil; granted = false; return true
     }
 }
+

@@ -12,8 +12,28 @@ public struct XboxService {
         r.setValue(authorization, forHTTPHeaderField: "Authorization"); r.setValue(version, forHTTPHeaderField: "x-xbl-contract-version")
         r.setValue("application/json", forHTTPHeaderField: "Accept"); r.setValue("en-US", forHTTPHeaderField: "Accept-Language")
         if let body { r.httpBody = try JSON.data(body); r.setValue("application/json", forHTTPHeaderField: "Content-Type") }
-        let (data, response) = try await session.data(for: r)
+        let (data, response) = try await transfer(r)
         try Self.check(response, data:data, endpoint: endpoint.host ?? "Xbox"); guard data.count <= 128 * 1024 * 1024 else { throw LabsError.message("The response is too large.") }; return data
+    }
+    private func transfer(_ request: URLRequest) async throws -> (Data,URLResponse) {
+        do { return try await session.data(for:request) }
+        catch {
+            let e = error as NSError
+            if e.domain == NSURLErrorDomain, (-1206 ... -1200).contains(e.code) { throw XboxTransportFailure(error,endpoint:request.url?.host ?? "Xbox") }
+            throw error
+        }
+    }
+    /// Connectivity only: no authorization, event token, payload or unlock request.
+    public func probe(_ url: URL) async -> String {
+        let allowed = ["mobile.events.data.microsoft.com","v20.events.data.microsoft.com","achievements.xboxlive.com","presence-heartbeat.xboxlive.com"]
+        guard url.scheme == "https", allowed.contains(url.host ?? ""), url.user == nil, url.password == nil else { return "Unsupported probe host." }
+        var r = URLRequest(url:url); r.httpMethod = "HEAD"; r.timeoutInterval = 15
+        do { let (_,response) = try await transfer(r); return "\(url.host!) · TLS accepted · HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0)" }
+        catch { return "\(url.host!) · \(error.localizedDescription)" }
+    }
+    public func checkCollector(_ route: CollectorRoute) async throws {
+        var r = URLRequest(url:route.url); r.httpMethod = "HEAD"; r.timeoutInterval = 15
+        _ = try await transfer(r) // Any HTTP response proves TLS; this sends no event or credentials.
     }
     private static func check(_ response: URLResponse, data: Data = Data(), event: Bool = false, endpoint: String = "Xbox") throws {
         guard let http = response as? HTTPURLResponse else { throw LabsError.message("No HTTP response.") }
@@ -106,14 +126,14 @@ public struct XboxService {
         let body: Any? = title.map { ["titles":[["id":$0,"expiration":600,"state":"active","sandbox":"RETAIL"]]] }
         _ = try await request("https://presence-heartbeat.xboxlive.com/users/xuid(\(account.xuid))/devices/current/", authorization: account.authorization, version: "3", method: title == nil ? "DELETE" : "POST", body: body)
     }
-    public func sendEvent(_ payload: String, account: Account) async throws {
+    public func sendEvent(_ payload: String, account: Account, route: CollectorRoute = .mobile) async throws {
         let token = try Tokens.normalize(account.eventToken, event: true)
-        var r = URLRequest(url: URL(string: "https://v20.events.data.microsoft.com/OneCollector/1.0/")!)
+        var r = URLRequest(url:route.url)
         r.httpMethod = "POST"; r.timeoutInterval = 45; r.httpBody = payload.data(using: .utf8)
         let redacted = account.authorization.replacingOccurrences(of: #"(?i)x=[^;]+;"#, with: "x=-;", options: .regularExpression)
         let headers = ["Content-Type":"application/x-json-stream", "Accept":"application/json", "User-Agent":"MSDW", "reliability-mode":"standard", "Client-Id":"NO_AUTH", "client-version":"EUTC-Windows-C++-no-10.0.22621.3296.amd64fre.ni_release.220506-1250-no", "apikey":"0890af88a9ed4cc886a14f5e174a2827-9de66c5e-f867-43a8-a7b8-e0ddd481cca4-7548,95c1f21d6cb047a09e7b423c1cb2222e-9965f07b-54fa-498e-9727-9e8d24dec39e-7027", "authxtoken":redacted, "tickets":"\"1\"=\"\(token)\""]
         headers.forEach { r.setValue($1, forHTTPHeaderField: $0) }
-        let (data, response) = try await session.data(for: r); try Self.check(response, data:data, event: true); try Self.validateCollector(data)
+        let (data, response) = try await transfer(r); try Self.check(response, data:data, event: true,endpoint:route.url.host!); try Self.validateCollector(data)
     }
     public static func validateCollector(_ data: Data) throws {
         guard !data.isEmpty else { return }

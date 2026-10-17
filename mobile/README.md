@@ -99,3 +99,11 @@ The PC QR window uses mutually exclusive radio selectors and a large active-mode
 On iOS 26+, Settings → App offers opt-in background continuation for a finite Auto Unlock queue. Start explicitly while foregrounded and wait for the status to confirm iOS granted time. Actual processed actions advance Apple's system progress UI; accepted submissions are still not proof of unlocks. Long delays can lead to expiration. A running spoofer can optionally accompany the authorized queue, then stops if the queue ends in background. Standalone indefinite spoofing is not supported. Older iOS versions retain foreground-only operation.
 
 Cancellation, permission refusal, an unanswered request or task expiration never automatically resumes the queue. Signulous/device runtime behavior still needs physical-device testing. When opted in, account Keychain items use AfterFirstUnlockThisDeviceOnly and queue files use CompleteUntilFirstUserAuthentication to allow protected background saves after lock; disabling the option restores foreground storage protection. Other caches retain their existing protection.
+
+
+## 0.8.0 TLS diagnostics and shared background session
+Event sending defaults to Microsoft's documented `mobile.events.data.microsoft.com` collector, retaining the same event payloads and authentication. The Windows collector is a manual comparison option. TLS trust is not relaxed, and failed actions are not replayed automatically. Settings → App → Test secure connections performs unauthenticated HEAD requests only, displaying safe endpoint/error codes without tokens. A successful TLS check is not proof an event is authorized or an achievement unlocked.
+
+A finite standalone background spoofing option (5–120 minutes, off by default) can share the existing continued-processing request with Auto Unlock on iOS 26. Status text shows processed queue actions and spoof elapsed time; no extra ActivityKit card is created. CPU/network background permission remains up to iOS, including during long waits. Previously failed system cards may require manual dismissal.
+
+Queue delay fields now have a Done keyboard toolbar control that validates, saves, and dismisses the keypad. Start is disabled while a delay is being edited.
