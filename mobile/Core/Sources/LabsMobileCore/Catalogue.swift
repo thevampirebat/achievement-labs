@@ -20,6 +20,9 @@ public final class Catalogue {
     public let index: [String: MappingStatus]
     private let folder: URL
     private let packs: [PackTitle]
+    private var cachedTitle: String?
+    private var cachedRecipes: MobileRecipes?
+    private var cachedTemplate: String?
     public init(folder: URL) throws {
         self.folder = folder
         index = try JSONDecoder().decode([String: MappingStatus].self, from: Data(contentsOf: folder.appendingPathComponent("MobileIndex.json")))
@@ -29,11 +32,15 @@ public final class Catalogue {
     }
     public func recipes(_ title: String) throws -> MobileRecipes {
         guard JSON.numeric(title), let status = index[title], status.reason == nil else { throw LabsError.message(index[title]?.reason ?? "No mobile event data is available for this title.") }
-        return try JSONDecoder().decode(MobileRecipes.self, from: Data(contentsOf: folder.appendingPathComponent("Events/\(title).mapping.json")))
+        if cachedTitle == title, let cachedRecipes { return cachedRecipes }
+        let value = try JSONDecoder().decode(MobileRecipes.self, from: Data(contentsOf: folder.appendingPathComponent("Events/\(title).mapping.json")))
+        cachedTitle = title; cachedRecipes = value; cachedTemplate = nil
+        return value
     }
     public func payloads(title: String, achievement: String, xuid: String) throws -> [String] {
         let mapping = try recipes(title)
-        let template = try String(contentsOf: folder.appendingPathComponent("Events/\(title).json"), encoding: .utf8)
+        let template = try cachedTemplate ?? String(contentsOf: folder.appendingPathComponent("Events/\(title).json"), encoding: .utf8)
+        cachedTemplate = template
         guard let requests = mapping.recipes[achievement] else { throw LabsError.message("No verified mobile mapping for this achievement.") }
         return try Self.build(template: template, requests: requests, title: title, xuid: xuid)
     }

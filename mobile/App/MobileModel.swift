@@ -1,6 +1,12 @@
 import SwiftUI
 import LabsMobileCore
 import UserNotifications
+import UIKit
+
+final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationPresentation()
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) { completionHandler([.banner, .sound]) }
+}
 
 @MainActor final class MobileModel: ObservableObject {
     @Published private(set) var account: Account?
@@ -13,6 +19,7 @@ import UserNotifications
     @Published var running = false
     @Published var presenceTitle = ""
     @Published var presenceStarted: Date?
+    @Published var presenceRunning = false
     @Published var nextAction: Date?
     @Published var rowResults: [String: String] = [:]
     @Published var baseCompleted = Set<String>()
@@ -34,6 +41,7 @@ import UserNotifications
     private let directory: URL
     private var queueURL: URL? { account.map { directory.appendingPathComponent("queue-\($0.xuid).json") } }
     init() {
+        UNUserNotificationCenter.current().delegate = NotificationPresentation.shared
         directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("AchievementLabs", isDirectory: true)
         catalogue = Bundle.main.resourceURL.map { try? Catalogue(folder: $0.appendingPathComponent("Catalogue")) } ?? nil
         do {
@@ -61,7 +69,8 @@ import UserNotifications
     }
     func removeEventToken() { guard var current = account, !running, !busy else { return }; current.eventToken = ""; do { try saveAccount(current) } catch { self.error = error.localizedDescription } }
     func disconnect() async {
-        pauseQueue(); await stopPresence(); generation = UUID()
+        guard !busy else { return }
+        pauseQueue(); if let queueTask { await queueTask.value }; await stopPresence(); generation = UUID()
         do { try SecureStore.remove(); account = nil; games = []; rows = []; queue = []; selectedGame = nil; baseCompleted = []; status = "Disconnected." }
         catch { self.error = "Could not remove the Keychain session." }
     }
@@ -115,10 +124,10 @@ import UserNotifications
         }
         saveQueue(); selectedTab = 1
     }
-    func saveQueue() {
-        guard let url = queueURL else { return }
-        do { try JSONEncoder().encode(queue).write(to: url, options: [.atomic, .completeFileProtection]) }
-        catch { self.error = "Could not save queue changes." }
+    @discardableResult func saveQueue() -> Bool {
+        guard let url = queueURL else { return false }
+        do { try JSONEncoder().encode(queue).write(to: url, options: [.atomic, .completeFileProtection]); return true }
+        catch { self.error = "Could not save queue changes."; queueTask?.cancel(); return false }
     }
     private func loadQueue() {
         guard let url = queueURL, FileManager.default.fileExists(atPath: url.path) else { return }
@@ -146,7 +155,8 @@ import UserNotifications
                     self.nextAction = Date().addingTimeInterval(item.delay)
                     try await Task.sleep(nanoseconds: UInt64(max(0,min(item.delay,86400)) * 1_000_000_000))
                     try Task.checkCancellation()
-                    self.queue[index].status = "Submitting"; self.saveQueue()
+                    self.queue[index].status = "Submitting"
+                    guard self.saveQueue() else { throw LabsError.message("Queue could not be saved; action was not sent.") }
                     try await self.send(row, game: item.game, account: account)
                     self.queue[index].status = "Accepted — verify progress"; self.saveQueue()
                 } catch is CancellationError {
@@ -176,10 +186,10 @@ import UserNotifications
     }
     func startPresence(_ title: String) {
         guard let account, presenceTask == nil, foreground, JSON.numeric(title) else { return }
-        presenceTitle = title
+        presenceTitle = title; presenceRunning = true
         presenceTask = Task { [weak self] in
             guard let self else { return }
-            defer { self.presenceStarted = nil; self.presenceTask = nil; UIApplication.shared.isIdleTimerDisabled = self.running }
+            defer { self.presenceStarted = nil; self.presenceRunning = false; self.presenceTask = nil; UIApplication.shared.isIdleTimerDisabled = self.running }
             do {
                 try await self.api.presence(title, account: account); self.presenceStarted = Date(); UIApplication.shared.isIdleTimerDisabled = true
                 while !Task.isCancelled { try await Task.sleep(nanoseconds: 240_000_000_000); try Task.checkCancellation(); try await self.api.presence(title, account: account) }
@@ -191,7 +201,7 @@ import UserNotifications
             }
         }
     }
-    func stopPresence() async { presenceTask?.cancel(); if let account { do { try await api.presence(nil, account: account) } catch { self.error = "Presence stopped locally; Xbox stop request failed: \(error.localizedDescription)" } } }
+    func stopPresence() async { presenceTask?.cancel(); if let presenceTask { await presenceTask.value }; if let account { do { try await api.presence(nil, account: account) } catch { self.error = "Presence stopped locally; Xbox stop request failed: \(error.localizedDescription)" } } }
     func background() {
         foreground = false; pauseQueue(); presenceTask?.cancel()
         if let account, presenceStarted != nil { Task { try? await api.presence(nil, account: account) } }

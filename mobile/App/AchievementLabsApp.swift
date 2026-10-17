@@ -30,8 +30,9 @@ struct LibraryView: View {
         let filtered = m.games.filter { search.isEmpty || $0.name.localizedCaseInsensitiveContains(search) || $0.id.contains(search) }
         return filtered.sorted { a,b in
             if sort == "Last played", a.lastPlayed != b.lastPlayed { return a.lastPlayed > b.lastPlayed }
-            let ascending = a.name.localizedStandardCompare(b.name) == .orderedAscending
-            return sort == "Z–A" ? !ascending : ascending
+            let comparison = a.name.localizedStandardCompare(b.name)
+            if comparison == .orderedSame { return a.id.localizedStandardCompare(b.id) == .orderedAscending }
+            return sort == "Z–A" ? comparison == .orderedDescending : comparison == .orderedAscending
         }
     }
     var body: some View {
@@ -183,10 +184,10 @@ struct PresenceView: View {
         NavigationStack {
             Form {
                 Section("Title presence") {
-                    TextField("Title ID", text: $m.presenceTitle).keyboardType(.numberPad).disabled(m.presenceStarted != nil)
+                    TextField("Title ID", text: $m.presenceTitle).keyboardType(.numberPad).disabled(m.presenceRunning)
                     if let start = m.presenceStarted { LabeledContent("Session elapsed") { Text(start, style: .timer).monospacedDigit() } }
-                    Button("Start presence") { m.startPresence(m.presenceTitle) }.disabled(m.account == nil || m.presenceStarted != nil || !JSON.numeric(m.presenceTitle))
-                    Button("Stop presence",role: .destructive) { Task { await m.stopPresence() } }.disabled(m.presenceStarted == nil)
+                    Button("Start presence") { m.startPresence(m.presenceTitle) }.disabled(m.account == nil || m.presenceRunning || !JSON.numeric(m.presenceTitle))
+                    Button("Stop presence",role: .destructive) { Task { await m.stopPresence() } }.disabled(!m.presenceRunning)
                     Text("Works alongside the auto unlocker while the app is active. This is session elapsed time, not Xbox-recorded playtime. Backgrounding pauses it; the last server heartbeat can take time to expire.").font(.caption).foregroundStyle(.secondary)
                 }
                 Section { Toggle("Notify if presence stops", isOn: $m.notifyPresenceFailure) }
@@ -206,7 +207,7 @@ struct SettingsView: View {
                 Section("Xbox account") {
                     Text(m.account?.gamertag ?? "Not connected")
                     SecureField("Paste Xbox authorization",text: $authorization).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    Button("Connect account") { Task { await m.connect(authorization); authorization = "" } }.disabled(authorization.isEmpty || m.busy || m.running || m.presenceStarted != nil)
+                    Button("Connect account") { Task { await m.connect(authorization); authorization = "" } }.disabled(authorization.isEmpty || m.busy || m.running || m.presenceRunning)
                     Text("Use the full Xbox authorization starting XBL3.0 x=…;… . The account is checked with Xbox before saving. This first mobile beta uses manual tokens; Microsoft browser sign-in is not implemented yet.").font(.caption).foregroundStyle(.secondary)
                     if m.account != nil { Button("Disconnect",role: .destructive) { Task { await m.disconnect() } }.disabled(m.busy) }
                 }
