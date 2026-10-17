@@ -2,6 +2,18 @@ import XCTest
 @testable import LabsMobileCore
 
 final class CoreTests: XCTestCase {
+    func testBrowserCallbackValidation() throws {
+        let login = BrowserLogin()
+        let query = URLComponents(url: login.startURL, resolvingAgainstBaseURL: false)!.queryItems!
+        let state = query.first { $0.name == "state" }!.value!
+        let callback = "https://login.live.com/oauth20_desktop.srf?state=\(state)&code=synthetic"
+        XCTAssertEqual(try BrowserLogin.validateRedirect(callback, state: state), "synthetic")
+        for value in [callback + "&code=other", callback + "&state=other", callback + "&error=denied", callback.replacingOccurrences(of: "https:", with: "http:"), callback.replacingOccurrences(of: "login.live.com", with: "example.com"), callback + "#fragment"] {
+            XCTAssertThrowsError(try BrowserLogin.validateRedirect(value, state: state))
+        }
+        XCTAssertThrowsError(try BrowserLogin.validateRedirect(callback, state: "different"))
+    }
+
     func testTokenNormalizationAndExpiry() throws {
         XCTAssertEqual(try Tokens.normalize("tickets: \"1\"=\"x:XBL3.0 x=synthetic;opaque\"", event: true), "x:XBL3.0 x=synthetic;opaque")
         XCTAssertEqual(try Tokens.normalize("\"XBL3.0 x=abc-123;opaque\"", event: false), "XBL3.0 x=abc-123;opaque")

@@ -25,7 +25,7 @@ This beta has no Steam/Epic/Ubisoft clients, Xbox 360/GFWL write/profile tools, 
 
 ## Build and sign
 
-The **iOS standalone beta** GitHub workflow prepares resources, runs synthetic tests plus every enabled generated recipe, builds arm64 iPhone/iPad and simulator apps, verifies simulator launch plus synthetic Keychain save/read/delete and creates `AchievementLabs-iOS-0.1.0-UNSIGNED.ipa`. Simulator-only ad-hoc entitlements are used to exercise Keychain APIs; they are never included in the unsigned device app. Device signing must supply the normal application identity and Keychain entitlements.
+The **iOS standalone beta** GitHub workflow prepares resources, runs synthetic tests plus every enabled generated recipe, builds arm64 iPhone/iPad and simulator apps, verifies simulator launch plus synthetic Keychain save/read/delete and creates `AchievementLabs-iOS-0.1.1-UNSIGNED.ipa`. Simulator-only ad-hoc entitlements are used to exercise Keychain APIs; they are never included in the unsigned device app. Device signing must supply the normal application identity and Keychain entitlements.
 
 **The unsigned IPA cannot be installed directly.** It needs signing/provisioning appropriate for your device or distribution method. No Apple account, certificate or provisioning profile is bundled. Never commit private signing credentials. No App Store/TestFlight release is claimed.
 
@@ -44,3 +44,5 @@ In Xcode select your signing team, use a unique bundle identifier you control, s
 Documentation: [Apple device distribution](https://developer.apple.com/documentation/xcode/distributing-your-app-to-registered-devices).
 
 Desktop source, licences and author attribution remain in the repository. No private Xbox signing material or TLS trust bypass is included. Mobile sources are independent of the Windows projects and build workflows.
+
+Browser sign-in: Settings → Sign in with Microsoft in browser. After signing in, copy the full final login.live.com/oauth20_desktop.srf address back into Finish browser sign-in. PKCE, state validation and a one-use response protect this manual callback. Account authorization is verified with Xbox before replacing the saved account. Event tokens remain separate. OAuth access tokens are held only during exchange; refresh tokens are not retained in this beta. Sign in again when authorization expires.

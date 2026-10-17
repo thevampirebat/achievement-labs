@@ -75,6 +75,24 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             status = "Connected as \(next.gamertag)."
         } catch { self.error = error.localizedDescription }
     }
+    @Published var browserPending = false
+    private var browserLogin: BrowserLogin?
+    func beginBrowserLogin() -> URL? {
+        guard !busy, !running, presenceStarted == nil else { return nil }
+        let login = BrowserLogin(); browserLogin = login; browserPending = true
+        return login.startURL
+    }
+    func cancelBrowserLogin() { guard !busy else { return }; browserLogin = nil; browserPending = false }
+    func finishBrowserLogin(_ redirect: String) async {
+        guard let login = browserLogin, !busy, !running, presenceStarted == nil else { return }
+        busy = true; defer { busy = false; browserPending = false; browserLogin = nil }
+        do {
+            var next = try await login.complete(redirect)
+            if next.xuid == account?.xuid { next.eventToken = account?.eventToken ?? "" }
+            try saveAccount(next); generation = UUID(); games = []; rows = []; selectedGame = nil; baseCompleted = []; rowResults = [:]; queue = []; loadQueue()
+            status = "Connected as \(next.gamertag). Refresh the library."
+        } catch { self.error = error.localizedDescription }
+    }
     func saveEventToken(_ input: String) {
         guard var current = account, !running, !busy else { return }
         do { current.eventToken = try Tokens.normalize(input, event: true); try saveAccount(current); status = "Event token saved in this device's Keychain." }

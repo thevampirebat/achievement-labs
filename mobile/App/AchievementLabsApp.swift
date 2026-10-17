@@ -197,6 +197,8 @@ struct PresenceView: View {
 }
 
 struct SettingsView: View {
+    @Environment(\.openURL) private var openURL
+    @State private var signInURL = ""
     @EnvironmentObject var m: MobileModel
     @State private var authorization = ""
     @State private var eventToken = ""
@@ -206,9 +208,16 @@ struct SettingsView: View {
             Form {
                 Section("Xbox account") {
                     Text(m.account?.gamertag ?? "Not connected")
+                    Button("Sign in with Microsoft in browser") { if let url = m.beginBrowserLogin() { signInURL = ""; openURL(url) } }.disabled(m.busy || m.running || m.presenceRunning)
+                    if m.browserPending {
+                        Text("Sign in in the browser. On the final page, copy the entire address from the address bar, return here and paste it below. The final page may be blank. Never share this URL.").font(.caption)
+                        SecureField("Paste final sign-in URL", text: $signInURL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        Button("Finish browser sign-in") { let value = signInURL; signInURL = ""; Task { await m.finishBrowserLogin(value) } }.disabled(signInURL.isEmpty || m.busy)
+                        Button("Cancel sign-in", role: .cancel) { signInURL = ""; m.cancelBrowserLogin() }.disabled(m.busy)
+                    }
                     SecureField("Paste Xbox authorization",text: $authorization).textInputAutocapitalization(.never).autocorrectionDisabled()
                     Button("Connect account") { Task { await m.connect(authorization); authorization = "" } }.disabled(authorization.isEmpty || m.busy || m.running || m.presenceRunning)
-                    Text("Use the full Xbox authorization starting XBL3.0 x=…;… . The account is checked with Xbox before saving. This first mobile beta uses manual tokens; Microsoft browser sign-in is not implemented yet.").font(.caption).foregroundStyle(.secondary)
+                    Text("Use the full Xbox authorization starting XBL3.0 x=…;… . The account is checked with Xbox before saving. Manual authorization is an advanced alternative to browser sign-in. The event token below is separate from account authorization.").font(.caption).foregroundStyle(.secondary)
                     if m.account != nil { Button("Disconnect",role: .destructive) { Task { await m.disconnect() } }.disabled(m.busy) }
                 }
                 Section("Event token") {
@@ -221,7 +230,7 @@ struct SettingsView: View {
                 Section("Appearance") { Toggle("Show base-game completion star", isOn: $m.showMythic); Toggle("Highlight 100% completed games", isOn: $m.highlightCompleted) }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.1.0").font(.headline)
+                    Text("Standalone iPhone and iPad app · 0.1.1").font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. Windows-specific tools and automatic catalogue updates are not included in this first beta.").font(.caption).foregroundStyle(.secondary)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)
                 }
