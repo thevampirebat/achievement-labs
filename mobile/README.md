@@ -1,0 +1,46 @@
+# Achievement Labs — standalone iOS beta
+
+Native SwiftUI app for iPhone and iPad, iOS/iPadOS 17 or later. No PC companion or running desktop app is required. This is a separate early mobile beta, not a replacement for the Windows release.
+
+## What is implemented
+
+- Xbox library with search, remembered A–Z/Z–A/last-played sorting, completion colouring and base-completion indicator after a verified achievement read.
+- Modern and legacy achievement reads, search/filter/sorting, expandable verified DLC/base/update sections matched by Title ID, platform, achievement ID and name.
+- Manual unlock/retry, multi-selection into an account-specific persisted queue, per-item delays, pause/resume, remove items and remove achievements confirmed unlocked by Xbox.
+- Foreground title-presence heartbeats and elapsed timer alongside the queue, failure/completion notification options and stop-on-presence-failure.
+- Manual account authorization verified with Xbox, separate event-token entry, iOS Keychain storage. No passwords, tokens or real accounts in tests, logs or artifacts.
+- Bundled current fork catalogue, prepared from committed source. Only deterministic Replace operations with checked targets, placeholders and title/service identity are enabled. Unsupported edition routes (including Minecraft's hosted route and the three guarded edition aliases) remain disabled until their full guards are ported. Disabled author titles stay disabled. See catalogue-report.json in the build artifact for exact coverage.
+
+## First connection
+
+In Settings paste a current **Xbox service authorization** (`XBL3.0 x=…;…`) and tap Connect. This is separate from the **event token** (`x:XBL3.0 x=…;…`), which is saved in its own section after connecting. Neither value is an account password. Manual tokens expire and must be replaced. Browser-based Microsoft sign-in and automatic event-token acquisition are not implemented in this beta. A standalone app still needs valid service credentials; it cannot read another app's protected account store.
+
+The app does not unlock anything on launch, sign-in, refresh or queue load. Manual Unlock/Retry and Start/Resume send actions. Collector acceptance is shown separately from confirmed Xbox progress. Queues skip achievements Xbox already reports unlocked; manual Retry can resend them. Refresh to confirm progress, including delayed credit.
+
+## Foreground operation and current limitations
+
+Queues and presence pause when the scene becomes inactive; reopening never automatically resumes them. While running in the foreground the screen is kept awake. Do not rely on background execution or a heartbeat stopping instantly after a lost connection. Queue requests interrupted during submission are marked for review rather than automatically retried. Timers show this app session, not Xbox-recorded playtime.
+
+This beta has no Steam/Epic/Ubisoft clients, Xbox 360/GFWL write/profile tools, Windows token capture, stats editor, automatic catalogue refresh or Windows executable updater. DLC metadata and mappings are bundled with each mobile build. Legacy achievements are read-only. Live authentication, event credit and presence still require physical-device testing; simulator/core tests do not prove service compatibility.
+
+## Build and sign
+
+The **iOS standalone beta** GitHub workflow prepares resources, runs synthetic tests plus every enabled generated recipe, builds arm64 iPhone/iPad and simulator apps, verifies simulator launch and creates `AchievementLabs-iOS-0.1.0-UNSIGNED.ipa`.
+
+**The unsigned IPA cannot be installed directly.** It needs signing/provisioning appropriate for your device or distribution method. No Apple account, certificate or provisioning profile is bundled. Never commit private signing credentials. No App Store/TestFlight release is claimed.
+
+For a Mac/Xcode development build:
+
+```sh
+python3 mobile/tools/prepare_catalogue.py
+brew install xcodegen
+cd mobile
+xcodegen generate
+open AchievementLabsMobile.xcodeproj
+```
+
+In Xcode select your signing team, use a unique bundle identifier you control, select your device and build/run. Xcode supplies the signing/provisioning flow. For simulator-only testing a signing team is unnecessary. The CI artifact has an unsigned device IPA for a separate user-controlled signing flow.
+
+Documentation: [Apple device distribution](https://developer.apple.com/documentation/xcode/distributing-your-app-to-registered-devices).
+
+Desktop source, licences and author attribution remain in the repository. No private Xbox signing material or TLS trust bypass is included. Mobile sources are independent of the Windows projects and build workflows.

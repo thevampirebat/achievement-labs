@@ -1,0 +1,52 @@
+name: iOS standalone beta
+on:
+  pull_request:
+    branches: [main]
+    paths: [mobile/**, .github/workflows/ios-build.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare mobile catalogue without changing desktop data
+        run: python3 mobile/tools/prepare_catalogue.py
+      - name: Run synthetic core and generated catalogue checks
+        env:
+          LABS_CATALOGUE: ${{ github.workspace }}/mobile/Catalogue
+        run: swift test --package-path mobile/Core
+      - name: Install project generator
+        run: brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+      - name: Generate Xcode project
+        run: cd mobile && xcodegen generate
+      - name: Build iPhone and iPad device app without a signing identity
+        run: |
+          xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath mobile/build CODE_SIGNING_ALLOWED=NO build
+      - name: Build for simulator and verify launch
+        run: |
+          xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath mobile/simulator CODE_SIGNING_ALLOWED=NO build
+          python3 mobile/tools/simulator_smoke.py
+      - name: Package unsigned IPA for user signing
+        run: |
+          mkdir -p mobile/artifacts/Payload
+          cp -R mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app mobile/artifacts/Payload/
+          cd mobile/artifacts
+          /usr/bin/zip -qry AchievementLabs-iOS-0.1.0-UNSIGNED.ipa Payload
+          shasum -a 256 AchievementLabs-iOS-0.1.0-UNSIGNED.ipa > SHA256.txt
+          cp ../Catalogue/catalogue-report.json .
+          cp ../README.md .
+          rm -rf Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AchievementLabs-iOS-Standalone-Unsigned
+          path: mobile/artifacts/
+          retention-days: 30
+          if-no-files-found: error
