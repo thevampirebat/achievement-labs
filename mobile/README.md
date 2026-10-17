@@ -74,3 +74,11 @@ App update checks inspect published IPA release assets in the fork and ignore Wi
 The matching Windows build adds Settings → iPhone / iPad sync → Export encrypted mobile sign-in. This writes a `.labslink` file encrypted with AES-256-GCM and a separate random 256-bit pairing key. Import is accepted for 10 minutes. Transfer the file to the phone, import it in mobile Settings → PC sync, and enter the key. Xbox verifies the authorization and XUID before a preview offers Connect this PC account or Import event token only. Event-only import requires the same account and preserves native OAuth renewal. Connecting the PC account imports current authorization/event credentials; OAuth renewal credentials stay on PC, so sync again when the imported authorization expires. No credential listener, LAN port or token-upload service is created. Keep both file and key private.
 
 The existing desktop app icon is prepared as an opaque 1024-pixel iOS asset during the build. Library refresh runs after sign-in and when returning to the app, with a short throttle; screenshot/self-test modes block automatic network maintenance.
+
+## QR sync and launch page (0.4.0)
+
+Home offers Microsoft sign-in and Sync from PC. Settings → Launch selects Home, Library, Auto Unlock, Title Spoofing or Settings for subsequent launches; disconnected installs start at Home.
+
+In the matching Windows build, click the mobile icon beside Attach Xbox PC app. On mobile choose Home → Sync from PC → Scan PC QR codes. Keep the camera pointed at the looping codes until all are collected, then verify and connect the shown account or import only its event token. The codes contain private session information; do not share screenshots. QR collection happens entirely between the screen and camera, without a LAN listener or third-party relay. Transfers expire after ten minutes and do not include Microsoft renewal credentials.
+
+The encrypted file/key fallback remains available. Its picker accepts the custom extension as a document; content, size, encryption, expiry and account identity are still validated.

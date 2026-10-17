@@ -53,6 +53,13 @@ static class Test
    }
    {
        var transfer = AchievementLabs.Core.MobileTransfer.Create("XBL3.0 x=123;synthetic","42","synthetic-event",null);
+       var qrFrames = AchievementLabs.Core.MobileTransfer.QrFrames(transfer);
+       Assert(qrFrames.Length>0 && qrFrames.All(f=>f.StartsWith("ALPC1|") && f.Length<1000),"QR transfer frames are bounded");
+       var qrBytes=Convert.FromBase64String(string.Concat(qrFrames.Select(f=>f.Split('|')[4])));
+       using var qrPayload=System.Text.Json.JsonDocument.Parse(qrBytes);
+       Assert(qrPayload.RootElement.GetProperty("key").GetString()==transfer.PairingKey,"QR pairing key retained");
+       Assert(Convert.FromBase64String(qrPayload.RootElement.GetProperty("file").GetString()!).SequenceEqual(transfer.Bytes),"QR encrypted payload retained");
+       Assert(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(qrBytes)).ToLowerInvariant()==qrFrames[0].Split('|')[1],"QR integrity digest matches payload");
        using var doc = System.Text.Json.JsonDocument.Parse(transfer.Bytes);
        var transferRoot = doc.RootElement;
        var keyText = transfer.PairingKey.Replace('-','+').Replace('_','/'); keyText += new string('=',(4-keyText.Length%4)%4);

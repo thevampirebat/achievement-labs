@@ -5,6 +5,16 @@ namespace AchievementLabs.Core;
 public sealed record MobileTransferFile(byte[] Bytes, string PairingKey);
 public static class MobileTransfer
 {
+    public static string[] QrFrames(MobileTransferFile transfer)
+    {
+        if (transfer.Bytes.Length > 128*1024) throw new InvalidDataException("Transfer is too large.");
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(new { key=transfer.PairingKey, file=Convert.ToBase64String(transfer.Bytes) });
+        var text = Convert.ToBase64String(bytes);
+        var digest = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+        var count = (text.Length+799)/800;
+        if (count > 256) throw new InvalidDataException("Transfer is too large for QR sync.");
+        return Enumerable.Range(0,count).Select(i=>$"ALPC1|{digest}|{i}|{count}|{text.Substring(i*800,Math.Min(800,text.Length-i*800))}").ToArray();
+    }
     public static MobileTransferFile Create(string authorization, string xuid, string eventToken, DateTimeOffset? authorizationExpiresAt)
     {
         if (!ulong.TryParse(xuid,out _) || string.IsNullOrWhiteSpace(authorization)) throw new InvalidDataException("Connect an Xbox account first.");

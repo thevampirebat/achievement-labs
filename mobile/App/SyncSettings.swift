@@ -7,6 +7,11 @@ struct SyncSettings: View {
     @State private var pcSync = false
     var body: some View {
         Group {
+            Section("Launch") {
+                Picker("Open app to",selection:$m.launchPage) {
+                    Text("Home / sign-in").tag(4); Text("Library").tag(0); Text("Auto Unlock").tag(1); Text("Title Spoofing").tag(2); Text("Settings").tag(3)
+                }
+            }
             Section("Library") { Toggle("Refresh on opening and sign-in",isOn:$m.autoRefreshLibrary) }
             Section("Event data sync") {
                 Toggle("Sync new event games automatically",isOn:$m.autoSyncEvents)
@@ -33,12 +38,17 @@ struct PCSyncView: View {
     @EnvironmentObject var m: MobileModel
     @Environment(\.dismiss) private var dismiss
     @State private var importing = false
+    @State private var scanning = false
     @State private var file: Data?
     @State private var key = ""
     var body: some View {
         NavigationStack {
             Form {
-                Section("Encrypted transfer") {
+                Section("QR sync") {
+                    Button("Scan PC QR codes",systemImage:"qrcode.viewfinder") { scanning = true }
+                    Text("On PC, click the mobile icon beside Attach Xbox PC app. Point the camera at the looping codes until all are collected.").font(.caption).foregroundStyle(.secondary)
+                }
+                Section("Encrypted file fallback") {
                     Button(file == nil ? "Choose .labslink file" : "Choose another file") { importing = true }
                     SecureField("Pairing key from PC",text:$key).textContentType(.oneTimeCode).textInputAutocapitalization(.never).autocorrectionDisabled()
                     Button("Verify PC account") {
@@ -58,7 +68,10 @@ struct PCSyncView: View {
             }.disabled(m.running || m.presenceRunning)
             .navigationTitle("PC sync").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Done") { m.pendingPCAccount = nil; key = ""; file = nil; dismiss() }.disabled(m.busy) } }
-            .fileImporter(isPresented:$importing,allowedContentTypes:[.data,.json],allowsMultipleSelection:false) { result in
+            .sheet(isPresented:$scanning) { PCQRScanner { data,key in
+                scanning = false; Task { await m.preparePCTransfer(data,key:key) }
+            } }
+            .fileImporter(isPresented:$importing,allowedContentTypes:[.item],allowsMultipleSelection:false) { result in
                 do {
                     guard let url = try result.get().first else { return }
                     let access = url.startAccessingSecurityScopedResource(); defer { if access { url.stopAccessingSecurityScopedResource() } }

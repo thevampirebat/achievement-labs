@@ -7,6 +7,7 @@ import LabsMobileCore
     var body: some Scene {
         WindowGroup {
             TabView(selection: $model.selectedTab) {
+                HomeView().tabItem { Label("Home",systemImage:"house") }.tag(4)
                 LibraryView().tabItem { Label("Library", systemImage: "books.vertical") }.tag(0)
                 QueueView().tabItem { Label("Auto Unlock", systemImage: "list.bullet.rectangle") }.tag(1)
                 PresenceView().tabItem { Label("Title Spoofing", systemImage: "gamecontroller") }.tag(2)
@@ -318,7 +319,7 @@ struct SettingsView: View {
                 }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.3.0").font(.headline)
+                    Text("Standalone iPhone and iPad app · 0.4.0").font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. Windows-specific tools and automatic catalogue updates are not included in this first beta.").font(.caption).foregroundStyle(.secondary)
                     Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)

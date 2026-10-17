@@ -55,6 +55,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     @Published var refreshingSignIn = false
     @Published var sessionStatus = ""
     @Published var spoofDiagnostics = ""
+    @AppStorage("launchPage") var launchPage = 4
     @AppStorage("rememberSignIn") var rememberSignIn = true
     @AppStorage("signInBrowser") var signInBrowser = "In app"
     private var renewalTask: Task<Account,Error>?
@@ -108,6 +109,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             do { try catalogue?.loadCache(directory.appendingPathComponent("synced-events.json")); eventSyncStatus = "Cached synced event data loaded." }
             catch { eventSyncStatus = "Synced cache could not be validated. Bundled data retained." }
         }
+        selectedTab = account == nil ? 4 : ([0,1,2,3,4].contains(launchPage) ? launchPage : 4)
         #if DEBUG
         if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--ui-preview=") }) { configurePreview(String(argument.dropFirst("--ui-preview=".count))) }
         #endif
@@ -460,7 +462,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         updateStatus = "Checking published iOS releases…"
         do {
             let latest = try await PublicSync().release(); lastUpdateCheck = Date()
-            let current = Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "0.3.0"
+            let current = Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "0.4.0"
             if let latest, MobileRelease.newer(latest.version,than:current) {
                 availableUpdate = latest; updateStatus = "iOS \(latest.version) is available. Sign and install its IPA through Signulous."
                 if notifyMobileUpdates, UserDefaults.standard.string(forKey:"lastNotifiedMobileVersion") != latest.version {
@@ -510,7 +512,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         queue = [QueueItem(game:second,achievement:row,delay:120)]
         referenceInfo = "Reference profile · 1 queued · 2 skipped"; status = "Timing queue loaded. Review delays, then start when ready."
         spoofStatus = "No heartbeat sent."; playedHours[second.id] = 12.5
-        selectedTab = page == "queue" ? 1 : page == "spoof" ? 2 : page == "settings" ? 3 : 0
+        selectedTab = page == "queue" ? 1 : page == "spoof" ? 2 : page == "settings" ? 3 : page == "home" ? 4 : 0
     }
     #endif
     private struct CompletionCache: Codable { var mythic: Set<String>; var checked: Set<String>; var totals: [String:Int] }

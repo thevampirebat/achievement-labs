@@ -29,7 +29,7 @@ subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPho
 subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
 print('Simulator launch passed; no account connected or network actions requested.')
 
-for page in ['library','queue','spoof','settings']:
+for page in ['library','queue','spoof','settings','home']:
     output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--ui-preview='+page)
     preview_pid=output.strip().rsplit(':',1)[-1].strip()
     time.sleep(3)
@@ -37,7 +37,7 @@ for page in ['library','queue','spoof','settings']:
     assert any(line.split() and line.split()[0] == preview_pid and 'org.achievementlabs.mobile' in line for line in processes.splitlines()), 'Preview exited: '+page
     subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPhone-'+page+'.png'],check=True)
     subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
-print('Four offline refinement screens launched. All preview network requests are blocked.')
+print('Five offline refinement screens launched. All preview network requests are blocked.')
 
 output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--web-callback-self-test')
 time.sleep(5)

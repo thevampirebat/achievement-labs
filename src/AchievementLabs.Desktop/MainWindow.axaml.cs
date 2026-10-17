@@ -444,6 +444,40 @@ public partial class MainWindow : Window
     private void ShowSettings(object? s, RoutedEventArgs e) => model.Navigate("Settings");
     private void ShowDiagnostics(object? s, RoutedEventArgs e) => model.Navigate("Diagnostics");
     private void TestWindowsNotification(object? s, RoutedEventArgs e) => model.TestWindowsNotification();
+    private async void ShowMobileSync(object? sender, RoutedEventArgs args)
+    {
+        if (!model.CanQuery) return;
+        try {
+            var frames = AchievementLabs.Core.MobileTransfer.QrFrames(model.CreateMobileTransfer());
+            var dialog = new Window { Title="Sync with iPhone / iPad",Width=570,Height=700,MinWidth=500,MinHeight=600,WindowStartupLocation=WindowStartupLocation.CenterOwner };
+            var image = new Image { Width=410,Height=410,Stretch=Avalonia.Media.Stretch.Uniform };
+            var status = new TextBlock { TextWrapping=TextWrapping.Wrap,HorizontalAlignment=Avalonia.Layout.HorizontalAlignment.Center };
+            var close = new Button { Content="Close" }; close.Click += (_,_)=>dialog.Close();
+            var previous = new Button { Content="Previous" }; var next = new Button { Content="Next" };
+            var automatic = new CheckBox { Content="Cycle automatically",IsChecked=true };
+            var index=0; var expires=DateTimeOffset.UtcNow.AddMinutes(10);
+            Avalonia.Media.Imaging.Bitmap? bitmap=null;
+            void ShowFrame() {
+                using var generator = new QRCoder.QRCodeGenerator();
+                using var data = generator.CreateQrCode(frames[index],QRCoder.QRCodeGenerator.ECCLevel.M);
+                using var qr = new QRCoder.PngByteQRCode(data);
+                using var stream = new MemoryStream(qr.GetGraphic(5));
+                var old=bitmap; bitmap=new Avalonia.Media.Imaging.Bitmap(stream); image.Source=bitmap; old?.Dispose();
+                status.Text=$"Code {index+1} of {frames.Length} · expires {expires.LocalDateTime:t}";
+            }
+            previous.Click += (_,_)=>{ index=(index+frames.Length-1)%frames.Length; ShowFrame(); };
+            next.Click += (_,_)=>{ index=(index+1)%frames.Length; ShowFrame(); };
+            var timer=new Avalonia.Threading.DispatcherTimer { Interval=TimeSpan.FromSeconds(1.2) };
+            timer.Tick += (_,_)=>{ if(DateTimeOffset.UtcNow>=expires) { image.Source=null; status.Text="Expired. Close and generate a new code."; timer.Stop(); previous.IsEnabled=false; next.IsEnabled=false; }
+                else if(automatic.IsChecked==true) { index=(index+1)%frames.Length; ShowFrame(); } };
+            dialog.Content = new StackPanel { Margin=new Thickness(20),Spacing=12,Children={
+                new TextBlock { Text="On iPhone / iPad, open Home → Sync from PC → Scan PC QR codes. Keep the camera pointed here until every code is collected.",TextWrapping=TextWrapping.Wrap },
+                image,status,new StackPanel { Orientation=Avalonia.Layout.Orientation.Horizontal,Spacing=12,Children={previous,next,automatic} },
+                new TextBlock { Text="Private sign-in codes: do not share screenshots. Transfers include current authorization and event token; Microsoft renewal credentials stay on PC.",TextWrapping=TextWrapping.Wrap },close } };
+            ShowFrame(); timer.Start();
+            try { await dialog.ShowDialog(this); } finally { timer.Stop(); image.Source=null; bitmap?.Dispose(); Array.Clear(frames); }
+        } catch { model.Notice="Could not create mobile QR transfer. Connect an Xbox account first."; }
+    }
     private async void ExportMobileTransfer(object? sender, RoutedEventArgs args)
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title="Export encrypted mobile sign-in",SuggestedFileName="AchievementLabs-PC.labslink",DefaultExtension="labslink" });

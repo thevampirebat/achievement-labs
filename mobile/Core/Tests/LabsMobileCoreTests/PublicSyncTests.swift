@@ -1,6 +1,21 @@
 import XCTest
+import CryptoKit
 @testable import LabsMobileCore
 final class PublicSyncTests: XCTestCase {
+    func testQRReassemblyAndIsolation() throws {
+        let bytes = try JSONSerialization.data(withJSONObject:["key":String(repeating:"A",count:43),"file":Data("synthetic".utf8).base64EncodedString()])
+        let digest = SHA256.hash(data:bytes).map { String(format:"%02x",$0) }.joined()
+        let text = bytes.base64EncodedString(); let middle = text.index(text.startIndex,offsetBy:text.count/2)
+        let frames = ["ALPC1|\(digest)|0|2|"+text[..<middle],"ALPC1|\(digest)|1|2|"+text[middle...]]
+        var collector = QRTransferCollector()
+        XCTAssertNil(try collector.accept(String(frames[1])))
+        XCTAssertNil(try collector.accept(String(frames[1])))
+        XCTAssertEqual(try collector.accept(String(frames[0]))?.0,Data("synthetic".utf8))
+        XCTAssertThrowsError(try collector.accept("ALPC1|"+String(repeating:"b",count:64)+"|0|2|AAAA"))
+        XCTAssertThrowsError(try collector.accept("ALPC1|\(digest)|0|300|AAAA"))
+        var broken = QRTransferCollector()
+        XCTAssertThrowsError(try broken.accept("ALPC1|"+String(repeating:"0",count:64)+"|0|1|"+text))
+    }
     func testEncryptedTransferCompatibilityAndExpiry() throws {
         let data = Data(#"{"schemaVersion":1,"nonce":"AAECAwQFBgcICQoL","ciphertext":"PCCleK2Ar3rbJOX42IYWT7nnqxaIDjYYGl3HsS9LLJBgZdqUwLN74hXQFoLmpRIathssvnTmg6ICphgqI5CMgIRUow66sgRNPjHcC4H7WodT76dATEErUqW/0v9WwJn19slr1Z8ysXTqdFvGIRYMGswCDN/B6Qf/NY8+v+eVL3qZaDf2hPvpMn2VIM5PszajQp2MW3Bp4yP+Ops2jvDTgOb78mg=","tag":"zpeo91arlKCe4Kg2CWIRkA=="}"#.utf8)
         let key = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
