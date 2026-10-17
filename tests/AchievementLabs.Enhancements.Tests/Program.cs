@@ -41,7 +41,7 @@ static class Test
    AppBuilder.Configure(()=> (Application)Activator.CreateInstance(appType)!).UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
    var window=(Window)Activator.CreateInstance(assembly.GetTypes().Single(t=>t.Name=="MainWindow"))!;
    var saveAll = Desc<Button>(window).Single(b=>b.Name=="SaveAllSettings");
-   Assert(saveAll.Parent is StackPanel settingsPanel && settingsPanel.Children[0]==saveAll,"Save all settings is first in Settings");
+   Assert(saveAll.Parent is Grid settingsPanel && Grid.GetRow(saveAll)==0 && settingsPanel.Children.OfType<TabControl>().Any(t=>Grid.GetRow(t)==1),"Save all settings remains above the category tabs");
    Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Remember window size and position")),"Window size setting present");
    Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Always open maximized")),"Maximize setting present");
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="build-xbox-queue")==2,"Enter queue building attached to both configuration fields only");

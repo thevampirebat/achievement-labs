@@ -14,7 +14,7 @@ public final class Net {
    try(InputStream in=c.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[16384];int n;while((n=in.read(b))!=-1){if(out.size()+n>limit)throw new Exception("Response exceeds size limit.");out.write(b,0,n);}return Core.text(out.toByteArray());}
   } finally {c.disconnect();}
  }
- static String enc(String s){try{return URLEncoder.encode(s,"UTF-8");}catch(Exception e){throw new IllegalArgumentException();}}
+ static String enc(String s){try{return URLEncoder.encode(s,"UTF-8").replace("+","%20");}catch(Exception e){throw new IllegalArgumentException();}}
  static JSONObject xbox(String url,String auth,String version,String method,JSONObject body)throws Exception{String s=read(url,method,auth,version,body==null?null:body.toString(),null,128*1024*1024);return s.isEmpty()?new JSONObject():new JSONObject(s);}
  static JSONObject connect(String auth)throws Exception{
   auth=Core.token(auth,false);JSONObject p=xbox("https://profile.xboxlive.com/users/me/profile/settings?settings=Gamertag,GameDisplayPicRaw,Gamerscore",auth,"2","GET",null).getJSONArray("profileUsers").getJSONObject(0);JSONObject a=new JSONObject().put("authorization",auth).put("xuid",Core.numeric(p.getString("id"))).put("eventToken","").put("gamertag","Xbox account");JSONArray settings=p.getJSONArray("settings");for(int i=0;i<settings.length();i++){JSONObject s=settings.getJSONObject(i);String id=s.getString("id");if(id.equals("Gamertag"))a.put("gamertag",s.getString("value"));if(id.equals("Gamerscore"))a.put("gamerscore",s.getString("value"));if(id.equals("GameDisplayPicRaw"))a.put("gamerpic",s.getString("value"));}return a;

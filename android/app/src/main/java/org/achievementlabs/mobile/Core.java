@@ -9,7 +9,7 @@ import java.time.*;
 
 public final class Core {
  static byte[] utf(String s){return s.getBytes(StandardCharsets.UTF_8);}
- static String text(byte[] b){return new String(b,StandardCharsets.UTF_8);}
+ static String text(byte[] b){String value=new String(b,StandardCharsets.UTF_8);return value.startsWith("\ufeff")?value.substring(1):value;}
  static String b64(byte[] b){return Base64.getEncoder().encodeToString(b);}
  static byte[] un64(String s){return Base64.getDecoder().decode(s);}
  static String hash(byte[] b)throws Exception{return hex(MessageDigest.getInstance("SHA-256").digest(b));}
@@ -49,7 +49,7 @@ public final class Core {
  static List<String> payloads(String template,JSONArray requests,String title,String xuid,long now)throws Exception{
   numeric(title);numeric(xuid);if(requests.length()<1||requests.length()>1000)throw new Exception("Invalid mapping.");List<String> result=new ArrayList<>();String stamp=Instant.ofEpochMilli(now).toString(),session=UUID.randomUUID().toString();
   for(int n=0;n<requests.length();n++){
-   String body=template;JSONArray ops=requests.getJSONArray(n);if(ops.length()<1||ops.length()>100)throw new Exception("Invalid mapping operations.");
+   String body=template.startsWith("\ufeff")?template.substring(1):template;JSONArray ops=requests.getJSONArray(n);if(ops.length()<1||ops.length()>100)throw new Exception("Invalid mapping operations.");
    for(int i=0;i<ops.length();i++){JSONObject op=ops.getJSONObject(i);String target=op.getString("target"),value=op.getString("value");if(target.isEmpty()||!body.contains(target)||value.length()>1024*1024)throw new Exception("Mapping does not match template.");int count=(body.length()-body.replace(target,"").length())/target.length();if((long)body.length()+(long)count*(value.length()-target.length())>2*1024*1024)throw new Exception("Payload expansion limit.");body=body.replace(target,value);}
    body=body.replace("REPLACESEQ",Long.toString(now+n)).replace("REPLACETIME",stamp).replace("REPLACEXUID",xuid).replace("REPLACESESSIONGUID",session);
    if(body.matches("(?s).*REPLACE[A-Z0-9_]+.*"))throw new Exception("Unresolved event placeholder.");JSONObject base=new JSONObject(body).getJSONObject("data").getJSONObject("baseData");if(!base.optString("titleId").equals(title))throw new Exception("Wrong title in mapping.");uuid(base.getString("serviceConfigId"));result.add(body);
