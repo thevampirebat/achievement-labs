@@ -38,12 +38,15 @@ jobs:
           xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath mobile/build CODE_SIGNING_ALLOWED=NO build
           /usr/libexec/PlistBuddy -c 'Print :BGTaskSchedulerPermittedIdentifiers' mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app/Info.plist
           /usr/libexec/PlistBuddy -c 'Print :UIBackgroundModes' mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app/Info.plist
-      - name: Build for simulator and verify launch
+      - name: Build for simulator
+        timeout-minutes: 6
         run: |
           xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath mobile/simulator CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- CODE_SIGN_ENTITLEMENTS="$PWD/mobile/Simulator.entitlements" build
           codesign --verify --deep --strict mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app
           codesign -d --entitlements :- mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app
-          python3 mobile/tools/simulator_smoke.py
+      - name: Verify iOS 26 simulator screens and safe background request
+        timeout-minutes: 7
+        run: python3 -u mobile/tools/simulator_smoke.py
       - name: Package unsigned IPA for user signing
         run: |
           mkdir -p mobile/artifacts/Payload

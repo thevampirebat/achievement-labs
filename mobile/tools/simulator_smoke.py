@@ -4,14 +4,19 @@ import subprocess
 import time
 from pathlib import Path
 
-def run(*args): return subprocess.check_output(args,text=True)
+def run(*args):
+    print('Checking: '+' '.join(args),flush=True)
+    return subprocess.check_output(args,text=True,timeout=120)
 devices=json.loads(run('xcrun','simctl','list','devices','available','--json'))['devices']
 available=[d for runtime,group in devices.items() if 'iOS-26' in runtime for d in group if d['name'].startswith('iPhone')]
 assert available, 'No iOS 26 simulator for background API checks'
 assert available, 'No available iPhone simulator'
+available.sort(key=lambda d:('Max' in d['name'],'Plus' in d['name'],'Pro' in d['name'],d['name']))
 device=available[0]['udid']
+print('Chosen simulator: '+available[0]['name'],flush=True)
 subprocess.run(['xcrun','simctl','boot',device],check=False)
-subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True)
+print('Waiting for iOS 26 simulator boot',flush=True)
+subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True,timeout=180)
 app='mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app'
 subprocess.run(['xcrun','simctl','install',device,app],check=True)
 try:
