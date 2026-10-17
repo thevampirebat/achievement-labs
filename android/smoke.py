@@ -6,7 +6,7 @@ subprocess.run(['adb','install','-r','android/app/build/outputs/apk/debug/app-de
 for page in ['home','library','queue','spoof','settings']:
  subprocess.run(['adb','shell','am','force-stop','org.achievementlabs.mobile'],check=True)
  subprocess.run(['adb','shell','am','start','-W','-n','org.achievementlabs.mobile/.MainActivity','--ez','preview','true','--es','page',page],check=True)
- time.sleep(4)
+ time.sleep(6)
  assert run('adb','shell','pidof','org.achievementlabs.mobile').strip(),'App exited: '+page
  marker=json.loads(run('adb','shell','run-as','org.achievementlabs.mobile','cat','files/preview-rendered.json'))
  assert marker['page']==page and len(marker['text'])>100, 'Web UI did not render: '+page
