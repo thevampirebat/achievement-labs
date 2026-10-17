@@ -13,20 +13,20 @@ public struct XboxService {
         r.setValue("application/json", forHTTPHeaderField: "Accept"); r.setValue("en-US", forHTTPHeaderField: "Accept-Language")
         if let body { r.httpBody = try JSON.data(body); r.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         let (data, response) = try await session.data(for: r)
-        try Self.check(response, endpoint: endpoint.host ?? "Xbox"); guard data.count <= 128 * 1024 * 1024 else { throw LabsError.message("The response is too large.") }; return data
+        try Self.check(response, data:data, endpoint: endpoint.host ?? "Xbox"); guard data.count <= 128 * 1024 * 1024 else { throw LabsError.message("The response is too large.") }; return data
     }
-    private static func check(_ response: URLResponse, event: Bool = false, endpoint: String = "Xbox") throws {
+    private static func check(_ response: URLResponse, data: Data = Data(), event: Bool = false, endpoint: String = "Xbox") throws {
         guard let http = response as? HTTPURLResponse else { throw LabsError.message("No HTTP response.") }
         guard (200...299).contains(http.statusCode) else {
             let detail: String
             if endpoint == "presence-heartbeat.xboxlive.com", http.statusCode == 403 {
-                detail = "Xbox refused title spoofing for this session (403). Library access can still work. The iOS and desktop sign-in profiles can have different permissions; choose Xbox desktop in Settings and sign in again to test compatibility. Xbox may still refuse it. An event token does not authorize spoofing."
+                detail = "Xbox refused title spoofing (403). A working library login does not guarantee heartbeat access. See Spoofing diagnostics for the server code and independent login check."
             } else if http.statusCode == 401 {
                 detail = event ? "The collector rejected authorization (401). Check the event token and account authorization." : "Xbox account authorization expired or was rejected (401). Sign in again."
             } else if http.statusCode == 403 {
                 detail = event ? "Xbox refused the event request (403)." : "Xbox refused access to \(endpoint) (403). Permissions or profile privacy may restrict this request."
             } else { detail = "Xbox returned HTTP \(http.statusCode) from \(endpoint)." }
-            throw LabsError.message(detail)
+            throw XboxHTTPFailure(status:http.statusCode,endpoint:endpoint,message:detail,response:http,data:data)
         }
     }
     public func connect(_ token: String) async throws -> Account {
@@ -113,7 +113,7 @@ public struct XboxService {
         let redacted = account.authorization.replacingOccurrences(of: #"(?i)x=[^;]+;"#, with: "x=-;", options: .regularExpression)
         let headers = ["Content-Type":"application/x-json-stream", "Accept":"application/json", "User-Agent":"MSDW", "reliability-mode":"standard", "Client-Id":"NO_AUTH", "client-version":"EUTC-Windows-C++-no-10.0.22621.3296.amd64fre.ni_release.220506-1250-no", "apikey":"0890af88a9ed4cc886a14f5e174a2827-9de66c5e-f867-43a8-a7b8-e0ddd481cca4-7548,95c1f21d6cb047a09e7b423c1cb2222e-9965f07b-54fa-498e-9727-9e8d24dec39e-7027", "authxtoken":redacted, "tickets":"\"1\"=\"\(token)\""]
         headers.forEach { r.setValue($1, forHTTPHeaderField: $0) }
-        let (data, response) = try await session.data(for: r); try Self.check(response, event: true); try Self.validateCollector(data)
+        let (data, response) = try await session.data(for: r); try Self.check(response, data:data, event: true); try Self.validateCollector(data)
     }
     public static func validateCollector(_ data: Data) throws {
         guard !data.isEmpty else { return }
@@ -123,5 +123,28 @@ public struct XboxService {
         let badToken = failure != nil && !(failure is NSNull) && (failure as? Bool != false)
         let explicit = (j["efi"] as? [String: Any] ?? [:]).values.contains { ($0 as? String) == "all" || (($0 as? [Any])?.isEmpty == false) }
         if badToken || explicit || (j["rej"] as? Int ?? 0) > 0 || (j["acc"] as? Int) == 0 { throw LabsError.message("Collector rejected the event. Refresh your token or check the mapping; no unlock is confirmed.") }
+    }
+}
+
+public struct XboxHTTPFailure: LocalizedError {
+    public let status: Int
+    public let endpoint: String
+    public let message: String
+    public let serverCode: String?
+    public let correlation: String?
+    public var errorDescription: String? { message }
+    public var diagnostic: String {
+        "HTTP \(status) · \(endpoint)" + (serverCode.map { "\nServer code: " + $0 } ?? "\nNo structured server error code supplied.") + (correlation.map { "\nCorrelation: " + $0 } ?? "")
+    }
+    init(status: Int, endpoint: String, message: String, response: HTTPURLResponse, data: Data) {
+        self.status = status; self.endpoint = endpoint; self.message = message
+        func safeCode(_ value: String?) -> String? {
+            guard let value, !value.isEmpty, value.utf8.count <= 64, value.utf8.allSatisfy({ (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || [45,95,46].contains($0) }) else { return nil }; return value
+        }
+        let json = data.count <= 65536 ? (try? JSON.object(data)) : nil
+        let error = json?["error"] as? [String:Any]
+        serverCode = safeCode(response.value(forHTTPHeaderField:"x-xbl-error-code")) ?? safeCode(JSON.string(json?["XErr"] ?? json?["code"] ?? json?["errorCode"] ?? error?["code"]))
+        let header = response.value(forHTTPHeaderField:"x-ms-request-id") ?? response.value(forHTTPHeaderField:"ms-cv")
+        if let header, header.count <= 128, header.range(of:#"^[A-Za-z0-9+/.=_-]+$"#,options:.regularExpression) != nil { correlation = header } else { correlation = nil }
     }
 }

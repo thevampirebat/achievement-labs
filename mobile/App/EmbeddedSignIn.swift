@@ -12,13 +12,14 @@ struct EmbeddedSignIn: View {
     let url: URL
     let onComplete: (String) -> Void
     let onCancel: () -> Void
+    var remember: Bool = true
     @StateObject private var state = SignInWebState()
     var body: some View {
         NavigationStack {
             VStack(spacing:0) {
                 HStack(spacing:6) { Image(systemName:"lock.fill"); Text(state.host).lineLimit(1); Spacer(); if state.loading { ProgressView() } }.font(.caption).padding(10).background(.thinMaterial)
                 if state.failed { Text("The sign-in page could not load. Cancel and use Safari / manual sign-in in Settings.").font(.caption).padding() }
-                SignInWebView(url:url,state:state,onComplete:onComplete)
+                SignInWebView(url:url,state:state,onComplete:onComplete,remember:remember)
             }.navigationTitle("Microsoft sign-in").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Cancel",action:onCancel) } }
         }
@@ -29,9 +30,10 @@ struct SignInWebView: UIViewRepresentable {
     let url: URL
     @ObservedObject var state: SignInWebState
     let onComplete: (String) -> Void
+    var remember: Bool = true
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     func makeUIView(context: Context) -> WKWebView {
-        let config = WKWebViewConfiguration(); config.websiteDataStore = .nonPersistent()
+        let config = WKWebViewConfiguration(); config.websiteDataStore = remember ? .default() : .nonPersistent()
         let view = WKWebView(frame:.zero,configuration:config)
         view.navigationDelegate = context.coordinator; view.uiDelegate = context.coordinator
         #if DEBUG

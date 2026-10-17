@@ -239,6 +239,13 @@ struct PresenceView: View {
                     }.buttonStyle(.borderless)
                     Text(m.spoofStatus).font(.caption).foregroundStyle(.secondary)
                 }
+                if !m.spoofDiagnostics.isEmpty {
+                    Section("Spoofing diagnostics") {
+                        Text(m.spoofDiagnostics).font(.caption.monospaced()).textSelection(.enabled)
+                        Button("Copy diagnostics",systemImage:"doc.on.doc") { UIPasteboard.general.string = m.spoofDiagnostics }
+                        Text("Includes status, profile choice and server codes. Authorization and event tokens are excluded.").font(.caption2).foregroundStyle(.secondary)
+                    }
+                }
                 Section {
                     Toggle("Notify if spoofing stops",isOn:$m.notifyPresenceFailure)
                     Button("Refresh Xbox playtime") { Task { await m.readPlaytime(m.presenceTitle) } }.disabled(m.account == nil || !JSON.numeric(m.presenceTitle))
@@ -267,23 +274,33 @@ struct SettingsView: View {
                     if let profile = m.account?.loginProfile { Text("Current session: " + profile).font(.caption).foregroundStyle(.secondary) }
                     Picker("Sign-in profile",selection:$m.loginProfile) { ForEach(LoginProfile.allCases) { Text($0.rawValue).tag($0.rawValue) } }.disabled(m.busy || m.running || m.presenceRunning)
                     Text("Profile changes apply when you sign in again.").font(.caption2).foregroundStyle(.secondary)
-                    Button("Sign in with Microsoft",systemImage:"person.crop.circle.badge.checkmark") { if let url = m.beginBrowserLogin() { embeddedLogin = SignInPage(url:url) } }.disabled(m.busy || m.running || m.presenceRunning)
+                    Toggle("Remember sign-in",isOn:$m.rememberSignIn).disabled(m.busy || m.refreshingSignIn || m.running || m.presenceRunning).onChange(of:m.rememberSignIn) { _,_ in Task { await m.updateRememberSignIn() } }
+                    Picker("Sign-in browser",selection:$m.signInBrowser) { Text("In app").tag("In app"); Text("Safari").tag("Safari") }.disabled(m.busy || m.refreshingSignIn)
+                    Button("Sign in with Microsoft",systemImage:"person.crop.circle.badge.checkmark") {
+                        if let url = m.beginBrowserLogin() {
+                            if m.signInBrowser == "Safari" { advanced = true; signInURL = ""; openURL(url) }
+                            else { embeddedLogin = SignInPage(url:url) }
+                        }
+                    }.disabled(m.busy || m.refreshingSignIn || m.running || m.presenceRunning)
+                    if !m.sessionStatus.isEmpty { Text(m.sessionStatus).font(.caption).foregroundStyle(.secondary) }
+                    if m.account?.refreshToken != nil && m.rememberSignIn { Button("Renew remembered sign-in") { Task { await m.renewSignIn() } }.disabled(m.busy || m.refreshingSignIn || m.running || m.presenceRunning) }
+                    Text("Remembering stores renewal credentials in this device’s Keychain, not your password. Sign in once after this update to enable renewal. For incorrect password suggestions in the webpage, try Safari or choose your Microsoft account from Passwords.").font(.caption2).foregroundStyle(.secondary)
                     DisclosureGroup("Safari / manual sign-in",isExpanded:$advanced) {
                     Button("Sign in using Safari") { if let url = m.beginBrowserLogin() { signInURL = ""; openURL(url) } }.disabled(m.busy || m.running || m.presenceRunning)
                     if m.browserPending {
                         Text("Sign in in the browser. On the final page, copy the entire address from the address bar, return here and paste it below. The final page may be blank. Never share this URL.").font(.caption)
-                        SecureField("Paste final sign-in URL", text: $signInURL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        SecureField("Paste final sign-in URL", text: $signInURL).textContentType(.oneTimeCode).textInputAutocapitalization(.never).autocorrectionDisabled()
                         Button("Finish browser sign-in") { let value = signInURL; signInURL = ""; Task { await m.finishBrowserLogin(value) } }.disabled(signInURL.isEmpty || m.busy)
                         Button("Cancel sign-in", role: .cancel) { signInURL = ""; m.cancelBrowserLogin() }.disabled(m.busy)
                     }
-                    SecureField("Paste Xbox authorization",text: $authorization).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    SecureField("Paste Xbox authorization",text: $authorization).textContentType(.oneTimeCode).textInputAutocapitalization(.never).autocorrectionDisabled()
                     Button("Connect account") { Task { await m.connect(authorization); authorization = "" } }.disabled(authorization.isEmpty || m.busy || m.running || m.presenceRunning)
                     Text("Use the full Xbox authorization starting XBL3.0 x=…;… . The account is checked with Xbox before saving. Manual authorization is an advanced alternative to browser sign-in. The event token below is separate from account authorization.").font(.caption).foregroundStyle(.secondary)
                     }
                     if m.account != nil { Button("Disconnect",role: .destructive) { Task { await m.disconnect() } }.disabled(m.busy) }
                 }
                 Section("Event token") {
-                    if reveal { TextField("Paste event token",text: $eventToken).textInputAutocapitalization(.never).autocorrectionDisabled() } else { SecureField("Paste event token",text: $eventToken).textInputAutocapitalization(.never).autocorrectionDisabled() }
+                    if reveal { TextField("Paste event token",text: $eventToken).textInputAutocapitalization(.never).autocorrectionDisabled() } else { SecureField("Paste event token",text: $eventToken).textContentType(.oneTimeCode).textInputAutocapitalization(.never).autocorrectionDisabled() }
                     Toggle("Show token", isOn: $reveal)
                     Button("Save event token") { m.saveEventToken(eventToken); eventToken = m.account?.eventToken ?? "" }.disabled(m.account == nil || eventToken.isEmpty || m.running || m.busy)
                     Button("Remove event token",role: .destructive) { m.removeEventToken(); eventToken = "" }.disabled(m.account == nil || m.running || m.busy)
@@ -299,16 +316,17 @@ struct SettingsView: View {
                 }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.2.0").font(.headline)
+                    Text("Standalone iPhone and iPad app · 0.2.1").font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. Windows-specific tools and automatic catalogue updates are not included in this first beta.").font(.caption).foregroundStyle(.secondary)
+                    Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)
                 }
             }.navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
             .sheet(item:$embeddedLogin) { page in
-                EmbeddedSignIn(url:page.url) { redirect in
+                EmbeddedSignIn(url:page.url, onComplete: { redirect in
                     embeddedLogin = nil
                     Task { await m.finishBrowserLogin(redirect) }
-                } onCancel: { embeddedLogin = nil; m.cancelBrowserLogin() }
+                }, onCancel: { embeddedLogin = nil; m.cancelBrowserLogin() }, remember:m.rememberSignIn)
                 .interactiveDismissDisabled()
             }
             .onAppear { eventToken = m.account?.eventToken ?? "" }

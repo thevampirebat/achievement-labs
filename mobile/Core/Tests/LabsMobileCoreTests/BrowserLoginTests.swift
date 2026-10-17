@@ -41,7 +41,7 @@ final class BrowserLoginTests: XCTestCase {
                 let verifier = fields.first { $0.name == "code_verifier" }!.value!
                 XCTAssertEqual(Data(SHA256.hash(data:Data(verifier.utf8))),unbase(challenge))
                 XCTAssertEqual(fields.first { $0.name == "code" }!.value,"synthetic-code")
-                return try JSON.data(["access_token":"synthetic-access"])
+                return try JSON.data(["access_token":"synthetic-access","refresh_token":"synthetic-refresh"])
             }
             if url.host == "profile.xboxlive.com" {
                 XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"XBL3.0 x=123;synthetic-xbox")
@@ -60,10 +60,10 @@ final class BrowserLoginTests: XCTestCase {
             XCTAssertEqual(object["AccessToken"] as? String,"t=synthetic-access")
             XCTAssertEqual(object["DeviceToken"] as? String,"synthetic-device")
             XCTAssertEqual(object["RelyingParty"] as? String,"http://xboxlive.com")
-            return try JSON.data(["AuthorizationToken":["Token":"synthetic-xbox","DisplayClaims":["xui":[["uhs":"123"]]]]])
+            return try JSON.data(["AuthorizationToken":["Token":"synthetic-xbox","NotAfter":"2099-01-01T00:00:00Z","DisplayClaims":["xui":[["uhs":"123"]]]]])
         }
         let account = try await login.complete("https://login.live.com/oauth20_desktop.srf?state=\(state)&code=synthetic-code")
-        XCTAssertEqual(account.xuid,"42"); XCTAssertEqual(account.gamertag,"Synthetic account")
+        XCTAssertEqual(account.refreshToken,"synthetic-refresh"); XCTAssertNotNil(account.authorizationExpiresAt); XCTAssertFalse(account.needsRefresh()); XCTAssertEqual(account.xuid,"42"); XCTAssertEqual(account.gamertag,"Synthetic account")
         XCTAssertEqual(stages.count,4)
         do { _ = try await login.complete("https://login.live.com/oauth20_desktop.srf?state=\(state)&code=synthetic-code"); XCTFail("Callback must be single-use") } catch { }
         XCTAssertEqual(stages.count,4)

@@ -53,6 +53,25 @@ public final class BrowserLogin {
         var form = URLComponents(); form.queryItems = ["client_id":client,"scope":Self.scope,"code":code,"code_verifier":verifier,"redirect_uri":Self.redirect,"grant_type":"authorization_code"].map { URLQueryItem(name:$0.key,value:$0.value) }
         let encoded = form.percentEncodedQuery!.replacingOccurrences(of:"+",with:"%2B")
         let oauth = try await post("https://login.live.com/oauth20_token.srf", body:Data(encoded.utf8), form:true, stage:"Microsoft sign-in")
+        var account = try await authorize(oauth)
+        account.refreshToken = oauth["refresh_token"] as? String
+        return account
+    }
+    /// Persist rotation before Xbox exchange, which may fail independently after Microsoft accepts refresh.
+    public func refresh(_ previous: Account, persistRotation: (Account) async throws -> Void) async throws -> Account {
+        guard previous.loginProfile == profile.rawValue, let refresh = previous.refreshToken, !refresh.isEmpty else { throw LabsError.message("Sign in once with Remember sign-in enabled to allow renewal.") }
+        var form = URLComponents(); form.queryItems = ["client_id":client,"scope":Self.scope,"refresh_token":refresh,"grant_type":"refresh_token"].map { URLQueryItem(name:$0.key,value:$0.value) }
+        let encoded = form.percentEncodedQuery!.replacingOccurrences(of:"+",with:"%2B")
+        let oauth = try await post("https://login.live.com/oauth20_token.srf",body:Data(encoded.utf8),form:true,stage:"Remembered Microsoft sign-in")
+        var rotated = previous
+        if let next = oauth["refresh_token"] as? String, !next.isEmpty { rotated.refreshToken = next }
+        try await persistRotation(rotated)
+        var account = try await authorize(oauth)
+        guard account.xuid == previous.xuid else { throw LabsError.message("Renewed sign-in belongs to a different Xbox account. The active account and queue were retained; sign in explicitly to switch accounts.") }
+        account.refreshToken = rotated.refreshToken; account.eventToken = previous.eventToken
+        return account
+    }
+    private func authorize(_ oauth: [String:Any]) async throws -> Account {
         guard let access = oauth["access_token"] as? String, !access.isEmpty else { throw LabsError.message("Microsoft did not return an access token.") }
         let key = P256.Signing.PrivateKey(); let pub = key.publicKey.x963Representation
         let proof = ["use":"sig","alg":"ES256","kty":"EC","crv":"P-256","x":Self.b64(pub.subdata(in:1..<33)),"y":Self.b64(pub.subdata(in:33..<65))]
@@ -74,6 +93,8 @@ public final class BrowserLogin {
         let xui = (claims["xui"] as? [[String:Any]])?.first ?? claims["xui"] as? [String:Any]
         guard let hash = xui?["uhs"] as? String, !hash.isEmpty else { throw LabsError.message("Xbox returned no account identity.") }
         var account = try await XboxService(session:session).connect("XBL3.0 x=\(hash);\(token)")
-        account.loginProfile = profile.rawValue; return account
+        account.loginProfile = profile.rawValue
+        account.authorizationExpiresAt = ServiceDates.parse(JSON.string(authorization["NotAfter"] ?? authorization["ExpireOn"]))
+        return account
     }
 }

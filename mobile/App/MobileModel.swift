@@ -2,6 +2,7 @@ import SwiftUI
 import LabsMobileCore
 import UserNotifications
 import UIKit
+import WebKit
 
 final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationPresentation()
@@ -35,6 +36,12 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     @Published var queueTitle = ""
     @Published var referenceGamertag = ""
     @Published var referenceInfo = ""
+    @Published var refreshingSignIn = false
+    @Published var sessionStatus = ""
+    @Published var spoofDiagnostics = ""
+    @AppStorage("rememberSignIn") var rememberSignIn = true
+    @AppStorage("signInBrowser") var signInBrowser = "In app"
+    private var renewalTask: Task<Account,Error>?
     @Published var spoofStatus = "No heartbeat sent."
     @Published var playedHours: [String:Double] = [:]
     @Published var titleDetails: [String:Game] = [:]
@@ -77,41 +84,103 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         #endif
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            if let data = try SecureStore.read() { account = try JSONDecoder().decode(Account.self, from: data); status = "Saved account loaded. Refresh the library to verify authorization."; loadQueue(); loadCompletion() }
+            if !rememberSignIn { try SecureStore.remove() }
+            if rememberSignIn, let data = try SecureStore.read() { account = try JSONDecoder().decode(Account.self, from: data); status = "Saved account loaded. Refresh the library to verify authorization."; loadQueue(); loadCompletion() }
         } catch { self.error = "Could not load protected account or queue storage." }
         if catalogue == nil { error = "Bundled catalogue could not be read. Event actions remain unavailable." }
         #if DEBUG
         if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--ui-preview=") }) { configurePreview(String(argument.dropFirst("--ui-preview=".count))) }
         #endif
     }
-    private func saveAccount(_ next: Account) throws { try SecureStore.save(JSONEncoder().encode(next)); account = next }
+    private func saveAccount(_ input: Account) throws {
+        var next = input
+        if rememberSignIn { try SecureStore.save(JSONEncoder().encode(next)) }
+        else { next.refreshToken = nil; try SecureStore.remove() }
+        account = next
+    }
+    private func authorizedAccount(force: Bool = false) async throws -> Account {
+        if let renewalTask { return try await renewalTask.value }
+        guard let current = account else { throw LabsError.message("Connect your Xbox account first.") }
+        guard force || current.needsRefresh() else { return current }
+        guard rememberSignIn, current.refreshToken?.isEmpty == false, let profile = current.loginProfile.flatMap(LoginProfile.init(rawValue:)) else {
+            if force || current.needsRefresh() { throw LabsError.message("Sign in once with Remember sign-in enabled to renew this session.") }; return current
+        }
+        let version = generation; refreshingSignIn = true; sessionStatus = "Renewing remembered sign-in…"
+        let task = Task { @MainActor [self] () async throws -> Account in
+            defer { renewalTask = nil; refreshingSignIn = false }
+            do {
+                let next = try await BrowserLogin(profile:profile).refresh(current) { rotated in
+                    guard version == self.generation, self.account?.xuid == current.xuid, self.rememberSignIn else { throw CancellationError() }
+                    var saved = rotated; saved.eventToken = self.account?.eventToken ?? rotated.eventToken
+                    try self.saveAccount(saved)
+                }
+                guard version == generation, account?.xuid == current.xuid else { throw CancellationError() }
+                var saved = next; saved.eventToken = account?.eventToken ?? next.eventToken
+                try saveAccount(saved); sessionStatus = "Remembered sign-in renewed."; return saved
+            } catch {
+                sessionStatus = "Could not renew sign-in. A browser sign-in may be needed."; throw error
+            }
+        }
+        renewalTask = task
+        return try await task.value
+    }
+    /// Only read operations may be repeated after a 401; unlocks and failed heartbeats are never replayed here.
+    private func readWithAccount<T>(_ operation: (Account) async throws -> T) async throws -> T {
+        let current = try await authorizedAccount()
+        do { return try await operation(current) }
+        catch let error as XboxHTTPFailure where error.status == 401 && current.refreshToken?.isEmpty == false && rememberSignIn {
+            let refreshed = try await authorizedAccount(force:true)
+            return try await operation(refreshed)
+        }
+    }
+    func renewSignIn() async {
+        guard !busy, !running, !presenceRunning else { return }; busy = true; defer { busy = false }
+        do { _ = try await authorizedAccount(force:true); status = "Sign-in renewed. No achievement or heartbeat request was sent." }
+        catch { self.error = error.localizedDescription }
+    }
+    func updateRememberSignIn() async {
+        guard !refreshingSignIn else { return }
+        do {
+            if let current = account { try saveAccount(current) } else if !rememberSignIn { try SecureStore.remove() }
+            if !rememberSignIn { await clearMicrosoftCookies(); sessionStatus = "Sign-in will be forgotten when the app closes." }
+            else { sessionStatus = account?.refreshToken == nil ? "Sign in once to enable automatic renewal." : "Sign-in is remembered on this device." }
+        } catch { self.error = error.localizedDescription }
+    }
+    private func clearMicrosoftCookies() async {
+        let store = WKWebsiteDataStore.default(); let types = WKWebsiteDataStore.allWebsiteDataTypes()
+        let records = await store.dataRecords(ofTypes:types)
+        let microsoft = records.filter { record in
+            ["live.com","microsoft.com","microsoftonline.com","msauth.net","msftauth.net"].contains { record.displayName == $0 || record.displayName.hasSuffix("." + $0) }
+        }
+        await store.removeData(ofTypes:types,for:microsoft)
+    }
     func connect(_ token: String) async {
-        guard !busy, !running, presenceStarted == nil else { return }; busy = true; defer { busy = false }
+        guard !busy, !refreshingSignIn, !running, !presenceRunning else { return }; busy = true; defer { busy = false }
         browserLogin = nil; browserPending = false
         let version = generation
         do {
             var next = try await api.connect(token)
             guard version == generation else { return }
             if next.xuid == account?.xuid { next.eventToken = account?.eventToken ?? "" }
-            try saveAccount(next); generation = UUID(); games = []; rows = []; selectedGame = nil; baseCompleted = []; rowResults = [:]; queue = []; titleDetails = [:]; playedHours = [:]; referenceInfo = ""; loadQueue(); loadCompletion()
+            try saveAccount(next); sessionStatus = rememberSignIn && next.refreshToken != nil ? "Sign-in remembered with automatic renewal." : "Session saved; browser sign-in may be needed when it expires."; generation = UUID(); games = []; rows = []; selectedGame = nil; baseCompleted = []; rowResults = [:]; queue = []; titleDetails = [:]; playedHours = [:]; referenceInfo = ""; loadQueue(); loadCompletion()
             status = "Connected as \(next.gamertag)."
         } catch { self.error = error.localizedDescription }
     }
     @Published var browserPending = false
     private var browserLogin: BrowserLogin?
     func beginBrowserLogin() -> URL? {
-        guard !busy, !running, presenceStarted == nil else { return nil }
+        guard !busy, !refreshingSignIn, !running, !presenceRunning else { return nil }
         let login = BrowserLogin(profile:LoginProfile(rawValue:loginProfile) ?? .desktop); browserLogin = login; browserPending = true
         return login.startURL
     }
     func cancelBrowserLogin() { guard !busy else { return }; browserLogin = nil; browserPending = false }
     func finishBrowserLogin(_ redirect: String) async {
-        guard let login = browserLogin, !busy, !running, presenceStarted == nil else { return }
+        guard let login = browserLogin, !busy, !refreshingSignIn, !running, !presenceRunning else { return }
         busy = true; defer { busy = false; browserPending = false; browserLogin = nil }
         do {
             var next = try await login.complete(redirect)
             if next.xuid == account?.xuid { next.eventToken = account?.eventToken ?? "" }
-            try saveAccount(next); generation = UUID(); games = []; rows = []; selectedGame = nil; baseCompleted = []; rowResults = [:]; queue = []; titleDetails = [:]; playedHours = [:]; referenceInfo = ""; loadQueue(); loadCompletion()
+            try saveAccount(next); sessionStatus = rememberSignIn && next.refreshToken != nil ? "Sign-in remembered with automatic renewal." : "Session saved; browser sign-in may be needed when it expires."; generation = UUID(); games = []; rows = []; selectedGame = nil; baseCompleted = []; rowResults = [:]; queue = []; titleDetails = [:]; playedHours = [:]; referenceInfo = ""; loadQueue(); loadCompletion()
             status = "Connected as \(next.gamertag). Refresh the library."
         } catch { self.error = error.localizedDescription }
     }
@@ -124,16 +193,19 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func disconnect() async {
         guard !busy else { return }
         busy = true; defer { busy = false }
-        browserLogin = nil; browserPending = false
+        browserLogin = nil; browserPending = false; generation = UUID(); renewalTask?.cancel()
         pauseQueue(); if let queueTask { await queueTask.value }; await stopPresence(); generation = UUID()
-        do { try SecureStore.remove(); account = nil; games = []; rows = []; queue = []; selectedGame = nil; baseCompleted = []; checkedCompletion = []; savedTotals = [:]; titleDetails = [:]; playedHours = [:]; status = "Disconnected." }
+        do { try SecureStore.remove(); await clearMicrosoftCookies(); account = nil; games = []; rows = []; queue = []; selectedGame = nil; baseCompleted = []; checkedCompletion = []; savedTotals = [:]; titleDetails = [:]; playedHours = [:]; status = "Disconnected." }
         catch { self.error = "Could not remove the Keychain session." }
     }
     func refreshGames() async {
         guard let account, !busy else { return }; busy = true; defer { busy = false }; let version = generation
         status = "Downloading library…"
-        do { let loaded = try await api.games(account); guard version == generation else { return }; games = loaded.map(withTotal)
-            do { var profile = try await api.connect(account.authorization); profile.eventToken = account.eventToken; profile.loginProfile = account.loginProfile; try saveAccount(profile) }
+        do { let loaded = try await readWithAccount { try await api.games($0) }; guard version == generation else { return }; games = loaded.map(withTotal)
+            do { let credentials = self.account ?? account
+                var profile = try await api.connect(credentials.authorization)
+                guard profile.xuid == credentials.xuid else { throw LabsError.message("Profile identity changed.") }
+                profile.eventToken = credentials.eventToken; profile.loginProfile = credentials.loginProfile; profile.refreshToken = credentials.refreshToken; profile.authorizationExpiresAt = credentials.authorizationExpiresAt; try saveAccount(profile) }
             catch { status = "Library loaded; profile details could not refresh." }
             status = "Loaded \(loaded.count) titles." }
         catch { self.error = error.localizedDescription; status = "Refresh failed; previous library retained." }
@@ -141,7 +213,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func load(_ game: Game) async {
         guard let account, !busy else { return }; busy = true; defer { busy = false }; let version = generation
         do {
-            var loaded = try await api.achievements(game, account: account)
+            var loaded = try await readWithAccount { try await api.achievements(game,account:$0) }
             if loaded.contains(where: \.eventBased) { for i in loaded.indices { loaded[i].eventBased = true } }
             guard version == generation else { return }
             rows = loaded; selectedGame = game; rowResults = [:]
@@ -172,7 +244,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func unlock(_ row: Achievement, game: Game) async {
         guard let account, !busy, !running else { return }; busy = true; defer { busy = false }
-        do { try await send(row, game: game, account: account); rowResults[row.id] = "Request accepted; refresh to verify progress." }
+        do { let active = try await authorizedAccount(); try await send(row, game: game, account: active); rowResults[row.id] = "Request accepted; refresh to verify progress." }
         catch { rowResults[row.id] = error.localizedDescription; self.error = error.localizedDescription }
     }
     func enqueue(_ selected: [Achievement], game: Game) {
@@ -210,7 +282,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 let item = self.queue[index]
                 do {
                     // Re-read current account progress and event metadata before each action.
-                    let current = try await self.api.achievements(item.game, account: account)
+                    let current = try await self.readWithAccount { try await self.api.achievements(item.game,account:$0) }
                     guard var row = current.first(where: { $0.id == item.achievement.id }), row.name == item.achievement.name else { throw LabsError.message("Achievement metadata changed; rebuild this queue item.") }
                     row.eventBased = current.contains(where: \.eventBased)
                     if row.unlocked { self.queue[index].status = "Already unlocked"; self.saveQueue(); continue }
@@ -219,7 +291,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                     try Task.checkCancellation()
                     self.queue[index].status = "Submitting"
                     guard self.saveQueue() else { throw LabsError.message("Queue could not be saved; action was not sent.") }
-                    try await self.send(row, game: item.game, account: account)
+                    let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.send(row, game: item.game, account: active)
                     self.queue[index].status = "Accepted — verify progress"; self.saveQueue()
                 } catch is CancellationError {
                     if self.queue[index].status == "Submitting" { self.queue[index].status = "Interrupted — refresh before retrying" }; self.saveQueue(); break
@@ -244,7 +316,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         do {
             var completed = Set<String>()
             for game in Dictionary(grouping: queue, by: { $0.game.id }).values.compactMap({ $0.first?.game }) {
-                let loaded = try await api.achievements(game, account: account)
+                let loaded = try await readWithAccount { try await api.achievements(game,account:$0) }
                 for row in loaded where row.unlocked { completed.insert(game.id + "/" + row.id) }
             }
             queue.removeAll { completed.contains($0.id) }; saveQueue(); status = "Removed achievements confirmed unlocked by Xbox."
@@ -252,17 +324,28 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func startPresence(_ title: String) {
         guard let account, presenceTask == nil, !presenceStopping, foreground, JSON.numeric(title) else { return }
-        presenceTitle = title; presenceRunning = true; spoofStatus = "Sending heartbeat…"
+        presenceTitle = title; presenceRunning = true; spoofDiagnostics = ""; spoofStatus = "Sending heartbeat…"
         presenceTask = Task { [weak self] in
             guard let self else { return }
             defer { self.presenceStarted = nil; self.presenceRunning = false; self.presenceTask = nil; UIApplication.shared.isIdleTimerDisabled = self.running }
             do {
-                try await self.api.presence(title, account: account); self.presenceStarted = Date(); self.spoofStatus = "Heartbeat accepted. Xbox-recorded playtime can update later."; UIApplication.shared.isIdleTimerDisabled = true
-                while !Task.isCancelled { try await Task.sleep(nanoseconds: 240_000_000_000); try Task.checkCancellation(); try await self.api.presence(title, account: account); self.spoofStatus = "Heartbeat accepted at " + Date().formatted(date:.omitted,time:.standard) }
+                let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.api.presence(title, account: active); self.presenceStarted = Date(); self.spoofStatus = "Heartbeat accepted. Xbox-recorded playtime can update later."; UIApplication.shared.isIdleTimerDisabled = true
+                while !Task.isCancelled { try await Task.sleep(nanoseconds: 240_000_000_000); try Task.checkCancellation(); let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.api.presence(title, account: active); self.spoofStatus = "Heartbeat accepted at " + Date().formatted(date:.omitted,time:.standard) }
             } catch is CancellationError { }
             catch {
                 if Task.isCancelled { return }
                 self.spoofStatus = error.localizedDescription
+                if let failure = error as? XboxHTTPFailure {
+                    self.spoofDiagnostics = "Title spoofing · " + Date().formatted(date:.numeric,time:.standard) + "\nTitle ID: " + title + "\nSign-in profile: " + (self.account?.loginProfile ?? "Manual / previous beta") + "\n" + failure.diagnostic
+                    if failure.status == 403 {
+                        do {
+                            let current = self.account ?? account
+                            let profile = try await self.api.connect(current.authorization)
+                            self.spoofDiagnostics += profile.xuid == current.xuid ? "\nIndependent profile check: accepted for the same account.\nThe refusal is specific to heartbeat access; no heartbeat retry was sent." : "\nIndependent profile check: identity mismatch."
+                        } catch let probe as XboxHTTPFailure { self.spoofDiagnostics += "\nIndependent profile check: HTTP \(probe.status)." }
+                        catch { self.spoofDiagnostics += "\nIndependent profile check: unavailable." }
+                    }
+                }
                 self.error = "Title spoofing stopped: \(error.localizedDescription)"
                 if self.stopOnPresenceFailure { self.pauseQueue() }
                 if self.notifyPresenceFailure { await self.notify("Title spoofing stopped", body: "Open Achievement Labs to review the heartbeat error.") }
@@ -300,12 +383,12 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func lookupTitle(_ id: String) async {
         guard let account, JSON.numeric(id) else { return }; let version = generation
         if let game = gameForTitle(id), !game.image.isEmpty { titleDetails[id] = game; return }
-        do { let game = try await api.game(id,account:account); guard !Task.isCancelled, version == generation else { return }; titleDetails[id] = withTotal(game) }
+        do { let game = try await readWithAccount { try await api.game(id,account:$0) }; guard !Task.isCancelled, version == generation else { return }; titleDetails[id] = withTotal(game) }
         catch { /* Keep typed IDs usable when title lookup is unavailable. */ }
     }
     func readPlaytime(_ title: String) async {
         guard let account, JSON.numeric(title) else { return }; let version = generation
-        do { if let minutes = try await api.playedMinutes(title,account:account), version == generation, !Task.isCancelled { playedHours[title] = minutes / 60 } }
+        do { if let minutes = try await readWithAccount({ try await api.playedMinutes(title,account:$0) }), version == generation, !Task.isCancelled { playedHours[title] = minutes / 60 } }
         catch { /* Missing playtime is displayed as unavailable, never zero. */ }
     }
     func buildTimingQueue() async {
@@ -314,10 +397,10 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         status = "Reading reference profile and achievement times…"
         do {
             let game: Game
-            if let known = gameForTitle(title) { game = known } else { game = try await api.game(title,account:account) }
-            let reference = try await api.profile(gamertag:referenceGamertag,account:account)
-            let dated = try await api.achievements(game,account:account,xuid:reference.xuid)
-            var own = try await api.achievements(game,account:account)
+            if let known = gameForTitle(title) { game = known } else { game = try await readWithAccount { try await api.game(title,account:$0) } }
+            let reference = try await readWithAccount { try await api.profile(gamertag:referenceGamertag,account:$0) }
+            let dated = try await readWithAccount { try await api.achievements(game,account:$0,xuid:reference.xuid) }
+            var own = try await readWithAccount { try await api.achievements(game,account:$0) }
             if own.contains(where: \.eventBased) { for i in own.indices { own[i].eventBased = true } }
             let plan = try TimingPlan.build(game:game,own:own,reference:dated,gamertag:reference.gamertag) { unavailable($0,game:game) == nil }
             guard version == generation else { return }
@@ -370,7 +453,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             guard scanningCompletion, foreground, version == generation, !Task.isCancelled else { break }
             status = "Completion scan \(n+1)/\(pending.count) · \(game.name)"
             do {
-                let loaded = try await api.achievements(game,account:account); rememberCompletion(loaded,game:game)
+                let loaded = try await readWithAccount { try await api.achievements(game,account:$0) }; rememberCompletion(loaded,game:game)
                 if !loaded.isEmpty, (!game.legacy || loaded.filter(\.unlocked).count >= game.unlocked), let i = games.firstIndex(where: { $0.id == game.id }) { games[i].total = loaded.count; games[i].unlocked = loaded.filter(\.unlocked).count }
             } catch { failures += 1; if error.localizedDescription.contains("429") { break } }
             try? await Task.sleep(nanoseconds:300_000_000)

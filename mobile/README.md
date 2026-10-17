@@ -29,7 +29,7 @@ This beta has no Steam/Epic/Ubisoft clients, Xbox 360/GFWL write/profile tools, 
 
 ## Build and sign
 
-The **iOS standalone beta** GitHub workflow prepares resources, runs synthetic tests plus every enabled generated recipe, builds arm64 iPhone/iPad and simulator apps, verifies simulator launch plus synthetic Keychain save/read/delete and creates `AchievementLabs-iOS-0.2.0-UNSIGNED.ipa`. Simulator-only ad-hoc entitlements are used to exercise Keychain APIs; they are never included in the unsigned device app. Device signing must supply the normal application identity and Keychain entitlements.
+The **iOS standalone beta** GitHub workflow prepares resources, runs synthetic tests plus every enabled generated recipe, builds arm64 iPhone/iPad and simulator apps, verifies simulator launch plus synthetic Keychain save/read/delete and creates `AchievementLabs-iOS-0.2.1-UNSIGNED.ipa`. Simulator-only ad-hoc entitlements are used to exercise Keychain APIs; they are never included in the unsigned device app. Device signing must supply the normal application identity and Keychain entitlements.
 
 **The unsigned IPA cannot be installed directly.** It needs signing/provisioning appropriate for your device or distribution method. No Apple account, certificate or provisioning profile is bundled. Never commit private signing credentials. No App Store/TestFlight release is claimed.
 
@@ -49,10 +49,18 @@ Documentation: [Apple device distribution](https://developer.apple.com/documenta
 
 Desktop source, licences and author attribution remain in the repository. No private Xbox signing material or TLS trust bypass is included. Mobile sources are independent of the Windows projects and build workflows.
 
-Browser sign-in: use the embedded Microsoft page for automatic callback capture, or Safari / manual sign-in as a fallback. PKCE, state validation and a one-use response protect both paths. Account authorization is verified with Xbox before replacing the saved account. Event tokens remain separate. OAuth access tokens are held only during exchange; refresh tokens are not retained in this beta. Sign in again when authorization expires.
+Browser sign-in: use the embedded Microsoft page for automatic callback capture, or Safari / manual sign-in as a fallback. PKCE, state validation and a one-use response protect both paths. Account authorization is verified with Xbox before replacing the saved account. Event tokens remain separate. With Remember sign-in enabled, OAuth renewal credentials and Xbox authorization are stored in the iOS Keychain. Rotated renewal credentials are saved before the next Xbox exchange. The renewed XUID must match the active account. Disabling remembering removes saved credentials; Disconnect also clears Microsoft browser data held by this app. No Microsoft password is stored.
 
-## Mobile 0.2.0 refinements
+## Mobile 0.2.1 refinements
 
 Compact inline navigation and library rows; nested Xbox image fallback; profile gamerpic and gamerscore from Xbox; loaded library game/achievement counts; desktop star-and-laurel Mythic artwork and persistent, account-specific completion evidence. “Mythic · known” counts verified base completions plus fully completed titles, excluding multi-game hubs. It is a local display calculation, not a new Xbox award. Settings can scan unchecked titles sequentially; leaving the app stops that scan after the current read. Bundled shared totals fill missing totals only for a matching title/platform and never replace account unlocked counts.
 
 Auto Unlock has reference gamertag + title ID timing import, fresh same-title achievement matching, preview-only queue building, editable minute delays, estimated finish and collapsible options. Timing gaps reproduce intervals, not historical achievement timestamps. Library/game shortcuts and typed-ID lookup show title art in both Auto Unlock and Title Spoofing. Xbox-recorded playtime is read separately when available. No claim is made that a heartbeat will increase it. The desktop OAuth profile is available for compatibility testing; actual spoofing permission remains subject to Xbox accepting the request.
+
+## Session persistence and spoofing diagnostics (0.2.1)
+
+Remember sign-in is enabled by default. Sign in once after upgrading to capture renewal credentials (older versions discarded them). The embedded Microsoft page uses a persistent app-local WebKit data store when remembering is enabled and an ephemeral store otherwise. The app never reads page passwords, cookies or unrelated password-manager entries. Native token/code fields are tagged as code fields rather than passwords. Safari remains available when in-app AutoFill suggestions are incorrect; it needs the manual redirect return.
+
+Known-expiring authorization renews before reads or actions; read-only requests may retry once after a 401 using renewed authorization. Failed unlock requests and failed heartbeat requests are not automatically replayed. Renewal is shared across concurrent callers, rotates its protected credentials before Xbox exchange, validates the connected XUID and preserves the separate event token. Account changes invalidate an in-flight renewal. Turning remembering off removes the protected saved session and Microsoft web data; Disconnect does the same. If Microsoft revokes renewal, browser sign-in is required.
+
+Spoofing 403 is now reported without repeatedly recommending the already-tested desktop profile. A failed heartbeat produces sanitized server-code/correlation diagnostics and one read-only profile check to distinguish general authorization failure from heartbeat-specific refusal. No authorization, event token, OAuth credentials or raw response bodies are included in Copy diagnostics. A successful profile check does not grant spoofing permission.
