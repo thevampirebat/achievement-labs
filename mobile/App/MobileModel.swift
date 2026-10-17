@@ -100,6 +100,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     private var presenceTask: Task<Void, Never>?
     private var foreground = true
     private var presenceStopping = false
+    private var presenceCleanupNeeded = false
     private let directory: URL
     private var queueURL: URL? { account.map { directory.appendingPathComponent("queue-\($0.xuid).json") } }
     init() {
@@ -392,7 +393,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             guard let self else { return }
             defer { self.presenceStarted = nil; self.presenceRunning = false; self.presenceTask = nil; self.presenceDeadline = nil; self.finishSessionIfIdle(); UIApplication.shared.isIdleTimerDisabled = self.running }
             do {
-                let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.api.presence(title, account: active); self.presenceStarted = Date()
+                let active = try await self.authorizedAccount(); try Task.checkCancellation(); try await self.api.presence(title, account: active); self.presenceStarted = Date(); self.presenceCleanupNeeded = true
                 if self.continueSpoofInBackground {
                     let minutes = max(5,min(120,self.spoofBackgroundMinutes)); self.presenceDeadline = Date().addingTimeInterval(minutes*60)
                     self.requestBackgroundSession(units:max(1,Int(ceil(minutes/4))))
@@ -426,8 +427,8 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         }
     }
     func stopPresence(reason: String = "Stopped by user.") async {
-        guard !presenceStopping, presenceTask != nil || presenceStarted != nil else { return }
-        presenceStopping = true; defer { presenceStopping = false }
+        guard !presenceStopping, presenceTask != nil || presenceStarted != nil || presenceCleanupNeeded else { return }
+        presenceStopping = true; presenceCleanupNeeded = false; defer { presenceStopping = false }
         if spoofStopReason.isEmpty { spoofStopReason = reason }
         presenceTask?.cancel(); if let presenceTask { await presenceTask.value }
         spoofStatus = spoofStopReason
