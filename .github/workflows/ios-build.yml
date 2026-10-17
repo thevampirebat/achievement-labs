@@ -32,8 +32,9 @@ jobs:
           xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath mobile/build CODE_SIGNING_ALLOWED=NO build
       - name: Build for simulator and verify launch
         run: |
-          xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath mobile/simulator CODE_SIGNING_ALLOWED=NO build
-          codesign --force --sign - --entitlements mobile/Simulator.entitlements --timestamp=none mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app
+          xcodebuild -project mobile/AchievementLabsMobile.xcodeproj -scheme AchievementLabsMobile -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath mobile/simulator CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- CODE_SIGN_ENTITLEMENTS="$PWD/mobile/Simulator.entitlements" build
+          codesign --verify --deep --strict mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app
+          codesign -d --entitlements :- mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app
           python3 mobile/tools/simulator_smoke.py
       - name: Package unsigned IPA for user signing
         run: |

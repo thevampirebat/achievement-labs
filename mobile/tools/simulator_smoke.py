@@ -13,13 +13,17 @@ subprocess.run(['xcrun','simctl','boot',device],check=False)
 subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True)
 app='mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app'
 subprocess.run(['xcrun','simctl','install',device,app],check=True)
-output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--storage-self-test')
+try:
+    output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--storage-self-test')
+except subprocess.CalledProcessError:
+    subprocess.run(['xcrun','simctl','spawn',device,'log','show','--last','2m','--style','compact','--predicate','process == "AchievementLabsMobile" OR eventMessage CONTAINS "org.achievementlabs.mobile"'],check=False,timeout=120)
+    raise
 print(output)
 pid=output.strip().rsplit(':',1)[-1].strip()
 time.sleep(5)
 subprocess.run(['xcrun','simctl','spawn',device,'launchctl','list'],check=True,stdout=subprocess.DEVNULL)
 processes=run('xcrun','simctl','spawn',device,'launchctl','list')
-assert 'org.achievementlabs.mobile' in processes, 'App exited after launch'
+assert any(line.split() and line.split()[0] == pid and 'org.achievementlabs.mobile' in line for line in processes.splitlines()), 'App exited after launch'
 Path('mobile/artifacts').mkdir(exist_ok=True)
 subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPhone-launch.png'],check=True)
 subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
