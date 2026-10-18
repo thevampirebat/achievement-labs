@@ -15,23 +15,22 @@ public partial class MainWindow
     {
         using var generator=new QRCoder.QRCodeGenerator();using var data=generator.CreateQrCode(frame,QRCoder.QRCodeGenerator.ECCLevel.M);using var qr=new QRCoder.PngByteQRCode(data);return qr.GetGraphic(6);
     }
-    internal static string? ReadQueueQrImage(Stream stream)
+    public static string? ReadQueueQrImage(Stream stream)
     {
-        using var source=new Bitmap(stream);var size=source.PixelSize;
-        if(size.Width<1||size.Height<1||(long)size.Width*size.Height>16_000_000)throw new InvalidDataException("QR image must be smaller than 16 megapixels.");
-        using var bitmap=new WriteableBitmap(size,new Vector(96,96),PixelFormat.Bgra8888,AlphaFormat.Opaque);
-        using var locked=bitmap.Lock();source.CopyPixels(locked,AlphaFormat.Opaque);
-        var pixels=new byte[size.Width*size.Height*4];
-        for(var y=0;y<size.Height;y++)Marshal.Copy(IntPtr.Add(locked.Address,y*locked.RowBytes),pixels,y*size.Width*4,size.Width*4);
+        using var source=SkiaSharp.SKBitmap.Decode(stream) ?? throw new InvalidDataException("Could not decode QR image.");
+        if(source.Width<1||source.Height<1||(long)source.Width*source.Height>16_000_000)throw new InvalidDataException("QR image must be smaller than 16 megapixels.");
+        using var bitmap=source.Copy(SkiaSharp.SKColorType.Bgra8888) ?? throw new InvalidDataException("Could not read QR pixels.");
+        var pixels=new byte[bitmap.Width*bitmap.Height*4];
+        for(var y=0;y<bitmap.Height;y++)Marshal.Copy(IntPtr.Add(bitmap.GetPixels(),y*bitmap.RowBytes),pixels,y*bitmap.Width*4,bitmap.Width*4);
         var reader=new ZXing.BarcodeReaderGeneric { AutoRotate=true,Options=new ZXing.Common.DecodingOptions { TryHarder=true,PossibleFormats=[ZXing.BarcodeFormat.QR_CODE] } };
-        return reader.Decode(new ZXing.RGBLuminanceSource(pixels,size.Width,size.Height,ZXing.RGBLuminanceSource.BitmapFormat.BGRA32))?.Text;
+        return reader.Decode(new ZXing.RGBLuminanceSource(pixels,bitmap.Width,bitmap.Height,ZXing.RGBLuminanceSource.BitmapFormat.BGRA32))?.Text;
     }
     private async void ExportQueueQr(object? sender,RoutedEventArgs e)
     {
         try {
             var json=model.XboxQueue.ExportQueueSyncFile();var owner=Newtonsoft.Json.Linq.JObject.Parse(json).Value<string>("ownerXuid")!;var frames=QueueQrTransfer.Frames(json,owner);
             var dialog=new Window { Title="Queue QR transfer",Width=570,Height=760,MinWidth=470,MinHeight=600,WindowStartupLocation=WindowStartupLocation.CenterOwner };
-            var image=new Image { Width=410,Height=410,Stretch=Stretch.Uniform };var status=new TextBlock();var index=0;Bitmap? bitmap=null;
+            var image=new Avalonia.Controls.Image { Width=410,Height=410,Stretch=Stretch.Uniform };var status=new TextBlock();var index=0;Bitmap? bitmap=null;
             void Show(){using var stream=new MemoryStream(QueueQrPng(frames[index]));var old=bitmap;bitmap=new Bitmap(stream);image.Source=bitmap;old?.Dispose();status.Text=$"Queue code {index+1} of {frames.Length}";}
             var timer=new DispatcherTimer { Interval=TimeSpan.FromSeconds(0.5) };var cycle=new CheckBox { Content="Cycle automatically",IsChecked=true };timer.Tick+=(_,_)=>{if(cycle.IsChecked==true){index=(index+1)%frames.Length;Show();}};
             var previous=new Button { Content="Previous" };previous.Click+=(_,_)=>{index=(index+frames.Length-1)%frames.Length;Show();};var next=new Button { Content="Next" };next.Click+=(_,_)=>{index=(index+1)%frames.Length;Show();};
