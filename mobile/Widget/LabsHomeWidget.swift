@@ -59,7 +59,7 @@ struct LabsHomeView: View {
                 Link("Spoofing",destination:URL(string:"achievementlabs://spoof")!)
                 if state?.spoofStarted != nil { Link("Stop",destination:URL(string:"achievementlabs://spoof/stop")!) }
             }.font(.caption.weight(.semibold)).foregroundStyle(.green)
-        }.containerBackground(.black,for:.widget).widgetURL(URL(string:"achievementlabs://home")!)
+        }.foregroundStyle(.white).containerBackground(.black,for:.widget).widgetURL(URL(string:"achievementlabs://home")!)
     }
 }
 struct LabsHomeWidget: Widget {

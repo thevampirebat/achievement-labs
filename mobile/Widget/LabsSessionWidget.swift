@@ -33,7 +33,7 @@ struct LabsSessionWidget: Widget {
                         Text("Queue \(context.state.queueHandled)/\(context.state.queueTotal) processed").font(.caption2)
                     }
                 }
-            }.padding().activityBackgroundTint(.black).activitySystemActionForegroundColor(.green)
+            }.padding().foregroundStyle(.white).activityBackgroundTint(.black).activitySystemActionForegroundColor(.green)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
