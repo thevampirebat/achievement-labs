@@ -8,13 +8,22 @@ def run(*args):
     print('Checking: '+' '.join(args),flush=True)
     return subprocess.check_output(args,text=True,timeout=120)
 devices=json.loads(run('xcrun','simctl','list','devices','available','--json'))['devices']
-available=[d for runtime,group in devices.items() if 'iOS-26' in runtime for d in group if d['name'].startswith('iPhone')]
+available=[(runtime,d) for runtime,group in devices.items() if 'iOS-26' in runtime for d in group if d['name'].startswith('iPhone')]
 assert available, 'No iOS 26 simulator for background API checks'
-assert available, 'No available iPhone simulator'
-available.sort(key=lambda d:('Max' in d['name'],'Plus' in d['name'],'Pro' in d['name'],d['name']))
-device=available[0]['udid']
-print('Chosen simulator: '+available[0]['name'],flush=True)
-subprocess.run(['xcrun','simctl','boot',device],check=False)
+available.sort(key=lambda pair:('Max' in pair[1]['name'],'Plus' in pair[1]['name'],'Pro' in pair[1]['name'],pair[1]['name']))
+runtime, model=available[0]
+types=json.loads(run('xcrun','simctl','list','devicetypes','--json'))['devicetypes']
+device_type=next(t['identifier'] for t in types if t['name'] == model['name'])
+# A fresh device avoids repeatedly booting a broken pre-created runner snapshot.
+device=run('xcrun','simctl','create','Achievement Labs CI',device_type,runtime).strip()
+print('Chosen fresh simulator: '+model['name'],flush=True)
+import atexit
+def cleanup():
+    subprocess.run(['xcrun','simctl','shutdown',device],check=False,timeout=30)
+    subprocess.run(['xcrun','simctl','delete',device],check=False,timeout=30)
+atexit.register(cleanup)
+subprocess.run(['open','-a','Simulator'],check=False,timeout=30)
+subprocess.run(['xcrun','simctl','boot',device],check=True,timeout=60)
 print('Waiting for iOS 26 simulator boot',flush=True)
 subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True,timeout=300)
 app='mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app'
