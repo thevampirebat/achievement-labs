@@ -19,7 +19,8 @@ static class Test
  {
   if(args.Contains("--token-validation")){EventTokenRegressionTests.Run();return;}
   if(args.Contains("--ui-tweaks")){UITweakTests.Run();return;}
-  if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();return;}
+  if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();SavedGameQueueTests.Run();
+  QueueTransferTests.Run();return;}
   if(args.Contains("--playtime")){PlaytimeTests.Run();return;}
   if(args.Contains("--export")){ExportTests.Run();return;}
   if(args.Contains("--mapping")){MappingTests.Run();return;}
@@ -41,15 +42,51 @@ static class Test
    AppBuilder.Configure(()=> (Application)Activator.CreateInstance(appType)!).UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
    var window=(Window)Activator.CreateInstance(assembly.GetTypes().Single(t=>t.Name=="MainWindow"))!;
    var saveAll = Desc<Button>(window).Single(b=>b.Name=="SaveAllSettings");
-   Assert(saveAll.Parent is StackPanel settingsPanel && settingsPanel.Children[0]==saveAll,"Save all settings is first in Settings");
+   Assert(saveAll.Parent is Grid settingsPanel && Grid.GetRow(saveAll)==0 && settingsPanel.Children.OfType<TabControl>().Any(t=>Grid.GetRow(t)==1),"Save all settings remains above the category tabs");
    Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Remember window size and position")),"Window size setting present");
    Assert(Desc<CheckBox>(window).Any(c=>Equals(c.Content,"Always open maximized")),"Maximize setting present");
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="build-xbox-queue")==2,"Enter queue building attached to both configuration fields only");
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="lookup-spoof")==1,"Only title lookup accepts Enter, never start presence");
    Assert(!Desc<TextBox>(window).Any(c=>c.AcceptsReturn && c.Tag is string tag && tag=="save-token"),"Multiline text keeps normal Enter behaviour");
+   var settingsTabs=Desc<TabControl>(window).Single(t=>t.Name=="DesktopSettingsTabs");
+   Assert(settingsTabs.Items.OfType<TabItem>().Select(t=>t.Header?.ToString()).SequenceEqual(new[]{"Account","Sync","Library","App","Debug"}),"Desktop settings categories are explicit and complete");
+   Assert(Desc<Button>(window).Count(b=>b.Name=="SaveAllSettings")==1,"One global save remains accessible above settings tabs");
    using (var routeClient = new AchievementLabs.Core.EventCatalogClient(true)) {
        Assert(!routeClient.BundledTitleIds.Contains("345903534"),"Legacy Minecraft uses upstream route rather than Bedrock bundled data");
        Assert(routeClient.BundledTitleIds.Contains("1828326430"),"Other Minecraft editions retain bundled route");
+   }
+   {
+       var transfer = AchievementLabs.Core.MobileTransfer.Create("XBL3.0 x=123;synthetic","42","synthetic-event",null);
+       var qrFrames = AchievementLabs.Core.MobileTransfer.QrFrames(transfer);
+       Assert(qrFrames.Length>0 && qrFrames.All(f=>f.StartsWith("ALPC1|") && f.Length<1000),"QR transfer frames are bounded");
+       var qrBytes=Convert.FromBase64String(string.Concat(qrFrames.Select(f=>f.Split('|')[4])));
+       using var qrPayload=System.Text.Json.JsonDocument.Parse(qrBytes);
+       Assert(qrPayload.RootElement.GetProperty("key").GetString()==transfer.PairingKey,"QR pairing key retained");
+       Assert(Convert.FromBase64String(qrPayload.RootElement.GetProperty("file").GetString()!).SequenceEqual(transfer.Bytes),"QR encrypted payload retained");
+       Assert(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(qrBytes)).ToLowerInvariant()==qrFrames[0].Split('|')[1],"QR integrity digest matches payload");
+       using var doc = System.Text.Json.JsonDocument.Parse(transfer.Bytes);
+       var transferRoot = doc.RootElement;
+       var keyText = transfer.PairingKey.Replace('-','+').Replace('_','/'); keyText += new string('=',(4-keyText.Length%4)%4);
+       var key = Convert.FromBase64String(keyText); var ciphertext = Convert.FromBase64String(transferRoot.GetProperty("ciphertext").GetString()!); var plain = new byte[ciphertext.Length];
+       using var aes = new System.Security.Cryptography.AesGcm(key,16);
+       aes.Decrypt(Convert.FromBase64String(transferRoot.GetProperty("nonce").GetString()!),ciphertext,Convert.FromBase64String(transferRoot.GetProperty("tag").GetString()!),plain,System.Text.Encoding.UTF8.GetBytes("AchievementLabs-PC-Transfer-v1"));
+       using var payload = System.Text.Json.JsonDocument.Parse(plain);
+       Assert(payload.RootElement.GetProperty("xuid").GetString()=="42","Mobile transfer retains the explicitly connected account");
+       Assert(payload.RootElement.GetProperty("eventToken").GetString()=="synthetic-event","Mobile transfer retains the current event token");
+       Assert(!System.Text.Encoding.UTF8.GetString(transfer.Bytes).Contains("synthetic-event"),"Mobile file is encrypted");
+       Assert(!payload.RootElement.TryGetProperty("refreshToken",out _),"PC renewal credentials are excluded");
+       var only = AchievementLabs.Core.MobileTransfer.Create("must-not-transfer","42","synthetic-event",null,true);
+       using var onlyEnvelope=System.Text.Json.JsonDocument.Parse(only.Bytes);
+       var onlyKey=only.PairingKey.Replace('-','+').Replace('_','/')+"=";
+       using var onlyAes=new System.Security.Cryptography.AesGcm(Convert.FromBase64String(onlyKey),16);
+       var onlyCipher=Convert.FromBase64String(onlyEnvelope.RootElement.GetProperty("ciphertext").GetString()!);var onlyPlain=new byte[onlyCipher.Length];
+       onlyAes.Decrypt(Convert.FromBase64String(onlyEnvelope.RootElement.GetProperty("nonce").GetString()!),onlyCipher,Convert.FromBase64String(onlyEnvelope.RootElement.GetProperty("tag").GetString()!),onlyPlain,System.Text.Encoding.UTF8.GetBytes("AchievementLabs-PC-Transfer-v1"));
+       using var onlyPayload=System.Text.Json.JsonDocument.Parse(onlyPlain);
+       Assert(onlyPayload.RootElement.GetProperty("authorization").GetString()=="","Event-only transfer excludes account authorization");
+       Assert(onlyPayload.RootElement.GetProperty("kind").GetString()=="eventToken","Event-only transfer cannot be mistaken for sign-in");
+       System.Security.Cryptography.CryptographicOperations.ZeroMemory(onlyPlain);
+
+       System.Security.Cryptography.CryptographicOperations.ZeroMemory(plain); System.Security.Cryptography.CryptographicOperations.ZeroMemory(key);
    }
    Assert(Desc<ProgressBar>(window).Any(p=>p.Name=="LibraryRefreshProgressBar"),"Library refresh progress control present");
    Assert(Desc<TextBlock>(window).Any(p=>p.Name=="LibraryRefreshStatusText"),"Library refresh stage/stats present");
@@ -281,3 +318,4 @@ public class FakeWindow:Window
  public object model;
  public FakeWindow(Model m){model=m;Content=new StackPanel {Children={new Button{Content="Unlock / retry "}}};}
 }
+

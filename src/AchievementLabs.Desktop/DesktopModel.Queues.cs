@@ -14,7 +14,7 @@ public sealed partial class DesktopModel
         runner.FailureNotification = message => AutoUnlockFailure?.Invoke(message);
         runner.CompletionNotification = message => { if (NotifyAutoUnlockCompletion) { AutoUnlockCompleted?.Invoke(message); NotifyWindows("Auto unlock complete", message); } };
     } });
-    public AutoUnlockerViewModel XboxQueue => xboxQueue ??= new(new NativeNotices(message => Notice = message), queueAccount) { EventCatalog = eventCatalog, ReadQueueAchievementsAsync = ReadQueueAchievementsAsync, ExternalPresenceActive = () => PresenceRunning, PresenceGate = requests, FailureNotification = message => AutoUnlockFailure?.Invoke(message), CompletionNotification = message => { if (NotifyAutoUnlockCompletion) { AutoUnlockCompleted?.Invoke(message); NotifyWindows("Auto unlock complete", message); } } };
+    public AutoUnlockerViewModel XboxQueue => xboxQueue ??= new(new NativeNotices(message => Notice = message), queueAccount) { EventCatalog = eventCatalog, AppendSavedGameAsync = state => XboxBuildQueue.AddSavedGameAsync(state), ReadQueueAchievementsAsync = ReadQueueAchievementsAsync, ExternalPresenceActive = () => PresenceRunning, PresenceGate = requests, FailureNotification = message => AutoUnlockFailure?.Invoke(message), CompletionNotification = message => { if (NotifyAutoUnlockCompletion) { AutoUnlockCompleted?.Invoke(message); NotifyWindows("Auto unlock complete", message); } } };
     public SteamAutoUnlockerViewModel SteamQueue => steamQueue ??= ObserveWorkflow(new SteamAutoUnlockerViewModel(steam, new NativeNotices(message => Notice = message)));
     public bool IsQueues => page == "Queues";
     public bool IsSteamQueue => page == "SteamQueue";
@@ -99,3 +99,4 @@ public sealed partial class DesktopModel
         if (xboxQueue?.IsRunning == true) _ = xboxQueue.StartStopAutoUnlock();
     }
 }
+
