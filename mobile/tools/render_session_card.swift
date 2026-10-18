@@ -20,10 +20,12 @@ import Foundation
     try png.write(to:URL(fileURLWithPath:"mobile/layout-previews/" + name + ".png"))
     print("Rendered \(name): \(cg.width/2) × \(cg.height/2) points")
 }
-try renderCard("iPhone-small",width:300)
-try renderCard("iPhone-regular",width:360)
-try renderCard("iPhone-long-names",width:300,longNames:true)
-try renderCard("iPhone-spoof-only",width:300,queue:false)
-try renderCard("iPhone-unlock-only",width:300,spoof:false)
-try renderCard("iPhone-stale",width:300,stale:true)
-try renderCard("iPad",width:600)
+try MainActor.assumeIsolated {
+    try renderCard("iPhone-small",width:300)
+    try renderCard("iPhone-regular",width:360)
+    try renderCard("iPhone-long-names",width:300,longNames:true)
+    try renderCard("iPhone-spoof-only",width:300,queue:false)
+    try renderCard("iPhone-unlock-only",width:300,spoof:false)
+    try renderCard("iPhone-stale",width:300,stale:true)
+    try renderCard("iPad",width:600)
+}
