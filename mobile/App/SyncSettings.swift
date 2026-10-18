@@ -44,7 +44,7 @@ struct SyncSettings: View {
             Section("PC sync") {
                 Button("Scan PC QR codes",systemImage:"qrcode.viewfinder") { scanImmediately = true; pcSync = true }.disabled(m.busy || m.running || m.presenceRunning)
                 Button("PC sync / import file",systemImage:"desktopcomputer") { scanImmediately = false; pcSync = true }.disabled(m.busy || m.running || m.presenceRunning)
-                Text("Click the mobile icon on PC. Select full sign-in or event-token-only QR. Transfers expire after 10 minutes; encrypted file import remains available.").font(.caption2).foregroundStyle(.secondary)
+                Text("Click the mobile icon on PC. Select full sign-in, sign-in only, or event-token-only QR. Transfers expire after 10 minutes; encrypted file import remains available.").font(.caption2).foregroundStyle(.secondary)
             }
             Section("Event data sync") {
                 Toggle("Sync new event games automatically",isOn:$m.autoSyncEvents)
@@ -85,8 +85,8 @@ struct PCSyncView: View {
                     Section("Verified account") {
                         Text(imported.gamertag).font(.headline)
                         if !m.pendingPCEventOnly { Button("Connect this PC account") { m.usePCTransfer(eventOnly:false) } }
-                        if m.account?.xuid == imported.xuid, !imported.eventToken.isEmpty { Button("Import event token only") { m.usePCTransfer(eventOnly:true) } }
-                        Text(m.pendingPCEventOnly ? "This QR contains only the event token. Your existing mobile sign-in and renewal stay in place." : "Connecting imports current authorization and the event token. Microsoft renewal credentials remain on PC. Event-only import preserves your remembered mobile sign-in.").font(.caption2).foregroundStyle(.secondary)
+                        if !m.pendingPCSignInOnly, m.account?.xuid == imported.xuid, !imported.eventToken.isEmpty { Button("Import event token only") { m.usePCTransfer(eventOnly:true) } }
+                        Text(m.pendingPCEventOnly ? "This QR contains only the event token. Your existing mobile sign-in and renewal stay in place." : "Connecting imports current authorization. Sign-in-only codes preserve an existing event token for the same account; full codes also import the event token. Microsoft renewal credentials remain on PC. Event-only import preserves your remembered mobile sign-in.").font(.caption2).foregroundStyle(.secondary)
                     }
                 }
             }.disabled(m.running || m.presenceRunning)
@@ -111,3 +111,4 @@ struct PCSyncView: View {
         }.onDisappear { key = ""; file = nil; m.pendingPCAccount = nil }
     }
 }
+

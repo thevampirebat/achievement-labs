@@ -167,6 +167,7 @@ struct QueueView: View {
     @State private var savedExpanded = false
     @State private var exportQueues = false
     @State private var importQueues = false
+    @State private var queueQR = false
     @State private var queueDocument = QueueJSONDocument(data:Data())
     var body: some View {
         NavigationStack {
@@ -217,6 +218,7 @@ struct QueueView: View {
                         Button("Export queue sync file") { do { queueDocument = QueueJSONDocument(data:try m.exportQueueTransfer()); exportQueues = true } catch { m.error = error.localizedDescription } }
                         Spacer(); Button("Import queue sync file") { importQueues = true }
                     }.font(.caption).disabled(m.running || m.busy || m.account == nil)
+                    Button("Queue QR export / scan",systemImage:"qrcode.viewfinder") { queueQR = true }.font(.caption).disabled(m.running || m.busy || m.account == nil)
                     if m.queueBook.sorted.isEmpty { Text("Queues are saved automatically for this account.").font(.caption).foregroundStyle(.secondary) }
                     ForEach(m.queueBook.sorted) { saved in
                         VStack(alignment:.leading,spacing:5) {
@@ -237,6 +239,7 @@ struct QueueView: View {
                     if m.queue.isEmpty { Text("Build a timing queue above, or select achievements from Library.").font(.caption).foregroundStyle(.secondary) }
                 }
             }.scrollDismissesKeyboard(.interactively).listSectionSpacing(.compact).navigationTitle("Auto Unlock").navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented:$queueQR) { QueueQRSyncView() }
             .fileExporter(isPresented:$exportQueues,document:queueDocument,contentType:.json,defaultFilename:"AchievementLabs-Queues") { result in if case .failure(let error) = result { m.error = error.localizedDescription } }
             .fileImporter(isPresented:$importQueues,allowedContentTypes:[.json]) { result in
                 do { let url = try result.get(); let access = url.startAccessingSecurityScopedResource(); defer { if access { url.stopAccessingSecurityScopedResource() } }; let size = try url.resourceValues(forKeys:[.fileSizeKey]).fileSize ?? 0; guard size <= 8*1024*1024 else { throw LabsError.message("Queue file is too large.") }; let data = try Data(contentsOf:url); Task { await m.importQueueTransfer(data) } }

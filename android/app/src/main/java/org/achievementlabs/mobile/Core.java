@@ -42,20 +42,22 @@ public final class Core {
   byte[] clear=c.doFinal(all);Arrays.fill(k,(byte)0);JSONObject p=new JSONObject(text(clear));Arrays.fill(clear,(byte)0);
   numeric(p.getString("xuid"));long expiry=p.getLong("expiresAt");if(p.getInt("schemaVersion")!=1||expiry<=now||expiry>now+900)throw new Exception("Transfer expired. Generate fresh PC codes.");
   if(eventOnly(p)){if(!p.optString("authorization").isEmpty()||p.optString("eventToken").isEmpty())throw new Exception("Invalid event-only transfer.");}
-  else{if(!p.optString("kind","account").equals("account"))throw new Exception("Unsupported transfer type.");token(p.getString("authorization"),false);}
+  else{if(!p.optString("kind","account").equals("account")&&!p.optString("kind").equals("signIn"))throw new Exception("Unsupported transfer type.");token(p.getString("authorization"),false);}
+  if(p.optString("kind").equals("signIn")&&!p.optString("eventToken").isEmpty())throw new Exception("Invalid sign-in-only transfer.");
   if(!p.optString("eventToken").isEmpty())token(p.getString("eventToken"),true);return p;
  }
  static final class Collector {
+  final boolean queueOnly; Collector(){this(false);} Collector(boolean queueOnly){this.queueOnly=queueOnly;}
   String digest;int total;Map<Integer,String> pieces=new HashMap<>();
   String progress(){return pieces.size()+" / "+total+" codes collected";}
   JSONObject add(String s)throws Exception{
    if(s.length()>1000)throw new Exception("Code too large.");String[] a=s.split("\\|",-1);
-   if(a.length!=5||!a[0].equals("ALPC1")||!a[1].matches("[a-f0-9]{64}"))throw new Exception("Scan an Achievement Labs PC code.");
+   if(a.length!=5||!a[0].equals(queueOnly?"ALQ1":"ALPC1")||!a[1].matches("[a-f0-9]{64}"))throw new Exception("Scan an Achievement Labs PC code.");
    int i=Integer.parseInt(a[2]),n=Integer.parseInt(a[3]);if(n<1||n>256||i<0||i>=n||a[4].isEmpty()||a[4].length()>800)throw new Exception("Invalid code.");
    if(digest!=null&&(!digest.equals(a[1])||total!=n))throw new Exception("Different transfer. Reset the scanner.");digest=a[1];total=n;
    if(pieces.containsKey(i)&&!pieces.get(i).equals(a[4]))throw new Exception("Conflicting code. Reset scanner.");pieces.put(i,a[4]);if(pieces.size()!=total)return null;
    StringBuilder joined=new StringBuilder();for(int x=0;x<total;x++)joined.append(pieces.get(x));byte[] data=un64(joined.toString());
-   if(data.length>180*1024||!hash(data).equals(digest))throw new Exception("QR checksum failed.");JSONObject p=new JSONObject(text(data));if(p.getString("key").length()!=43||un64(p.getString("file")).length>128*1024)throw new Exception("Invalid QR transfer.");return p;
+   if(data.length>180*1024||!hash(data).equals(digest))throw new Exception("QR checksum failed.");JSONObject p=new JSONObject(text(data));if(queueOnly){if(data.length>128*1024)throw new Exception("Queue QR too large.");return new JSONObject().put("queue",p);}if(p.getString("key").length()!=43||un64(p.getString("file")).length>128*1024)throw new Exception("Invalid QR transfer.");return p;
   }
  }
  static List<String> payloads(String template,JSONArray requests,String title,String xuid,long now)throws Exception{

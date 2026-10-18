@@ -64,6 +64,7 @@ public struct PCTransfer: Codable {
     public let schemaVersion: Int; public let xuid: String; public let authorization: String; public let eventToken: String
     public let kind: String?
     public var eventOnly: Bool { kind == "eventToken" }
+    public var signInOnly: Bool { kind == "signIn" }
     public let expiresAt: Int64; public let authorizationExpiresAt: String?
     public static func open(_ data: Data, key text: String, now: Date = Date()) throws -> PCTransfer {
         guard data.count <= 128*1024 else { throw LabsError.message("Transfer file is too large.") }
@@ -81,10 +82,12 @@ public struct PCTransfer: Codable {
         if transfer.eventOnly {
             guard transfer.authorization.isEmpty, !transfer.eventToken.isEmpty else { throw LabsError.message("Invalid event-token-only transfer.") }
         } else {
-            guard transfer.kind == nil || transfer.kind == "account" else { throw LabsError.message("Unsupported PC transfer type.") }
+            guard transfer.kind == nil || transfer.kind == "account" || transfer.signInOnly else { throw LabsError.message("Unsupported PC transfer type.") }
             _ = try Tokens.normalize(transfer.authorization,event:false)
         }
+        if transfer.signInOnly && !transfer.eventToken.isEmpty { throw LabsError.message("Sign-in-only transfer must not contain an event token.") }
         if !transfer.eventToken.isEmpty { _ = try Tokens.normalize(transfer.eventToken,event:true) }
         return transfer
     }
 }
+

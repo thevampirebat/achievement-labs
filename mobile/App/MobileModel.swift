@@ -49,6 +49,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     @Published var updateChecking = false
     @Published var updateStatus = "No update check yet."
     @Published var availableUpdate: MobileRelease?
+    @Published var pendingPCSignInOnly = false
     @Published var pendingPCEventOnly = false
     @Published var pendingPCAccount: Account?
     private var pendingPCExpiry: Date?
@@ -805,7 +806,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func preparePCTransfer(_ data: Data, key: String) async {
         guard !busy, !running, !presenceRunning else { return }; busy = true; defer { busy = false }
-        pendingPCAccount = nil; pendingPCEventOnly = false; pcSyncStatus = "Verifying the transferred Xbox account…"
+        pendingPCAccount = nil; pendingPCEventOnly = false; pendingPCSignInOnly = false; pcSyncStatus = "Verifying the transferred Xbox account…"
         do {
             let transfer = try PCTransfer.open(data,key:key)
             let authorization: String
@@ -815,11 +816,12 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             } else { authorization = transfer.authorization }
             var verified = try await api.connect(authorization)
             guard verified.xuid == transfer.xuid else { throw LabsError.message("The transferred authorization belongs to a different account.") }
-            verified.eventToken = transfer.eventToken.isEmpty ? "" : try Tokens.normalize(transfer.eventToken,event:true)
+            verified.eventToken = transfer.signInOnly ? (account?.xuid == transfer.xuid ? account!.eventToken : "") : (transfer.eventToken.isEmpty ? "" : try Tokens.normalize(transfer.eventToken,event:true))
             verified.authorizationExpiresAt = transfer.authorizationExpiresAt.flatMap(ServiceDates.parse)
+            pendingPCSignInOnly = transfer.signInOnly
             pendingPCEventOnly = transfer.eventOnly
             verified.loginProfile = "PC transfer"; pendingPCAccount = verified; pendingPCExpiry = Date(timeIntervalSince1970:Double(transfer.expiresAt))
-            pcSyncStatus = transfer.eventOnly ? "Verified \(verified.gamertag). Import the event token to your existing mobile sign-in." : "Verified \(verified.gamertag). Choose whether to connect this account or import only its event token."
+            pcSyncStatus = transfer.signInOnly ? "Verified \(verified.gamertag). Connect this PC sign-in; any existing event token for this account will be retained." : transfer.eventOnly ? "Verified \(verified.gamertag). Import the event token to your existing mobile sign-in." : "Verified \(verified.gamertag). Choose whether to connect this account or import only its event token."
         } catch { pcSyncStatus = error.localizedDescription }
     }
     func usePCTransfer(eventOnly: Bool) {
@@ -828,6 +830,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             guard let pendingPCExpiry, pendingPCExpiry > Date() else { pendingPCAccount = nil; throw LabsError.message("The transfer expired. Export a fresh file from PC.") }
             guard !pendingPCEventOnly || eventOnly else { throw LabsError.message("This QR contains only an event token. Choose Import event token only.") }
             if eventOnly {
+                guard !pendingPCSignInOnly else { throw LabsError.message("This transfer contains sign-in only.") }
                 guard var current = account, current.xuid == imported.xuid else { throw LabsError.message("Event-only sync requires the same Xbox account on both devices.") }
                 guard !imported.eventToken.isEmpty else { throw LabsError.message("The PC transfer contains no event token.") }
                 current.eventToken = imported.eventToken; try saveAccount(current)

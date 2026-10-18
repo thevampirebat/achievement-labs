@@ -3,6 +3,7 @@ import AVFoundation
 import LabsMobileCore
 
 struct PCQRScanner: View {
+    var queueOnly = false
     let completion: (Data,String) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var collector = QRTransferCollector()
@@ -22,9 +23,9 @@ struct PCQRScanner: View {
                 },onError: { cameraError = $0 }).clipShape(RoundedRectangle(cornerRadius:16))
                 Text(cameraError ?? status).font(.subheadline).multilineTextAlignment(.center)
                 if cameraError != nil, let url = URL(string:UIApplication.openSettingsURLString) { Link("Open camera permission settings",destination:url) }
-                Button("Reset scanner") { collector = QRTransferCollector(); status = collector.progress }
-                Text("These codes contain private sign-in information. Only scan your own PC transfer.").font(.caption).foregroundStyle(.secondary)
-            }.padding().navigationTitle("Scan PC codes").navigationBarTitleDisplayMode(.inline)
+                Button("Reset scanner") { collector = QRTransferCollector(queueOnly:queueOnly); status = collector.progress }
+                Text(queueOnly ? "Queue codes contain saved progress and delays, without sign-in tokens." : "These codes contain private sign-in information. Only scan your own PC transfer.").font(.caption).foregroundStyle(.secondary)
+            }.padding().onAppear { collector = QRTransferCollector(queueOnly:queueOnly) }.navigationTitle(queueOnly ? "Scan queue codes" : "Scan PC codes").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Cancel") { dismiss() } } }
         }
     }
@@ -77,3 +78,4 @@ private struct CameraReader: UIViewRepresentable {
         }
     }
 }
+

@@ -12,8 +12,8 @@ settings:
     TARGETED_DEVICE_FAMILY: "1,2"
     CODE_SIGN_STYLE: Automatic
     CODE_SIGN_ENTITLEMENTS: AppGroups.entitlements
-    MARKETING_VERSION: "0.11.0"
-    CURRENT_PROJECT_VERSION: "17"
+    MARKETING_VERSION: "0.12.0"
+    CURRENT_PROJECT_VERSION: "18"
 targets:
   AchievementLabsMobile:
     type: application
@@ -78,6 +78,7 @@ schemes:
     build:
       targets:
         AchievementLabsMobile: all
+
 
 
 
