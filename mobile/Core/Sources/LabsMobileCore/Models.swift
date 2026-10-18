@@ -54,6 +54,7 @@ public struct QueueItem: Codable, Identifiable {
     public var game: Game; public var achievement: Achievement; public var delay: Double; public var status: String
     public var referenceGamertag: String?
     public var referenceDate: Date?
+    public var remainingDelay: Double?
     public init(game: Game, achievement: Achievement, delay: Double) { self.game = game; self.achievement = achievement; self.delay = delay; status = "Waiting" }
 }
 public enum JSON {
@@ -141,3 +142,4 @@ public struct TimingPlan {
         return TimingPlan(items:items,skipped:skipped)
     }
 }
+

@@ -21,7 +21,7 @@ public final class SessionService extends Service {
  }
  @Override public int onStartCommand(Intent intent,int flags,int id){if(intent!=null&&"stopAll".equals(intent.getAction()))stopSessions("Sessions stopped from the notification.");else if(intent!=null&&"pauseQueue".equals(intent.getAction())){engine.pause();refresh(engine);}return START_NOT_STICKY;}
  Notification notification(){
-  String queue=engine.queueRunning?"Auto Unlock · "+engine.queue.length()+" queued" : engine.queueGate.finishing()?"Finishing current request":"Auto Unlock paused";
+  String queue=engine.queueRunning?"Auto Unlock · "+engine.queue.length()+" queued" : engine.queueGate.finishing()?"Finishing current request":"Auto Unlock not running";
   String spoof=engine.spoofRunning?"Spoofing "+engine.spoofTitle:"Spoofing stopped";
   PendingIntent open=PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
   PendingIntent stop=PendingIntent.getService(this,1,new Intent(this,SessionService.class).setAction("stopAll"),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
@@ -38,3 +38,4 @@ public final class SessionService extends Service {
  @Override public void onDestroy(){ending=true;main.removeCallbacksAndMessages(null);engine.backgroundReady=false;if(engine.queueRunning||engine.spoofRunning){engine.pause();engine.stopSpoof();}if(wake!=null&&wake.isHeld())wake.release();if(active==this)active=null;super.onDestroy();}
  @Override public IBinder onBind(Intent i){return null;}
 }
+

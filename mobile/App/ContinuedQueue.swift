@@ -71,12 +71,13 @@ import LabsMobileCore
         guard let token = lease.identifier, lease.finish(token) else { return }
         active = false
         if #available(iOS 26.0, *), let task = platformTask as? BGContinuedProcessingTask {
-            task.expirationHandler = nil; task.updateTitle(success ? "Session completed" : "Session paused",subtitle:"\(lease.completed) processed · verify Xbox progress"); task.setTaskCompleted(success:success)
+            task.expirationHandler = nil; task.updateTitle(success ? "Background task completed" : "Background task ended",subtitle:"Open app for current queue and spoofing status"); task.setTaskCompleted(success:success)
         }
         platformTask = nil
         if let identifier = requestIdentifier { BGTaskScheduler.shared.cancel(taskRequestWithIdentifier:identifier) }
         requestIdentifier = nil
-        status = success ? "Background session finished. Verify Xbox progress." : "Background session paused."
+        status = success ? "Background session finished. Verify Xbox progress." : "System background task ended; check current session status."
     }
 }
+
 

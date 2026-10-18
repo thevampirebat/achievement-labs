@@ -42,7 +42,7 @@ jobs:
         run: dotnet run --project tools/UpdaterChecks -c Release
 
       - name: Build self-contained Windows executable
-        run: ./tools/Build-Release.ps1 -Version 1.0.8 -BuildRevision 6
+        run: ./tools/Build-Release.ps1 -Version 1.0.8 -BuildRevision 7
 
       - name: Prepare download and checksum
         run: |
@@ -79,3 +79,4 @@ jobs:
           path: artifacts/download/
           if-no-files-found: error
           retention-days: 30
+

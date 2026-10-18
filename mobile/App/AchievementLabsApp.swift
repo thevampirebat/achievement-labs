@@ -14,6 +14,12 @@ import LabsMobileCore
                 SettingsView().tabItem { Label("Settings", systemImage: "gear") }.tag(3)
             }
             .environmentObject(model).tint(.green).preferredColorScheme(.dark)
+            .confirmationDialog("Add another game",isPresented:Binding(get:{ !model.pendingQueueItems.isEmpty },set:{ if !$0 { model.pendingQueueItems = [] } }),titleVisibility:.visible) {
+                Button("Append to current queue") { model.resolveQueueAddition(separate:false) }
+                Button("Save as a separate game queue") { model.resolveQueueAddition(separate:true) }
+                Button("Cancel",role:.cancel) { model.pendingQueueItems = [] }
+            } message: { Text("Append this game's achievements after the current items, or save it separately to load later.") }
+
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if model.busy { ProgressView(model.status).font(.caption).padding(8).frame(maxWidth: .infinity).background(.ultraThinMaterial) }
             }
@@ -190,10 +196,23 @@ struct QueueView: View {
                         Text(m.continueQueueInBackground ? "Background continuation is experimental. iOS can pause it; long delays may expire. Refresh Xbox to verify progress." : "Queues pause when you leave the app. Refresh achievements to verify accepted requests.").font(.caption2).foregroundStyle(.secondary)
                     }
                 }.font(.subheadline)
-                Section("Achievements") {
-                    ForEach(m.queue.indices,id: \.self) { i in
-                        QueueRow(index:i).id(m.queue[i].id)
+                Section("Saved game queues") {
+                    if m.queueBook.sorted.isEmpty { Text("Queues are saved automatically for this account.").font(.caption).foregroundStyle(.secondary) }
+                    ForEach(m.queueBook.sorted) { saved in
+                        VStack(alignment:.leading,spacing:5) {
+                            Text(saved.name).font(.subheadline.weight(.semibold))
+                            Text("\(saved.items.count) achievements · saved \(saved.updated.formatted(date:.abbreviated,time:.shortened))").font(.caption2).foregroundStyle(.secondary)
+                            HStack {
+                                Button("Load separately") { m.loadGameQueue(saved.id,append:false) }
+                                Spacer()
+                                Button("Append") { m.loadGameQueue(saved.id,append:true) }
+                            }.font(.caption).buttonStyle(.borderless).disabled(m.running || m.busy)
+                        }
                     }
+                    Text("Local to this device and Xbox account. Loading never starts unlocking; review and press Start.").font(.caption2).foregroundStyle(.secondary)
+                }
+                Section("Achievements") {
+                    ForEach(m.queue) { item in QueueRow(itemID:item.id) }
                     if m.queue.isEmpty { Text("Build a timing queue above, or select achievements from Library.").font(.caption).foregroundStyle(.secondary) }
                 }
             }.scrollDismissesKeyboard(.interactively).listSectionSpacing(.compact).navigationTitle("Auto Unlock").navigationBarTitleDisplayMode(.inline)
@@ -209,25 +228,19 @@ struct QueueView: View {
 }
 struct QueueRow: View {
     @EnvironmentObject var m: MobileModel
-    let index: Int
+    let itemID: String
     @FocusState private var delayFocused: Bool
     @State private var delayText = ""
-    @State private var editingID = ""
-    private func loadDelay() {
-        guard m.queue.indices.contains(index) else { return }
-        editingID = m.queue[index].id
-        delayText = (m.queue[index].delay / 60).formatted(.number.precision(.fractionLength(0...4)).grouping(.never))
-    }
+    private var item: QueueItem? { m.queue.first { $0.id == itemID } }
+    private func loadDelay() { if let item { delayText = (item.delay / 60).formatted(.number.precision(.fractionLength(0...4)).grouping(.never)) } }
     private func confirmDelay() {
-        guard m.queue.indices.contains(index), m.queue[index].id == editingID, !m.running else { delayFocused = false; m.editingQueueDelay = false; return }
+        guard item != nil, !m.running else { delayFocused = false; m.editingQueueDelay = false; return }
         guard let seconds = QueueDelayInput.seconds(delayText) else { m.error = "Enter a valid delay from 0 to 525600 minutes."; return }
-        m.queue[index].delay = seconds; m.saveQueue()
-        delayFocused = false; m.editingQueueDelay = false
+        m.editQueueItem(itemID,seconds:seconds); delayFocused = false; m.editingQueueDelay = false
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)
     }
     var body: some View {
-        if m.queue.indices.contains(index) {
-            let item = m.queue[index]
+        if let item {
             VStack(alignment:.leading,spacing:6) {
                 HStack(spacing:8) {
                     GameArt(url:item.game.image,size:30)
@@ -240,22 +253,18 @@ struct QueueRow: View {
                     TextField("Minutes",text:$delayText).keyboardType(.decimalPad).submitLabel(.done).focused($delayFocused).onSubmit { confirmDelay() }.multilineTextAlignment(.trailing).disabled(m.running).accessibilityIdentifier("queue-delay-field")
                 }
                 HStack {
-                    if item.status != "Waiting" { Button("Reset") { m.queue[index].status = "Waiting"; m.saveQueue() }.disabled(m.running) }
-                    Spacer(); Button("Remove",role:.destructive) { m.queue.remove(at:index); m.saveQueue() }.disabled(m.running || m.busy)
+                    if item.status != "Waiting" { Button("Reset") { m.resetQueueItem(itemID) }.disabled(m.running || m.busy) }
+                    Spacer(); Button("Remove",role:.destructive) { delayFocused = false; m.editingQueueDelay = false; m.removeQueueItem(itemID) }.disabled(m.running || m.busy)
                 }.font(.caption).buttonStyle(.borderless)
             }.padding(.vertical,2)
             .onAppear(perform:loadDelay)
-            .onChange(of:m.queue[index].delay) { _,_ in if !delayFocused { loadDelay() } }
-            .onChange(of:delayFocused) { was,isFocused in
-                m.editingQueueDelay = isFocused
-                if was && !isFocused, m.queue.indices.contains(index), m.queue[index].id == editingID, let seconds = QueueDelayInput.seconds(delayText), !m.running { m.queue[index].delay = seconds; m.saveQueue() }
+            .onChange(of:self.item?.delay) { _,_ in if !delayFocused { loadDelay() } }
+            .onChange(of:delayFocused) { was,focused in
+                m.editingQueueDelay = focused
+                if was && !focused, self.item != nil, let seconds = QueueDelayInput.seconds(delayText), !m.running { m.editQueueItem(itemID,seconds:seconds) }
             }
             .onDisappear { if delayFocused { m.editingQueueDelay = false } }
-            .toolbar {
-                ToolbarItemGroup(placement:.keyboard) {
-                    if delayFocused { Spacer(); Button("Done",action:confirmDelay).fontWeight(.semibold).accessibilityIdentifier("queue-delay-done") }
-                }
-            }
+            .toolbar { ToolbarItemGroup(placement:.keyboard) { if delayFocused { Spacer(); Button("Done",action:confirmDelay).fontWeight(.semibold).accessibilityIdentifier("queue-delay-done") } } }
         }
     }
 }
@@ -412,13 +421,14 @@ struct SettingsView: View {
                 }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.8.3").font(.headline)
+                    Text("Standalone iPhone and iPad app · 0.9.0").font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. New event games sync from the public upstream feed; Windows-specific tools are not included.").font(.caption).foregroundStyle(.secondary)
                     Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)
                 }
     }
 }
+
 
 
 

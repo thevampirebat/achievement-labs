@@ -19,7 +19,7 @@ static class Test
  {
   if(args.Contains("--token-validation")){EventTokenRegressionTests.Run();return;}
   if(args.Contains("--ui-tweaks")){UITweakTests.Run();return;}
-  if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();return;}
+  if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();SavedGameQueueTests.Run();return;}
   if(args.Contains("--playtime")){PlaytimeTests.Run();return;}
   if(args.Contains("--export")){ExportTests.Run();return;}
   if(args.Contains("--mapping")){MappingTests.Run();return;}
@@ -317,3 +317,4 @@ public class FakeWindow:Window
  public object model;
  public FakeWindow(Model m){model=m;Content=new StackPanel {Children={new Button{Content="Unlock / retry "}}};}
 }
+

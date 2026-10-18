@@ -32,3 +32,12 @@ run(`state.prefs.achievementFilter='All';state.prefs.achievementSort='Gamerscore
 assert.deepEqual(JSON.parse(run(`JSON.stringify(visibleAchievements().map(r=>r.id))`)),['1','2','9']);
 assert.deepEqual(JSON.parse(run(`JSON.stringify(rows.map(r=>r.id))`)),['2','1','9']);
 console.log('Achievement status filters, sorting, preserved catalogue order, DLC grouping and hidden selections passed.');
+
+
+run(`state.queue=[{game:{titleId:'7',name:'First game'},achievementId:'1',name:'First',delay:60,status:'Waiting'}];state.savedQueues=[{titleId:'8',name:'Separate game',count:2,updated:0}];state.prefs={}`);
+assert.match(run(`queuePage()`),/data-value="7\/1"/);
+assert.match(run(`queuePage()`),/data-delay="7\/1"/);
+assert.match(run(`queuePage()`),/Load separately/);
+assert.match(run(`savedQueueTile()`),/Separate game/);
+assert.match(run(`savedQueueTile()`),/Loading never starts unlocking/);
+console.log('Stable queue edit/removal identities and saved game controls passed.');

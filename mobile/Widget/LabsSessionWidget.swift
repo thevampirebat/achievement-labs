@@ -28,9 +28,10 @@ import ActivityKit
             } compactLeading: { Image(systemName:"gamecontroller.fill").foregroundStyle(.green) }
             compactTrailing: {
                 if !context.isStale, let start = context.state.spoofStarted { Text(start,style:.timer).monospacedDigit().frame(width:60) }
-                else { Image(systemName:"pause.fill") }
+                else { Image(systemName:context.isStale ? "clock.badge.questionmark" : "stop.fill") }
             } minimal: { Image(systemName:"gamecontroller.fill").foregroundStyle(.green) }
             .keylineTint(.green)
         }
     }
 }
+

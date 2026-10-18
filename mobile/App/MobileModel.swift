@@ -16,6 +16,10 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     @Published var rows: [Achievement] = []
     @Published var selectedGame: Game?
     @Published var queue: [QueueItem] = []
+    @Published var queueBook = SavedQueueBook()
+    @Published var pendingQueueItems: [QueueItem] = []
+    private var pendingQueueReplacesTitle = false
+    private var queueBookURL: URL? { account.map { directory.appendingPathComponent("queue-library-\($0.xuid).json") } }
     @Published var status = "Connect an Xbox account in Settings."
     @Published var busy = false
     @Published var running = false
@@ -245,7 +249,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         busy = true; defer { busy = false }
         browserLogin = nil; browserPending = false; generation = UUID(); renewalTask?.cancel()
         pauseQueue(); if let queueTask { await queueTask.value }; await stopPresence(); generation = UUID()
-        do { try SecureStore.remove(); await clearMicrosoftCookies(); account = nil; games = []; rows = []; queue = []; selectedGame = nil; baseCompleted = []; checkedCompletion = []; savedTotals = [:]; titleDetails = [:]; playedHours = [:]; status = "Disconnected." }
+        do { try SecureStore.remove(); await clearMicrosoftCookies(); account = nil; games = []; rows = []; queue = []; queueBook = SavedQueueBook(); pendingQueueItems = []; selectedGame = nil; baseCompleted = []; checkedCompletion = []; savedTotals = [:]; titleDetails = [:]; playedHours = [:]; status = "Disconnected." }
         catch { self.error = "Could not remove the Keychain session." }
     }
     func refreshGames() async {
@@ -299,26 +303,72 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func enqueue(_ selected: [Achievement], game: Game) {
         guard !running else { return }; queueTitle = game.id; titleDetails[game.id] = game
-        for row in selected where unavailable(row, game: game) == nil {
-            if !queue.contains(where: { $0.game.id == game.id && $0.achievement.id == row.id }) { queue.append(QueueItem(game: game, achievement: row, delay: max(0, min(queueDelay, 86400)))) }
-        }
-        saveQueue(); selectedTab = 1
+        let items = selected.filter { unavailable($0,game:game) == nil }.map { QueueItem(game:game,achievement:$0,delay:max(0,min(queueDelay,86400))) }
+        offerQueue(items, replaceTitle:false); selectedTab = 1
+    }
+    private func offerQueue(_ items: [QueueItem], replaceTitle: Bool) {
+        guard !items.isEmpty else { return }
+        if queue.contains(where:{ $0.game.id != items[0].game.id }) && !queue.contains(where:{ $0.game.id == items[0].game.id }) {
+            pendingQueueItems = items; pendingQueueReplacesTitle = replaceTitle
+        } else { applyQueueItems(items,replaceTitle:replaceTitle) }
+    }
+    func resolveQueueAddition(separate: Bool) {
+        guard !running, !pendingQueueItems.isEmpty else { return }
+        let items = pendingQueueItems; pendingQueueItems = []
+        if separate { queueBook.saveSeparate(items); _ = writeQueueBook(); status = "Saved a separate game queue. Load it from Saved game queues when ready." }
+        else { applyQueueItems(items,replaceTitle:pendingQueueReplacesTitle) }
+    }
+    private func applyQueueItems(_ items: [QueueItem], replaceTitle: Bool) {
+        if replaceTitle, let title = items.first?.game.id { queue.removeAll { $0.game.id == title } }
+        for item in items where !queue.contains(where:{ $0.id == item.id }) { queue.append(item) }
+        _ = saveQueue(); status = "Queue saved. Review before starting."
+    }
+    func loadGameQueue(_ id: String, append: Bool) {
+        guard !running, !busy, let saved = queueBook.games[id] else { return }
+        guard saveQueue() else { return }
+        if !append { queueBook.current = []; queue = [] }
+        var items = saved.items
+        for i in items.indices where items[i].status == "Submitting" { items[i].status = "Interrupted — refresh before retrying" }
+        applyQueueItems(items,replaceTitle:false); queueTitle = id
+        status = append ? "Saved game appended. Press Start when ready." : "Saved game loaded. Press Start when ready."
+    }
+    func removeQueueItem(_ id: String) {
+        guard !running, !busy else { return }
+        queue.removeAll { $0.id == id }; _ = saveQueue()
+    }
+    func resetQueueItem(_ id: String) {
+        guard !running, !busy, let i = queue.firstIndex(where:{ $0.id == id }) else { return }
+        queue[i].status = "Waiting"; queue[i].remainingDelay = nil; _ = saveQueue()
+    }
+    func editQueueItem(_ id: String, seconds: Double) {
+        guard !running, let i = queue.firstIndex(where:{ $0.id == id }), seconds.isFinite, (0...31_536_000).contains(seconds) else { return }
+        queue[i].delay = seconds; queue[i].remainingDelay = nil; _ = saveQueue()
     }
     @discardableResult func saveQueue() -> Bool {
-        guard let url = queueURL else { return false }
-        do { try JSONEncoder().encode(queue).write(to: url, options: [.atomic, (continueQueueInBackground || continueSpoofInBackground) ? .completeFileProtectionUntilFirstUserAuthentication : .completeFileProtection]); return true }
-        catch { self.error = "Could not save queue changes."; queueTask?.cancel(); return false }
+        guard account != nil else { return false }
+        queueBook.capture(queue); return writeQueueBook()
+    }
+    @discardableResult private func writeQueueBook() -> Bool {
+        guard let url = queueBookURL else { return false }
+        do {
+            try queueBook.validate()
+            try JSONEncoder().encode(queueBook).write(to:url,options:[.atomic,(continueQueueInBackground || continueSpoofInBackground) ? .completeFileProtectionUntilFirstUserAuthentication : .completeFileProtection])
+            return true
+        } catch { self.error = "Could not save queue changes."; queueTask?.cancel(); return false }
     }
     private func loadQueue() {
-        guard let url = queueURL, FileManager.default.fileExists(atPath: url.path) else { return }
+        queueBook = SavedQueueBook(); pendingQueueItems = []
         do {
-            queue = try JSONDecoder().decode([QueueItem].self, from: Data(contentsOf: url))
-            for i in queue.indices {
-                if !queue[i].delay.isFinite || queue[i].delay < 0 || queue[i].delay > 31_536_000 { throw LabsError.message("Invalid saved delay.") }
+            if let url = queueBookURL, FileManager.default.fileExists(atPath:url.path) {
+                queueBook = try JSONDecoder().decode(SavedQueueBook.self,from:Data(contentsOf:url))
+            } else if let url = queueURL, FileManager.default.fileExists(atPath:url.path) {
+                // Preserve the original file while migrating the former one-queue format.
+                queueBook.capture(try JSONDecoder().decode([QueueItem].self,from:Data(contentsOf:url)))
             }
-            queueTitle = queue.first?.game.id ?? ""
+            try queueBook.validate(); queue = queueBook.current
             for i in queue.indices where queue[i].status == "Submitting" { queue[i].status = "Interrupted — refresh before retrying" }
-        } catch { self.error = "The saved queue could not be read." }
+            queueTitle = queue.first?.game.id ?? ""; _ = saveQueue()
+        } catch { self.error = "The saved queue could not be read. Existing files were retained." }
     }
     func startQueue() {
         guard let account, foreground, !running, !busy, queue.contains(where: { $0.status == "Waiting" }) else { return }
@@ -356,8 +406,14 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                     guard var row = current.first(where: { $0.id == item.achievement.id }), row.name == item.achievement.name else { throw LabsError.message("Achievement metadata changed; rebuild this queue item.") }
                     row.eventBased = current.contains(where: \.eventBased)
                     if row.unlocked { self.queue[index].status = "Already unlocked"; self.saveQueue(); self.continuedQueue.advance(); continue }
-                    self.nextAction = Date().addingTimeInterval(item.delay)
-                    try await Task.sleep(nanoseconds: UInt64(max(0,min(item.delay,31_536_000)) * 1_000_000_000))
+                    let wait = max(0,min(item.remainingDelay ?? item.delay,31_536_000))
+                    self.nextAction = Date().addingTimeInterval(wait)
+                    while let next = self.nextAction, next > Date() {
+                        self.queue[index].remainingDelay = max(0,next.timeIntervalSinceNow)
+                        guard self.saveQueue() else { throw LabsError.message("Could not checkpoint queue delay.") }
+                        try await Task.sleep(nanoseconds:UInt64(min(10,max(0,next.timeIntervalSinceNow))*1_000_000_000))
+                    }
+                    self.queue[index].remainingDelay = nil
                     try Task.checkCancellation()
                     self.queue[index].status = "Submitting"
                     guard self.saveQueue() else { throw LabsError.message("Queue could not be saved; action was not sent.") }
@@ -380,7 +436,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
-    func pauseQueue() { if running { backgroundHadFailure = true }; queueTask?.cancel(); nextAction = nil; finishSessionIfIdle(); status = "Queue paused. Saved items can be reviewed before resuming." }
+    func pauseQueue() { if running { backgroundHadFailure = true; if let next = nextAction, let i = queue.firstIndex(where:{ $0.status == "Waiting" }) { queue[i].remainingDelay = max(0,next.timeIntervalSinceNow); _ = saveQueue() } }; queueTask?.cancel(); nextAction = nil; finishSessionIfIdle(); status = "Queue paused. Saved items can be reviewed before resuming." }
     func removeCompleted() async {
         guard let account, !running, !busy else { return }; busy = true; defer { busy = false }
         do {
@@ -491,13 +547,13 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func updateSessionCard() {
         let accepted = queue.filter { $0.status.hasPrefix("Accepted") || $0.status == "Already unlocked" }.count
-        let queueText = running ? "Queue \(accepted)/\(queue.count) processed" : "Queue paused"
+        let queueText = running ? "Queue \(accepted)/\(queue.count) processed" : (queue.isEmpty ? "No queue running" : "Queue ready")
         let spoofText: String
         if let start = presenceStarted, presenceRunning {
             let seconds = max(0,Int(Date().timeIntervalSince(start)))
             spoofText = String(format:"Spoof %02d:%02d",seconds/60,seconds%60)
         } else { spoofText = "Spoof stopped" }
-        continuedQueue.update(title:"Achievement Labs",subtitle:queueText+" · "+spoofText)
+        continuedQueue.update(title:presenceRunning && !running ? "Title spoofing active" : "Achievement Labs",subtitle:spoofText+" · "+queueText)
         liveStatus.update(.init(spoofStarted:presenceStarted,queueHandled:queue.filter { $0.status != "Waiting" && $0.status != "Submitting" }.count,queueTotal:queue.count,queueRunning:running,nextAction:nextAction),enabled:extendedAudio.active && (presenceRunning || running) && !continuedQueue.active)
     }
     func finishSessionIfIdle() {
@@ -611,7 +667,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             let plan = try TimingPlan.build(game:game,own:own,reference:dated,gamertag:reference.gamertag) { unavailable($0,game:game) == nil }
             guard version == generation else { return }
             guard !plan.items.isEmpty else { throw LabsError.message("No matching locked achievements with available actions were found. Existing queue retained.") }
-            queue.removeAll { $0.game.id == title }; queue += plan.items; titleDetails[title] = game
+            offerQueue(plan.items,replaceTitle:true); titleDetails[title] = game
             referenceInfo = "\(reference.gamertag) · \(plan.items.count) queued · \(plan.skipped) skipped"
             rememberCompletion(own,game:game); saveQueue(); status = "Timing queue loaded. Review delays, then start when ready."
         } catch { self.error = error.localizedDescription; status = "Timing import failed; review the existing queue." }
@@ -752,6 +808,7 @@ private final class PreviewOfflineProtocol: URLProtocol {
     override func stopLoading() {}
 }
 #endif
+
 
 
 
