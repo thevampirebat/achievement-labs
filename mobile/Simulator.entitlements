@@ -3,4 +3,6 @@
 <plist version="1.0"><dict>
   <key>application-identifier</key><string>SIMULATOR.org.achievementlabs.mobile</string>
   <key>keychain-access-groups</key><array><string>SIMULATOR.org.achievementlabs.mobile</string></array>
+<key>com.apple.security.application-groups</key><array><string>group.org.achievementlabs.mobile</string></array>
 </dict></plist>
+

@@ -13,5 +13,7 @@
   <provider android:name="androidx.core.content.FileProvider" android:authorities="org.achievementlabs.mobile.updates" android:exported="false" android:grantUriPermissions="true"><meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/update_paths"/></provider>
   <activity android:name=".ScanActivity" android:exported="false" android:screenOrientation="portrait"/>
   <activity android:name=".LoginActivity" android:exported="false"/>
+  <receiver android:name=".SessionWidget" android:exported="false" android:label="Labs sessions"><intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter><meta-data android:name="android.appwidget.provider" android:resource="@xml/session_widget_info"/></receiver>
  </application>
 </manifest>
+

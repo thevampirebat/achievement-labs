@@ -36,3 +36,13 @@ print('Offline foreground session survived backgrounding and Activity replacemen
 log=run('adb','logcat','-d','-s','AndroidRuntime:E')
 assert 'FATAL EXCEPTION' not in log,log
 print('Five offline Android screens launched without credentials or Xbox requests.')
+
+
+# Inflate the shipped RemoteViews and exercise both native timer bases and next-item transitions.
+subprocess.run(['adb','shell','am','force-stop','org.achievementlabs.mobile'],check=True)
+subprocess.run(['adb','shell','am','start','-W','-n','org.achievementlabs.mobile/.MainActivity','--ez','preview','true','--ez','widgetTest','true'],check=True)
+time.sleep(4)
+widget=json.loads(run('adb','shell','run-as','org.achievementlabs.mobile','cat','files/widget-self-test.json'))
+assert widget['passed'] and widget['timerTransitions'] and not widget['network'], widget
+with open('android/artifacts/Android-widget.png','wb') as out: subprocess.run(['adb','exec-out','screencap','-p'],stdout=out,check=True)
+print('Native session widget: elapsed/countdown directions, advancing next achievement and paused timer removal passed. No network.')

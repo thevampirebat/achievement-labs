@@ -6,7 +6,7 @@ private struct SpoofClock: View {
     let state: LabsSessionAttributes.ContentState
     var body: some View {
         if let start = state.spoofStarted {
-            Text(timerInterval:start...max(start,state.validUntil ?? start),countsDown:false).monospacedDigit()
+            Text(timerInterval:start...max(start,state.spoofExpires ?? start.addingTimeInterval(600)),countsDown:false).monospacedDigit()
         } else { Text("—") }
     }
 }
@@ -14,11 +14,11 @@ private struct UnlockClock: View {
     let state: LabsSessionAttributes.ContentState
     var body: some View {
         if let next = state.nextAction, state.queueRunning {
-            Text(timerInterval:min(state.updatedAt ?? next,next)...next,countsDown:true).monospacedDigit()
+            Text(timerInterval:next.addingTimeInterval(-31_536_000)...next,countsDown:true).monospacedDigit().id((state.queueItemID ?? "") + String(next.timeIntervalSince1970))
         } else { Text(state.queueRunning ? "…" : "—") }
     }
 }
-@main struct LabsSessionWidget: Widget {
+struct LabsSessionWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for:LabsSessionAttributes.self) { context in
             VStack(alignment:.leading,spacing:7) {

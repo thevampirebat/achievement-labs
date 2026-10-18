@@ -402,7 +402,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         var items = saved.items
         for i in items.indices where items[i].status == "Submitting" { items[i].status = "Interrupted — refresh before retrying" }
         applyQueueItems(items,replaceTitle:false); queueTitle = id
-        status = append ? "Saved game appended. Press Start when ready." : "Saved game loaded. Press Start when ready."
+        status = append ? "Saved game added to end of queue. Press Start when ready." : "Saved game loaded. Press Start when ready."
     }
     func removeQueueItem(_ id: String) {
         guard !running, !busy else { return }
@@ -475,14 +475,14 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             while case .send(let index) = QueuePolicy.next(self.queue,stopOnFailure:self.stopOnFailure) {
                 if Task.isCancelled || (!self.foreground && !self.queueBackgroundAllowed) || version != self.generation { break }
                 let item = self.queue[index]; self.nextQueueItemID = item.id; var submitted = false
+                let wait = max(0,min(item.remainingDelay ?? item.delay,31_536_000))
+                self.nextAction = Date().addingTimeInterval(wait); self.startSessionStatusUpdates(); self.updateSessionCard()
                 do {
                     // Re-read current account progress and event metadata before each action.
                     let current = try await self.readWithAccount { try await self.api.achievements(item.game,account:$0) }
                     guard var row = current.first(where: { $0.id == item.achievement.id }), row.name == item.achievement.name else { throw LabsError.message("Achievement metadata changed; rebuild this queue item.") }
                     row.eventBased = current.contains(where: \.eventBased)
                     if row.unlocked { self.queue[index].status = "Already unlocked"; self.saveQueue(); self.continuedQueue.advance(); continue }
-                    let wait = max(0,min(item.remainingDelay ?? item.delay,31_536_000))
-                    self.nextAction = Date().addingTimeInterval(wait); self.startSessionStatusUpdates(); self.updateSessionCard()
                     while let next = self.nextAction, next > Date() {
                         self.queue[index].remainingDelay = max(0,next.timeIntervalSinceNow)
                         guard self.saveQueue() else { throw LabsError.message("Could not checkpoint queue delay.") }
@@ -528,7 +528,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func startPresence(_ title: String) {
         guard let account, presenceTask == nil, !presenceStopping, foreground, JSON.numeric(title) else { return }
-        spoofStopReason = ""; spoofCleanupStatus = ""; presenceTitle = title; presenceRunning = true; spoofDiagnostics = ""; spoofStatus = "Sending heartbeat…"
+        spoofStopReason = ""; spoofCleanupStatus = ""; lastHeartbeat = nil; presenceTitle = title; presenceRunning = true; spoofDiagnostics = ""; spoofStatus = "Sending heartbeat…"
         presenceTask = Task { [weak self] in
             guard let self else { return }
             defer { self.presenceStarted = nil; self.presenceRunning = false; self.presenceTask = nil; self.updateSessionCard(); self.presenceDeadline = nil; if !self.presenceStopping { self.extendedAudio.stop() }; self.finishSessionIfIdle(); if !self.foreground && self.running && !self.queueBackgroundAllowed { self.pauseQueue() }; UIApplication.shared.isIdleTimerDisabled = self.running }
@@ -584,7 +584,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
-    func terminating() { queueTask?.cancel(); presenceTask?.cancel(); liveStatus.end(); extendedAudio.stop() }
+    func terminating() { WidgetSnapshotStore.write(nil,active:false); queueTask?.cancel(); presenceTask?.cancel(); liveStatus.end(); extendedAudio.stop() }
     func stopPresence(reason: String = "Stopped by user.", notifyStop: Bool = false) async {
         guard !presenceStopping, presenceTask != nil || presenceStarted != nil || presenceCleanupNeeded else { return }
         presenceStopping = true; presenceCleanupNeeded = false
@@ -629,7 +629,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                     do { try await Task.sleep(nanoseconds:15_000_000_000); try Task.checkCancellation() } catch { return }
                     if let end = self.presenceDeadline, end <= Date(), (self.extendedAudio.active || !(self.continueSpoofWithQueue && self.queueBackgroundAllowed)) { Task { await self.stopPresence(reason:"Configured spoof session limit reached.", notifyStop:true) }; return }
                     if self.extendedAudio.active && !self.extendedAudio.playing { Task { await self.stopPresence(reason:"Extended audio playback stopped. Resume manually.", notifyStop:true) }; return }
-                    self.updateSessionCard()
+                    // Live Activity updates are sent on transitions and heartbeats.
                 }
             }
         }
@@ -644,7 +644,9 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         } else { spoofText = "Spoof stopped" }
         continuedQueue.update(title:presenceRunning && !running ? "Title spoofing active" : "Achievement Labs",subtitle:spoofText+" · "+queueText)
         let current = nextQueueItem
-        liveStatus.update(.init(spoofStarted:presenceStarted,queueHandled:queue.filter { QueuePolicy.terminal($0.status) }.count,queueTotal:queue.count,queueRunning:running,nextAction:nextAction,spoofGame:gameForTitle(presenceTitle)?.name ?? presenceTitle,queueGame:current?.game.name ?? "",nextAchievement:current?.achievement.name ?? "",updatedAt:Date(),validUntil:Date().addingTimeInterval(45)),enabled:presenceRunning || running)
+        let expiry = SessionTiming.spoofExpiry(lastHeartbeat:lastHeartbeat,started:presenceStarted)
+        let stale = SessionTiming.staleDate(now:Date(),spoofExpiry:presenceRunning ? expiry : nil,nextAction:nextAction,queueRunning:running)
+        liveStatus.update(.init(spoofStarted:presenceStarted,queueHandled:queue.filter { QueuePolicy.terminal($0.status) }.count,queueTotal:queue.count,queueRunning:running,nextAction:nextAction,spoofGame:gameForTitle(presenceTitle)?.name ?? presenceTitle,queueGame:current?.game.name ?? "",nextAchievement:current?.achievement.name ?? "",updatedAt:Date(),validUntil:stale,spoofExpires:expiry,queueItemID:current?.id),enabled:presenceRunning || running)
     }
     func finishSessionIfIdle() {
         let queueWanted = running && queueTask?.isCancelled != true && continueQueueInBackground
@@ -716,7 +718,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         }
     }
     #endif
-    func active() { foreground = true; Task { await maintainOnOpen() } }
+    func active() { foreground = true; updateSessionCard(); Task { await maintainOnOpen() } }
     func requestNotifications() async { do { _ = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert,.sound]) } catch { self.error = error.localizedDescription } }
     private func notify(_ title: String, body: String) async {
         let content = UNMutableNotificationContent(); content.title = title; content.body = body; content.sound = .default

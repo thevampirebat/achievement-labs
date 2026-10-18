@@ -26,8 +26,10 @@ public final class SessionService extends Service {
   PendingIntent open=PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
   PendingIntent stop=PendingIntent.getService(this,1,new Intent(this,SessionService.class).setAction("stopAll"),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
   PendingIntent pause=PendingIntent.getService(this,2,new Intent(this,SessionService.class).setAction("pauseQueue"),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
-  String next=engine.nextAt>0?"Next action "+android.text.format.DateFormat.format("HH:mm:ss",engine.nextAt):"";
+  String next=engine.queueRunning?engine.nextQueueGame+" · "+engine.nextQueueName+"\n"+(engine.nextAt>0?"Next action "+android.text.format.DateFormat.format("HH:mm:ss",engine.nextAt):"Checking / submitting…"):"";
   Notification.Builder b=new Notification.Builder(this,"sessions").setSmallIcon(android.R.drawable.stat_notify_sync).setContentTitle(engine.preview?"Achievement Labs · offline background test":"Achievement Labs is running").setContentText(queue+" · "+spoof).setStyle(new Notification.BigTextStyle().bigText(queue+"\n"+spoof+"\n"+next)).setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true).setCategory(Notification.CATEGORY_SERVICE).setVisibility(Notification.VISIBILITY_PRIVATE).addAction(new Notification.Action.Builder(null,"Stop all",stop).build());
+  if(engine.queueRunning&&engine.nextAt>System.currentTimeMillis())b.setWhen(engine.nextAt).setUsesChronometer(true).setChronometerCountDown(true);
+  else if(engine.spoofRunning&&engine.spoofStarted>0)b.setWhen(engine.spoofStarted).setUsesChronometer(true);
   if(engine.queueRunning)b.addAction(new Notification.Action.Builder(null,"Pause queue",pause).build());return b.build();
  }
  void update(){try{getSystemService(NotificationManager.class).notify(ID,notification());}catch(SecurityException e){stopSessions("Notification permission was removed; sessions paused.");}}
@@ -35,7 +37,7 @@ public final class SessionService extends Service {
  void stopSessions(String reason){if(ending)return;ending=true;engine.backgroundReady=false;engine.pause();engine.stopSpoof();engine.notice=reason;engine.notifyUser("Achievement Labs paused",reason);engine.push();stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();}
  @Override public void onTimeout(int startId,int type){stopSessions("Android's background time limit was reached. Open the app to review and resume.");}
  @Override public void onTaskRemoved(Intent root){/* Explicit foreground sessions continue when the task is dismissed. */}
- @Override public void onDestroy(){ending=true;main.removeCallbacksAndMessages(null);engine.backgroundReady=false;if(engine.queueRunning||engine.spoofRunning){engine.pause();engine.stopSpoof();}if(wake!=null&&wake.isHeld())wake.release();if(active==this)active=null;super.onDestroy();}
+ @Override public void onDestroy(){ending=true;main.removeCallbacksAndMessages(null);engine.backgroundReady=false;if(engine.queueRunning||engine.spoofRunning){engine.pause();engine.stopSpoof();}if(wake!=null&&wake.isHeld())wake.release();if(active==this)active=null;SessionWidget.refresh(this);super.onDestroy();}
  @Override public IBinder onBind(Intent i){return null;}
 }
 

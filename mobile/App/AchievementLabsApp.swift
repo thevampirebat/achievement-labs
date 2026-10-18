@@ -38,6 +38,12 @@ import UniformTypeIdentifiers
                 #endif
                 await model.maintainOnOpen()
             }
+            .onOpenURL { url in
+                guard url.scheme == "achievementlabs" else { return }
+                if url.host == "queue" { model.selectedTab = 1; if url.path == "/pause" { model.pauseQueue() } }
+                else if url.host == "spoof" { model.selectedTab = 2; if url.path == "/stop" { Task { await model.stopPresence() } } }
+                else { model.selectedTab = 4 }
+            }
             .onReceive(NotificationCenter.default.publisher(for:UIApplication.willTerminateNotification)) { _ in model.terminating() }
             .onChange(of: phase) { _, value in if value == .active { model.active() } else if value == .background { model.background() } }
         }
@@ -181,7 +187,7 @@ struct QueueView: View {
                         if m.continueQueueInBackground { Text(m.extendedAudio.active ? m.extendedAudio.status : m.continuedQueue.status).font(.caption2).foregroundStyle(.secondary) }
                         TimelineView(.periodic(from:.now,by:1)) { timeline in
                             VStack(alignment:.leading,spacing:3) {
-                                if let next = m.nextAction { HStack { Text("Next action"); Spacer(); Text(next,style:.timer).monospacedDigit() } }
+                                if let next = m.nextAction { HStack { Text("Next action"); Spacer(); Text(timerInterval:next.addingTimeInterval(-31_536_000)...next,countsDown:true).monospacedDigit().id(next) } }
                                 let remaining = remaining(at:timeline.date)
                                 if remaining > 0 { Text("Estimated finish: " + timeline.date.addingTimeInterval(remaining).formatted(date:.abbreviated,time:.shortened)).foregroundStyle(.secondary) }
                             }.font(.caption)
@@ -223,7 +229,7 @@ struct QueueView: View {
                             }.font(.caption).buttonStyle(.borderless).disabled(m.running || m.busy)
                         }
                     }
-                    Text("Export and import a queue sync file to move saved games between PC, iOS and Android for this account. Loading requires Start.").font(.caption2).foregroundStyle(.secondary)
+                    Text("To sync: Export queue sync file → copy the JSON file to your other device → Import queue sync file there while signed into the same account. This is a manual transfer; loading requires Start.").font(.caption2).foregroundStyle(.secondary)
                     }
                 }
                 Section("Achievements") {
@@ -416,6 +422,11 @@ struct SettingsView: View {
                 }
     }
     @ViewBuilder private var appSettings: some View {
+                Section("Home-screen widget") {
+                    Text("Long-press the iPhone or iPad home screen → Edit → Add Widget → Achievement Labs → Labs sessions.").font(.caption)
+                    Text("The widget shows session timers and the next achievement. Its controls open the app. Widgets do not keep sessions running in the background.").font(.caption2).foregroundStyle(.secondary)
+                    Text(WidgetSnapshotStore.available ? "Sharing session status with widgets is available." : "This signing profile does not provide App Groups storage. The widget can open the app, but live session data needs App Groups support when signing.").font(.caption2).foregroundStyle(.secondary)
+                }
                 Section("Background sessions · experimental") {
                     Toggle("Allow standalone background spoofing",isOn:$m.continueSpoofInBackground).disabled(m.running || m.presenceRunning).onChange(of:m.continueSpoofInBackground) { _,_ in m.updateBackgroundPreference() }
                     if m.continueSpoofInBackground {
@@ -428,7 +439,7 @@ struct SettingsView: View {
                         Toggle("Keep spoofing alongside queue",isOn:$m.continueSpoofWithQueue).disabled(m.running || m.presenceRunning || !m.continueQueueInBackground)
                     }
                     Text(m.extendedAudio.active ? m.extendedAudio.status : m.continuedQueue.status).font(.caption)
-                    Text("System-task mode requires iOS 26 and a grant before leaving. Extended audio works only during your finite spoofing session. iOS can still stop either mode. Accepted actions need Xbox verification. Start spoofing before the queue to share extended mode.").font(.caption2).foregroundStyle(.secondary)
+                    Text("System-task mode requires iOS 26 and a grant before leaving. Extended audio works only during your finite spoofing session. iOS can still stop either mode. Accepted actions need Xbox verification. Either session can start first; extended mode is shared once spoofing begins.").font(.caption2).foregroundStyle(.secondary)
                     Text("When background mode is enabled, remembered sign-in and queue files remain accessible after the first device unlock. They stay protected on this device.").font(.caption2).foregroundStyle(.secondary)
                 }
                 Section("Secure connections") {
@@ -442,7 +453,7 @@ struct SettingsView: View {
                 }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.10.0").font(.headline)
+                    Text("Standalone iPhone and iPad app · 0.11.0").font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. New event games sync from the public upstream feed; Windows-specific tools are not included.").font(.caption).foregroundStyle(.secondary)
                     Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)

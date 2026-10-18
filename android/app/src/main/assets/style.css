@@ -4,3 +4,7 @@
 
 
 dialog{background:#202222;color:#fff;border:1px solid #555;border-radius:18px;max-width:90vw;padding:20px}dialog::backdrop{background:#0009}
+
+.session-clock{font-size:1.35rem;font-weight:700;color:var(--accent,#27cd55);font-variant-numeric:tabular-nums;margin:.5rem 0}
+
+.session-clock.paused{color:#a6aea8}

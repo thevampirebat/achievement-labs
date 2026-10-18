@@ -12,5 +12,7 @@ struct LabsSessionAttributes: ActivityAttributes {
         var nextAchievement: String?
         var updatedAt: Date?
         var validUntil: Date?
+        var spoofExpires: Date?
+        var queueItemID: String?
     }
 }

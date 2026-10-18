@@ -2,6 +2,7 @@
 import json
 import subprocess
 import time
+import re
 from pathlib import Path
 
 def run(*args):
@@ -10,13 +11,16 @@ def run(*args):
 devices=json.loads(run('xcrun','simctl','list','devices','available','--json'))['devices']
 available=[(runtime,d) for runtime,group in devices.items() if 'iOS-26' in runtime for d in group if d['name'].startswith('iPhone')]
 assert available, 'No iOS 26 simulator for background API checks'
-available.sort(key=lambda pair:('Max' in pair[1]['name'],'Plus' in pair[1]['name'],'Pro' in pair[1]['name'],pair[1]['name']))
+def runtime_version(runtime):
+    tail=runtime.rsplit('iOS-',1)[-1]
+    return tuple(-int(n) for n in re.findall(r'\d+',tail))
+available.sort(key=lambda pair:(runtime_version(pair[0]),'Max' in pair[1]['name'],'Plus' in pair[1]['name'],'Pro' in pair[1]['name'],pair[1]['name']))
 runtime, model=available[0]
 types=json.loads(run('xcrun','simctl','list','devicetypes','--json'))['devicetypes']
 device_type=next(t['identifier'] for t in types if t['name'] == model['name'])
 # A fresh device avoids repeatedly booting a broken pre-created runner snapshot.
 device=run('xcrun','simctl','create','Achievement Labs CI',device_type,runtime).strip()
-print('Chosen fresh simulator: '+model['name'],flush=True)
+print('Chosen fresh simulator: '+model['name']+' · '+runtime,flush=True)
 import atexit
 def cleanup():
     subprocess.run(['xcrun','simctl','shutdown',device],check=False,timeout=30)
@@ -93,4 +97,5 @@ assert result['available'] and result['finishedInactive'], 'Background request d
 assert result['manifestValid'], 'Background identifiers/modes missing from the built app'
 print('iOS 26 background API request completed or safely declined with no network: '+str(result))
 subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+
 
