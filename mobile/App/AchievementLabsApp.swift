@@ -1,5 +1,6 @@
 import SwiftUI
 import LabsMobileCore
+import UniformTypeIdentifiers
 
 @main struct AchievementLabsApp: App {
     @StateObject private var model = MobileModel()
@@ -15,10 +16,10 @@ import LabsMobileCore
             }
             .environmentObject(model).tint(.green).preferredColorScheme(.dark)
             .confirmationDialog("Add another game",isPresented:Binding(get:{ !model.pendingQueueItems.isEmpty },set:{ if !$0 { model.pendingQueueItems = [] } }),titleVisibility:.visible) {
-                Button("Append to current queue") { model.resolveQueueAddition(separate:false) }
+                Button("Add to end of current queue") { model.resolveQueueAddition(separate:false) }
                 Button("Save as a separate game queue") { model.resolveQueueAddition(separate:true) }
                 Button("Cancel",role:.cancel) { model.pendingQueueItems = [] }
-            } message: { Text("Append this game's achievements after the current items, or save it separately to load later.") }
+            } message: { Text("Add this game's achievements after the current items, or save it separately to load later.") }
 
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if model.busy { ProgressView(model.status).font(.caption).padding(8).frame(maxWidth: .infinity).background(.ultraThinMaterial) }
@@ -37,6 +38,7 @@ import LabsMobileCore
                 #endif
                 await model.maintainOnOpen()
             }
+            .onReceive(NotificationCenter.default.publisher(for:UIApplication.willTerminateNotification)) { _ in model.terminating() }
             .onChange(of: phase) { _, value in if value == .active { model.active() } else if value == .background { model.background() } }
         }
     }
@@ -122,6 +124,7 @@ struct AchievementView: View {
                     Button("Select visible") { for row in visible where m.unavailable(row, game: game) == nil { selected.insert(row.id) } }
                     Spacer(); Button("Clear") { selected = [] }
                 }.font(.caption)
+                Button("Unlock \(selected.count) selected together") { Task { await m.unlockTogether(m.rows.filter { selected.contains($0.id) },game:game) } }.disabled(selected.isEmpty || m.running || m.busy)
                 Button("Add \(selected.count) to queue") { m.enqueue(m.rows.filter { selected.contains($0.id) }, game: game) }.disabled(selected.isEmpty || m.running)
             }
             ForEach(groupNames, id: \.self) { group in
@@ -155,6 +158,10 @@ struct AchievementView: View {
 struct QueueView: View {
     @EnvironmentObject var m: MobileModel
     @State private var options = false
+    @State private var savedExpanded = false
+    @State private var exportQueues = false
+    @State private var importQueues = false
+    @State private var queueDocument = QueueJSONDocument(data:Data())
     var body: some View {
         NavigationStack {
             List {
@@ -170,6 +177,7 @@ struct QueueView: View {
                     VStack(alignment:.leading,spacing:8) {
                         HStack { Label(m.running ? "Running" : "Paused",systemImage:m.running ? "play.fill" : "pause.fill"); Spacer(); Text("\(m.queue.count) items").foregroundStyle(.secondary) }.font(.subheadline)
                         Text(m.status).font(.caption).foregroundStyle(.secondary).lineLimit(3)
+                        if let item = m.nextQueueItem { Text(item.game.name + " · " + item.achievement.name).font(.caption.weight(.semibold)) }
                         if m.continueQueueInBackground { Text(m.extendedAudio.active ? m.extendedAudio.status : m.continuedQueue.status).font(.caption2).foregroundStyle(.secondary) }
                         TimelineView(.periodic(from:.now,by:1)) { timeline in
                             VStack(alignment:.leading,spacing:3) {
@@ -189,6 +197,7 @@ struct QueueView: View {
                 Section {
                     DisclosureGroup("Queue options",isExpanded:$options) {
                         Toggle("Stop on failure",isOn:$m.stopOnFailure)
+                        Toggle("Notify on unlock failure",isOn:$m.notifyUnlockFailure)
                         Toggle("Stop if spoofing fails",isOn:$m.stopOnPresenceFailure)
                         Toggle("Notify on completion",isOn:$m.notifyCompletion)
                         Stepper("New item: \(Int(m.queueDelay)) sec",value:$m.queueDelay,in:0...86400,step:5)
@@ -196,7 +205,12 @@ struct QueueView: View {
                         Text(m.continueQueueInBackground ? "Background continuation is experimental. iOS can pause it; long delays may expire. Refresh Xbox to verify progress." : "Queues pause when you leave the app. Refresh achievements to verify accepted requests.").font(.caption2).foregroundStyle(.secondary)
                     }
                 }.font(.subheadline)
-                Section("Saved game queues") {
+                Section {
+                    DisclosureGroup("Saved game queues (\(m.queueBook.sorted.count))",isExpanded:$savedExpanded) {
+                    HStack {
+                        Button("Export queue sync file") { do { queueDocument = QueueJSONDocument(data:try m.exportQueueTransfer()); exportQueues = true } catch { m.error = error.localizedDescription } }
+                        Spacer(); Button("Import queue sync file") { importQueues = true }
+                    }.font(.caption).disabled(m.running || m.busy || m.account == nil)
                     if m.queueBook.sorted.isEmpty { Text("Queues are saved automatically for this account.").font(.caption).foregroundStyle(.secondary) }
                     ForEach(m.queueBook.sorted) { saved in
                         VStack(alignment:.leading,spacing:5) {
@@ -205,17 +219,23 @@ struct QueueView: View {
                             HStack {
                                 Button("Load separately") { m.loadGameQueue(saved.id,append:false) }
                                 Spacer()
-                                Button("Append") { m.loadGameQueue(saved.id,append:true) }
+                                Button("Add to end of queue") { m.loadGameQueue(saved.id,append:true) }
                             }.font(.caption).buttonStyle(.borderless).disabled(m.running || m.busy)
                         }
                     }
-                    Text("Local to this device and Xbox account. Loading never starts unlocking; review and press Start.").font(.caption2).foregroundStyle(.secondary)
+                    Text("Export and import a queue sync file to move saved games between PC, iOS and Android for this account. Loading requires Start.").font(.caption2).foregroundStyle(.secondary)
+                    }
                 }
                 Section("Achievements") {
                     ForEach(m.queue) { item in QueueRow(itemID:item.id) }
                     if m.queue.isEmpty { Text("Build a timing queue above, or select achievements from Library.").font(.caption).foregroundStyle(.secondary) }
                 }
             }.scrollDismissesKeyboard(.interactively).listSectionSpacing(.compact).navigationTitle("Auto Unlock").navigationBarTitleDisplayMode(.inline)
+            .fileExporter(isPresented:$exportQueues,document:queueDocument,contentType:.json,defaultFilename:"AchievementLabs-Queues") { result in if case .failure(let error) = result { m.error = error.localizedDescription } }
+            .fileImporter(isPresented:$importQueues,allowedContentTypes:[.json]) { result in
+                do { let url = try result.get(); let access = url.startAccessingSecurityScopedResource(); defer { if access { url.stopAccessingSecurityScopedResource() } }; let size = try url.resourceValues(forKeys:[.fileSizeKey]).fileSize ?? 0; guard size <= 8*1024*1024 else { throw LabsError.message("Queue file is too large.") }; let data = try Data(contentsOf:url); Task { await m.importQueueTransfer(data) } }
+                catch { m.error = error.localizedDescription }
+            }
             .task(id:m.queueTitle) { do { try await Task.sleep(nanoseconds:400_000_000); try Task.checkCancellation(); await m.lookupTitle(m.queueTitle) } catch {} }
         }
     }
@@ -253,7 +273,8 @@ struct QueueRow: View {
                     TextField("Minutes",text:$delayText).keyboardType(.decimalPad).submitLabel(.done).focused($delayFocused).onSubmit { confirmDelay() }.multilineTextAlignment(.trailing).disabled(m.running).accessibilityIdentifier("queue-delay-field")
                 }
                 HStack {
-                    if item.status != "Waiting" { Button("Reset") { m.resetQueueItem(itemID) }.disabled(m.running || m.busy) }
+                    if QueuePolicy.needsReview(item.status) { Button("Retry") { m.resetQueueItem(itemID) }.disabled(m.running || m.busy); Button("Skip") { m.skipQueueItem(itemID) }.disabled(m.running || m.busy) }
+                    else if item.status != "Waiting" { Button("Reset") { m.resetQueueItem(itemID) }.disabled(m.running || m.busy) }
                     Spacer(); Button("Remove",role:.destructive) { delayFocused = false; m.editingQueueDelay = false; m.removeQueueItem(itemID) }.disabled(m.running || m.busy)
                 }.font(.caption).buttonStyle(.borderless)
             }.padding(.vertical,2)
@@ -421,7 +442,7 @@ struct SettingsView: View {
                 }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.9.0").font(.headline)
+                    Text("Standalone iPhone and iPad app · 0.10.0").font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. New event games sync from the public upstream feed; Windows-specific tools are not included.").font(.caption).foregroundStyle(.secondary)
                     Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)

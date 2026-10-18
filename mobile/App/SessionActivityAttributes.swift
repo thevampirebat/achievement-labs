@@ -7,5 +7,10 @@ struct LabsSessionAttributes: ActivityAttributes {
         var queueTotal: Int
         var queueRunning: Bool
         var nextAction: Date?
+        var spoofGame: String?
+        var queueGame: String?
+        var nextAchievement: String?
+        var updatedAt: Date?
+        var validUntil: Date?
     }
 }

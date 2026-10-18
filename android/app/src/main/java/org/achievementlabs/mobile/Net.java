@@ -4,13 +4,14 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 public final class Net {
+ static final class HttpFailure extends Exception { final int status; HttpFailure(int code,String message){super(message);status=code;} }
  static String read(String url,String method,String authorization,String version,String body,Map<String,String> extra,int limit)throws Exception{
   URL target=new URL(url);String host=target.getHost();if(!target.getProtocol().equals("https")||target.getUserInfo()!=null)throw new Exception("Invalid secure endpoint.");
   boolean xbox=host.endsWith(".xboxlive.com"),events=host.equals("v20.events.data.microsoft.com"),login=host.equals("login.live.com"),publicData=host.equals("raw.githubusercontent.com")||host.equals("api.github.com");
   if(!xbox&&!events&&!login&&!publicData)throw new Exception("Endpoint is not allowed.");if(publicData&&authorization!=null)throw new Exception("Public requests cannot contain account credentials.");
   HttpURLConnection c=(HttpURLConnection)target.openConnection();c.setInstanceFollowRedirects(false);c.setConnectTimeout(45000);c.setReadTimeout(45000);c.setRequestMethod(method);c.setRequestProperty("Accept","application/json");c.setRequestProperty("User-Agent","AchievementLabs-Android/0.1");c.setRequestProperty("Accept-Language","en-US");if(authorization!=null)c.setRequestProperty("Authorization",authorization);if(version!=null)c.setRequestProperty("x-xbl-contract-version",version);c.setRequestProperty("Content-Type","application/json");if(extra!=null)for(Map.Entry<String,String> e:extra.entrySet())c.setRequestProperty(e.getKey(),e.getValue());
   try {if(body!=null){c.setDoOutput(true);byte[] data=Core.utf(body);c.setFixedLengthStreamingMode(data.length);try(OutputStream out=c.getOutputStream()){out.write(data);}}
-   int code=c.getResponseCode();if(code<200||code>=300)throw new Exception("HTTP "+code+" · "+host+(code==403&&host.startsWith("presence-heartbeat")?". Use full PC sign-in QR; event-only sync does not change heartbeat access.":""));
+   int code=c.getResponseCode();if(code<200||code>=300)throw new HttpFailure(code,"HTTP "+code+" · "+host+(code==403&&host.startsWith("presence-heartbeat")?". Use full PC sign-in QR; event-only sync does not change heartbeat access.":""));
    try(InputStream in=c.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[16384];int n;while((n=in.read(b))!=-1){if(out.size()+n>limit)throw new Exception("Response exceeds size limit.");out.write(b,0,n);}return Core.text(out.toByteArray());}
   } finally {c.disconnect();}
  }
@@ -37,3 +38,4 @@ public final class Net {
  static Double minutes(JSONObject a,String title)throws Exception{JSONObject j=xbox("https://userstats.xboxlive.com/batch",a.getString("authorization"),"2","POST",new JSONObject().put("ArrangeByField","xuid").put("Xuids",new JSONArray().put(a.getString("xuid"))).put("Stats",new JSONArray().put(new JSONObject().put("Name","MinutesPlayed").put("TitleId",Core.numeric(title)))));return findMinutes(j);}
  static Double findMinutes(Object v)throws Exception{if(v instanceof JSONObject){JSONObject j=(JSONObject)v;if(j.optString("name",j.optString("Name")).equalsIgnoreCase("MinutesPlayed")){try{double n=Double.parseDouble(j.optString("value",j.optString("Value")));if(Double.isFinite(n)&&n>=0)return n;}catch(Exception ignored){}}for(Iterator<String> it=j.keys();it.hasNext();){Double r=findMinutes(j.get(it.next()));if(r!=null)return r;}}else if(v instanceof JSONArray){JSONArray j=(JSONArray)v;for(int i=0;i<j.length();i++){Double r=findMinutes(j.get(i));if(r!=null)return r;}}return null;}
 }
+

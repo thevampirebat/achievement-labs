@@ -541,8 +541,27 @@ public partial class MainWindow : Window
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Select saved Xbox session", AllowMultiple = false, FileTypeFilter = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }] });
         if (files.FirstOrDefault()?.TryGetLocalPath() is { } path) model.SessionPath = path;
     }
+    private async void ExportQueueSync(object? sender,RoutedEventArgs e)
+    {
+        try {
+            var json=model.XboxQueue.ExportQueueSyncFile();
+            var file=await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title="Export queue sync file",SuggestedFileName="AchievementLabs-Queues.json",DefaultExtension="json",FileTypeChoices=[new FilePickerFileType("JSON") { Patterns=["*.json"] }] });
+            if(file==null)return;await using var stream=await file.OpenWriteAsync();stream.SetLength(0);await using var writer=new System.IO.StreamWriter(stream);await writer.WriteAsync(json);model.Notice="Queue sync file exported. Contains game progress and delays, with no sign-in credentials.";
+        } catch(Exception error) { model.Notice=error.Message; }
+    }
+    private async void ImportQueueSync(object? sender,RoutedEventArgs e)
+    {
+        try {
+            var files=await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title="Import queue sync file",AllowMultiple=false,FileTypeFilter=[new FilePickerFileType("JSON") { Patterns=["*.json"] }] });
+            if(files.FirstOrDefault() is not { } file)return;await using var stream=await file.OpenReadAsync();
+            using var bytes=new System.IO.MemoryStream();var buffer=new byte[8192];int count;
+            while((count=await stream.ReadAsync(buffer))>0) { if(bytes.Length+count>8*1024*1024)throw new System.IO.InvalidDataException("Queue sync file exceeds 8 MB.");await bytes.WriteAsync(buffer.AsMemory(0,count)); }
+            await model.XboxQueue.ImportQueueSyncFileAsync(System.Text.Encoding.UTF8.GetString(bytes.ToArray()));model.Notice=model.XboxQueue.StatusText;
+        } catch(Exception error) { model.Notice=error.Message; }
+    }
     private void ToggleAccent(object? s, RoutedEventArgs e)
     {
         model.MintAccent = !model.MintAccent;
     }
 }
+

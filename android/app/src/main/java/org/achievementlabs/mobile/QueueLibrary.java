@@ -13,7 +13,7 @@ final class QueueLibrary {
  static void capture(JSONObject saved,JSONArray previous,JSONArray current)throws Exception{
   Set<String> titles=new HashSet<>();for(JSONArray list:new JSONArray[]{previous,current})for(int i=0;i<list.length();i++)titles.add(list.getJSONObject(i).getJSONObject("game").getString("titleId"));
   for(String title:titles){JSONArray group=new JSONArray();String name="Game";for(int i=0;i<current.length();i++){JSONObject item=current.getJSONObject(i);key(item);if(item.getJSONObject("game").getString("titleId").equals(title)){name=item.getJSONObject("game").optString("name","Game");group.put(new JSONObject(item.toString()));}}
-   if(group.length()==0)saved.remove(title);else saved.put(title,new JSONObject().put("titleId",title).put("name",name).put("items",group).put("updated",System.currentTimeMillis()));
+   if(group.length()>0)saved.put(title,new JSONObject().put("titleId",title).put("name",name).put("items",group).put("updated",System.currentTimeMillis()));
   }
  }
  static JSONArray restore(JSONObject snapshot)throws Exception{

@@ -8,7 +8,7 @@ import ActivityKit
     }
     func update(_ state: LabsSessionAttributes.ContentState, enabled: Bool) {
         guard enabled, ActivityAuthorizationInfo().areActivitiesEnabled else { end(); return }
-        let content = ActivityContent(state:state,staleDate:Date().addingTimeInterval(45))
+        let content = ActivityContent(state:state,staleDate:state.validUntil ?? Date(),relevanceScore:1)
         if activity == nil { activity = try? Activity.request(attributes:LabsSessionAttributes(),content:content,pushType:nil) }
         if let activity { Task { await activity.update(content) } }
     }
@@ -17,3 +17,4 @@ import ActivityKit
         Task { await old.end(nil,dismissalPolicy:.immediate) }
     }
 }
+

@@ -21,8 +21,7 @@ public struct SavedQueueBook: Codable {
         let affected = Set(current.map { $0.game.id } + items.map { $0.game.id })
         for title in affected {
             let group = items.filter { $0.game.id == title }
-            if group.isEmpty { games.removeValue(forKey:title) }
-            else { games[title] = SavedGameQueue(items:group) }
+            if !group.isEmpty { games[title] = SavedGameQueue(items:group) }
         }
         current = items
     }

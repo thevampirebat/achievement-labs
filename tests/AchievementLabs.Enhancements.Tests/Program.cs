@@ -19,7 +19,8 @@ static class Test
  {
   if(args.Contains("--token-validation")){EventTokenRegressionTests.Run();return;}
   if(args.Contains("--ui-tweaks")){UITweakTests.Run();return;}
-  if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();SavedGameQueueTests.Run();return;}
+  if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();SavedGameQueueTests.Run();
+  QueueTransferTests.Run();return;}
   if(args.Contains("--playtime")){PlaytimeTests.Run();return;}
   if(args.Contains("--export")){ExportTests.Run();return;}
   if(args.Contains("--mapping")){MappingTests.Run();return;}

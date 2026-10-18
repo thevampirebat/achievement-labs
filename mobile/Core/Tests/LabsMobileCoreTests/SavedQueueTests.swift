@@ -18,7 +18,7 @@ final class SavedQueueTests: XCTestCase {
         book.capture([a,b]); book.saveSeparate([other]); book.capture([b])
         XCTAssertEqual(book.games["7"]?.items.map(\.id),["7/2"])
         XCTAssertNotNil(book.games["8"])
-        book.capture([]); XCTAssertNil(book.games["7"]); XCTAssertNotNil(book.games["8"])
+        book.capture([]); XCTAssertNotNil(book.games["7"]); XCTAssertNotNil(book.games["8"])
     }
     func testSwitchingActiveGamePreservesPreviousSave() throws {
         var book = SavedQueueBook(); let a = try item("7","1"), b = try item("8","1")
