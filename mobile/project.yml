@@ -11,8 +11,8 @@ settings:
     SWIFT_VERSION: "5.0"
     TARGETED_DEVICE_FAMILY: "1,2"
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: "0.12.1"
-    CURRENT_PROJECT_VERSION: "19"
+    MARKETING_VERSION: "0.12.2"
+    CURRENT_PROJECT_VERSION: "20"
 targets:
   AchievementLabsMobile:
     type: application
@@ -60,6 +60,7 @@ targets:
     sources:
       - path: Widget
       - path: App/SessionActivityAttributes.swift
+      - path: App/ActiveSessionStyle.swift
     info:
       path: GeneratedWidgetInfo.plist
       properties:
@@ -76,6 +77,7 @@ schemes:
     build:
       targets:
         AchievementLabsMobile: all
+
 
 
 

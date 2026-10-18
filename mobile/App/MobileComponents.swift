@@ -105,6 +105,7 @@ struct SpoofSummary: View {
             }
             Spacer()
             Button("Open") { m.selectedTab = 2 }.font(.caption)
-        }
+        }.activeSessionHighlight(m.presenceRunning)
     }
 }
+

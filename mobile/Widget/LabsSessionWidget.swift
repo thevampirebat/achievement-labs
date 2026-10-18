@@ -21,19 +21,17 @@ private struct UnlockClock: View {
 struct LabsSessionWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for:LabsSessionAttributes.self) { context in
-            VStack(alignment:.leading,spacing:7) {
-                Text("Achievement Labs").font(.headline)
-                if context.isStale { Text("Updates paused · open app to confirm status").font(.caption) }
-                else {
-                    if context.state.spoofStarted != nil {
-                        HStack { VStack(alignment:.leading) { Text("Spoofing").font(.caption); Text(context.state.spoofGame ?? "Game").lineLimit(1) }; Spacer(); SpoofClock(state:context.state) }
-                    }
-                    if context.state.queueRunning {
-                        HStack { VStack(alignment:.leading) { Text(context.state.queueGame ?? "Auto Unlock").font(.caption); Text(context.state.nextAchievement ?? "Checking next achievement").lineLimit(2) }; Spacer(); UnlockClock(state:context.state) }
-                        Text("Queue \(context.state.queueHandled)/\(context.state.queueTotal) processed").font(.caption2)
-                    }
-                }
-            }.padding().foregroundStyle(.white).activityBackgroundTint(.black).activitySystemActionForegroundColor(.green)
+            SessionActivityCard(
+                spoofActive:context.state.spoofStarted != nil,
+                queueActive:context.state.queueRunning,
+                stale:context.isStale,
+                spoofGame:context.state.spoofGame ?? "Game",
+                queueGame:context.state.queueGame ?? "Game",
+                nextAchievement:context.state.nextAchievement ?? "Checking next achievement",
+                handled:context.state.queueHandled,total:context.state.queueTotal,
+                spoofTimer: { SpoofClock(state:context.state) },
+                unlockTimer: { UnlockClock(state:context.state) }
+            ).activityBackgroundTint(.black).activitySystemActionForegroundColor(.green)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -77,3 +75,4 @@ struct LabsSessionWidget: Widget {
 @main struct LabsWidgets: WidgetBundle {
     var body: some Widget { LabsSessionWidget() }
 }
+

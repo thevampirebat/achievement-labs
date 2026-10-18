@@ -198,7 +198,7 @@ struct QueueView: View {
                             Spacer()
                             Button("Remove completed") { Task { await m.removeCompleted() } }.disabled(m.running || m.busy)
                         }.font(.subheadline).buttonStyle(.borderless)
-                    }.padding(.vertical,2)
+                    }.activeSessionHighlight(m.running)
                 }
                 if m.presenceRunning || m.presenceStarted != nil { Section("Title Spoofing") { SpoofSummary() } }
                 Section {
@@ -304,6 +304,7 @@ struct PresenceView: View {
         NavigationStack {
             Form {
                 Section {
+                    VStack(alignment:.leading,spacing:12) {
                     TextField("Title ID",text:$m.presenceTitle).keyboardType(.numbersAndPunctuation).submitLabel(.done).onSubmit { Task { await m.lookupTitle(m.presenceTitle) } }.disabled(m.presenceRunning)
                     if let game = m.gameForTitle(m.presenceTitle) { GameHeader(game:game) }
                     if let start = m.presenceStarted { LabeledContent("Session elapsed") { Text(start,style:.timer).monospacedDigit() } }
@@ -316,6 +317,7 @@ struct PresenceView: View {
                     Text(m.spoofStatus).font(.caption).foregroundStyle(.secondary)
                     if m.extendedAudio.active { Text(m.extendedAudio.status).font(.caption).foregroundStyle(.green) }
                     if m.continueSpoofInBackground || m.continueQueueInBackground { Text(m.extendedAudio.active ? m.extendedAudio.status : m.continuedQueue.status).font(.caption2).foregroundStyle(.secondary) }
+                    }.activeSessionHighlight(m.presenceRunning)
                 }
                 if !m.spoofDiagnostics.isEmpty {
                     Section("Spoofing diagnostics") {
@@ -451,13 +453,14 @@ struct SettingsView: View {
                 }
                 Section("Notifications") { Button("Allow notifications") { Task { await m.requestNotifications() } } }
                 Section("Mobile beta") {
-                    Text("Standalone iPhone and iPad app · 0.11.0").font(.headline)
+                    Text("Standalone iPhone and iPad app · " + (Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "Unknown")).font(.headline)
                     Text("Bundled event data: fork v1.0.8-fork.1. Event actions use only deterministic recipes that passed mobile checks. Unsupported edition routing remains disabled. Live Xbox behaviour needs device testing. New event games sync from the public upstream feed; Windows-specific tools are not included.").font(.caption).foregroundStyle(.secondary)
                     Text("App identifier: " + (Bundle.main.bundleIdentifier ?? "Unknown")).font(.caption2).textSelection(.enabled)
                     Link("Project on GitHub",destination: URL(string:"https://github.com/thevampirebat/achievement-labs")!)
                 }
     }
 }
+
 
 
 

@@ -41,6 +41,17 @@ jobs:
         env:
           LABS_CATALOGUE: ${{ github.workspace }}/mobile/Catalogue
         run: swift test --package-path mobile/Core
+      - name: Render native Live Activity layouts without booting a simulator
+        run: |
+          mkdir -p mobile/layout-previews
+          cat mobile/App/ActiveSessionStyle.swift mobile/Widget/SessionActivityCard.swift mobile/tools/render_session_card.swift > /tmp/session-card-preview.swift
+          swift /tmp/session-card-preview.swift
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AchievementLabs-iOS-Live-Activity-Layouts
+          path: mobile/layout-previews/
+          retention-days: 7
+          if-no-files-found: error
       - name: Install project generator
         run: brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
       - name: Prepare existing application icon
@@ -63,8 +74,8 @@ jobs:
           mkdir -p mobile/artifacts/Payload
           cp -R mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app mobile/artifacts/Payload/
           cd mobile/artifacts
-          /usr/bin/zip -qry AchievementLabs-iOS-0.12.1-UNSIGNED.ipa Payload
-          shasum -a 256 AchievementLabs-iOS-0.12.1-UNSIGNED.ipa > SHA256.txt
+          /usr/bin/zip -qry AchievementLabs-iOS-0.12.2-UNSIGNED.ipa Payload
+          shasum -a 256 AchievementLabs-iOS-0.12.2-UNSIGNED.ipa > SHA256.txt
           cp ../Catalogue/catalogue-report.json .
           cp ../README.md .
           cp ../WIDGETS.md .
@@ -87,4 +98,5 @@ jobs:
           path: mobile/artifacts/iPhone-*.png
           retention-days: 7
           if-no-files-found: ignore
+
 

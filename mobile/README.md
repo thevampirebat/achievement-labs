@@ -2,9 +2,10 @@
 
 Native SwiftUI app for iPhone and iPad, iOS/iPadOS 17 or later. No PC companion or running desktop app is required. This is a separate early mobile beta, not a replacement for the Windows release.
 
-## Current release preparation — iOS 0.12.1
+## Current release preparation — iOS 0.12.2
 
 - Matching companion builds: PC 1.0.8.9 and Android 0.6.0.
+- Live Activity timers use a fixed trailing column labelled Elapsed / Next unlock. Narrow iPhone layouts and long names cannot push the two clocks out of alignment. Active session panels have a static green outline/glow; paused or stale sessions remain neutral. The iOS Settings version now comes from the installed bundle.
 - PC QR sync offers Sign-in + event token, Sign-in only, and Event token only. Sign-in-only import preserves an existing event token for the same Xbox account. Microsoft renewal credentials remain on PC.
 - Saved game queues support manual JSON and QR transfer across PC, iOS and Android. Queue codes carry progress/delays without sign-in credentials. Imports validate the account and achievement metadata and never start automatically. See [QUEUE-QR.md](QUEUE-QR.md).
 - iOS retains its lock-screen Live Activity and Dynamic Island timers. The Home Screen widget, shared-storage code and App Groups entitlement have been removed for compatibility with the current signing setup. Keep the Live Activity extension when signing. Android retains its Home Screen widget.
@@ -39,7 +40,7 @@ This beta has no Steam/Epic/Ubisoft clients, Xbox 360/GFWL write/profile tools, 
 
 ## Build and sign
 
-The **iOS standalone beta** GitHub workflow prepares resources, runs synthetic tests plus every enabled generated recipe, builds arm64 iPhone/iPad and simulator apps, verifies simulator launch plus synthetic Keychain save/read/delete and creates `AchievementLabs-iOS-0.12.1-UNSIGNED.ipa`. Simulator-only ad-hoc entitlements are used to exercise Keychain APIs; they are never included in the unsigned device app. Device signing must supply the normal application identity and Keychain entitlements.
+The **iOS standalone beta** GitHub workflow prepares resources, runs synthetic tests plus every enabled generated recipe, builds arm64 iPhone/iPad and simulator apps, verifies simulator launch plus synthetic Keychain save/read/delete and creates `AchievementLabs-iOS-0.12.2-UNSIGNED.ipa`. Simulator-only ad-hoc entitlements are used to exercise Keychain APIs; they are never included in the unsigned device app. Device signing must supply the normal application identity and Keychain entitlements.
 
 **The unsigned IPA cannot be installed directly.** It needs signing/provisioning appropriate for your device or distribution method. No Apple account, certificate or provisioning profile is bundled. Never commit private signing credentials. No App Store/TestFlight release is claimed.
 
@@ -131,4 +132,5 @@ The supplied XAU release ZIP contained only a README. Compiled IPA metadata/stri
 The macOS command-line TLS probe did not exercise the iOS app's ATS policy. This build adds Apple's domain-scoped manual-trust exception only for v20.events.data.microsoft.com (no subdomains, TLS 1.2 minimum, forward secrecy retained). The application still uses HTTPS exclusively, validates the exact Microsoft root, hostname, chain/signatures and expiry, and rejects event redirects and plaintext redirects. No global arbitrary-load allowance is present. A credential-free HEAD test now runs inside the actual iOS simulator app and must pass; the manifest scope is checked there too.
 Extended background audio is an explicit opt-in under Settings → App, off by default. With standalone background spoofing enabled, starting spoofing can loop local silent PCM with mixWithOthers during the configured 5–120 minute session. It uses the public audio playback APIs; this is a sideloading compatibility mode, not a promise of indefinite runtime or App Store eligibility. It can use more battery and stops on audio interruptions, session limit, errors or explicit Stop. It never starts on launch or automatically resumes after interruption. Start spoofing before the queue to share extended runtime. Protected storage uses the existing background opt-in protection policy.
 A new WidgetKit/ActivityKit extension displays extended-mode spoof elapsed time using native timer text, plus queue handled counts. It never labels accepted event requests as verified unlocks. One custom activity is used; it is not shown while the system background task is active. It ends when the session stops and shows stale status if app updates cease. The app updates state at 15-second intervals; timer rendering does not require one-second app wakeups. Physical-device audio/runtime behavior and Signulous signing of the extension still require testing.
+
 
