@@ -129,9 +129,11 @@ public struct XboxService {
     public func sendEvent(_ payload: String, account: Account, route: CollectorRoute = .windows) async throws {
         let token = try Tokens.normalize(account.eventToken, event: true)
         var r = URLRequest(url:route.url)
-        r.httpMethod = "POST"; r.timeoutInterval = 45; r.httpBody = payload.data(using: .utf8)
+        r.httpMethod = "POST"; r.timeoutInterval = 45
+        // One JSON record per line; never transmit pretty-printed template lines.
+        r.httpBody = try JSON.data(JSON.object(Data(payload.utf8)))
         let redacted = account.authorization.replacingOccurrences(of: #"(?i)x=[^;]+;"#, with: "x=-;", options: .regularExpression)
-        let headers = ["Content-Type":"application/x-json-stream", "Accept":"application/json", "User-Agent":"MSDW", "reliability-mode":"standard", "Client-Id":"NO_AUTH", "client-version":"EUTC-Windows-C++-no-10.0.22621.3296.amd64fre.ni_release.220506-1250-no", "apikey":"0890af88a9ed4cc886a14f5e174a2827-9de66c5e-f867-43a8-a7b8-e0ddd481cca4-7548,95c1f21d6cb047a09e7b423c1cb2222e-9965f07b-54fa-498e-9727-9e8d24dec39e-7027", "authxtoken":redacted, "tickets":"\"1\"=\"\(token)\""]
+        let headers = ["Content-Type":"application/x-json-stream; charset=utf-8", "Accept":"application/json", "User-Agent":"MSDW", "reliability-mode":"standard", "Client-Id":"NO_AUTH", "client-version":"EUTC-Windows-C++-no-10.0.22621.3296.amd64fre.ni_release.220506-1250-no", "apikey":"0890af88a9ed4cc886a14f5e174a2827-9de66c5e-f867-43a8-a7b8-e0ddd481cca4-7548,95c1f21d6cb047a09e7b423c1cb2222e-9965f07b-54fa-498e-9727-9e8d24dec39e-7027", "authxtoken":redacted, "tickets":"\"1\"=\"\(token)\""]
         headers.forEach { r.setValue($1, forHTTPHeaderField: $0) }
         let (data, response) = try await transfer(r); try Self.check(response, data:data, event: true,endpoint:route.url.host!); try Self.validateCollector(data)
     }
@@ -168,3 +170,4 @@ public struct XboxHTTPFailure: LocalizedError {
         if let header, header.count <= 128, header.range(of:#"^[A-Za-z0-9+/.=_-]+$"#,options:.regularExpression) != nil { correlation = header } else { correlation = nil }
     }
 }
+

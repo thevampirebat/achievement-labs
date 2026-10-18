@@ -295,7 +295,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func unlock(_ row: Achievement, game: Game) async {
         guard let account, !busy, !running else { return }; busy = true; defer { busy = false }
         do { let active = try await authorizedAccount(); try await send(row, game: game, account: active); rowResults[row.id] = "Request accepted; refresh to verify progress." }
-        catch { rememberTransport(error); rowResults[row.id] = error.localizedDescription; self.error = error.localizedDescription }
+        catch { rememberTransport(error); let detail = error.localizedDescription + ((error as? XboxHTTPFailure).map { "\n" + $0.diagnostic } ?? ""); rowResults[row.id] = detail; self.error = detail }
     }
     func enqueue(_ selected: [Achievement], game: Game) {
         guard !running else { return }; queueTitle = game.id; titleDetails[game.id] = game
@@ -405,7 +405,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                     if self.useExtendedAudio {
                         try self.extendedAudio.start { [weak self] reason in
                             guard let self else { return }; self.spoofStopReason = reason
-                            Task { await self.stopPresence(reason:reason); if self.stopOnPresenceFailure { self.pauseQueue() }; if self.notifyPresenceFailure { await self.notify("Title spoofing stopped",body:reason) } }
+                            Task { await self.stopPresence(reason:reason, notifyStop:true); if self.stopOnPresenceFailure { self.pauseQueue() } }
                         }
                         self.startSessionStatusUpdates(); self.updateSessionCard()
                     } else {
@@ -440,12 +440,14 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
-    func stopPresence(reason: String = "Stopped by user.") async {
+    func stopPresence(reason: String = "Stopped by user.", notifyStop: Bool = false) async {
         guard !presenceStopping, presenceTask != nil || presenceStarted != nil || presenceCleanupNeeded else { return }
         presenceStopping = true; presenceCleanupNeeded = false
         defer { presenceStopping = false; extendedAudio.stop(); finishSessionIfIdle(); if !foreground && running && !queueBackgroundAllowed { pauseQueue() } }
         if spoofStopReason.isEmpty { spoofStopReason = reason }
-        presenceTask?.cancel(); if let presenceTask { await presenceTask.value }
+        presenceTask?.cancel()
+        if notifyStop && notifyPresenceFailure { await notify("Title spoofing stopped", body:spoofStopReason) }
+        if let presenceTask { await presenceTask.value }
         spoofStatus = spoofStopReason
         if let account {
             do { try await api.presence(nil, account: account); spoofCleanupStatus = "Xbox stop request accepted." }
@@ -467,7 +469,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             guard let self else { return }
             if self.extendedBackgroundAllowed { self.updateSessionCard(); return }
             self.pauseQueue(); self.presenceTask?.cancel()
-            Task { await self.stopPresence() }
+            Task { await self.stopPresence(reason:"iOS ended background permission.", notifyStop:true) }
             self.status = "iOS ended background time. Review before resuming."
             self.spoofStopReason = "iOS ended background permission."
         }
@@ -480,8 +482,8 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 guard let self else { return }; defer { if self.sessionStatusGeneration == token { self.sessionStatusTask = nil } }
                 while (self.continuedQueue.hasRequest || self.extendedAudio.active) && !Task.isCancelled {
                     do { try await Task.sleep(nanoseconds:15_000_000_000); try Task.checkCancellation() } catch { return }
-                    if let end = self.presenceDeadline, end <= Date(), (self.extendedAudio.active || !(self.continueSpoofWithQueue && self.queueBackgroundAllowed)) { Task { await self.stopPresence(reason:"Configured spoof session limit reached.") }; return }
-                    if self.extendedAudio.active && !self.extendedAudio.playing { Task { await self.stopPresence(reason:"Extended audio playback stopped. Resume manually.") }; return }
+                    if let end = self.presenceDeadline, end <= Date(), (self.extendedAudio.active || !(self.continueSpoofWithQueue && self.queueBackgroundAllowed)) { Task { await self.stopPresence(reason:"Configured spoof session limit reached.", notifyStop:true) }; return }
+                    if self.extendedAudio.active && !self.extendedAudio.playing { Task { await self.stopPresence(reason:"Extended audio playback stopped. Resume manually.", notifyStop:true) }; return }
                     self.updateSessionCard()
                 }
             }
@@ -520,7 +522,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     func background() {
         foreground = false
         if running && !queueBackgroundAllowed { pauseQueue() }
-        if !presenceBackgroundAllowed { spoofStopReason = continueSpoofInBackground ? "iOS did not grant or no longer permits background spoofing." : "Background spoofing is off. Enable it in Settings → App."; presenceTask?.cancel(); Task { await stopPresence(reason:spoofStopReason) } }
+        if !presenceBackgroundAllowed { spoofStopReason = continueSpoofInBackground ? "iOS did not grant or no longer permits background spoofing." : "Background spoofing is off. Enable it in Settings → App."; presenceTask?.cancel(); Task { await stopPresence(reason:spoofStopReason, notifyStop:true) } }
         if queueBackgroundAllowed || presenceBackgroundAllowed { status = "Session continuing while iOS permits background time." }
         else { finishSessionIfIdle(); status = "Paused in background. Review and resume when you return." }
     }
@@ -750,5 +752,6 @@ private final class PreviewOfflineProtocol: URLProtocol {
     override func stopLoading() {}
 }
 #endif
+
 
 

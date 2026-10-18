@@ -71,7 +71,8 @@ public final class Catalogue {
             guard body.range(of: "REPLACE[A-Z0-9_]+", options: .regularExpression) == nil else { throw LabsError.message("Unresolved event placeholder.") }
             let j = try JSON.object(Data(body.utf8)); let data = j["data"] as? [String: Any] ?? [:]; let base = data["baseData"] as? [String: Any] ?? [:]
             guard JSON.string(base["titleId"]) == title, UUID(uuidString: JSON.string(base["serviceConfigId"])) != nil else { throw LabsError.message("Event title or service identity does not match.") }
-            return body
+            // OneCollector consumes newline-delimited records. Match desktop framing.
+            return String(decoding: try JSON.data(j), as: UTF8.self)
         }
     }
     public func merge(_ feed: EventFeed, cache: URL) throws -> Int {
@@ -123,3 +124,4 @@ public final class Catalogue {
 
 private struct TotalDocument: Decodable { let entries: [TotalEntry] }
 private struct TotalEntry: Decodable { let titleId: String; let platforms: [String]; let total: Int }
+

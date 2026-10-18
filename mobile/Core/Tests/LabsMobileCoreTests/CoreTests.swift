@@ -60,8 +60,14 @@ final class CoreTests: XCTestCase {
         var count = 0
         for (title,status) in c.index where status.reason == nil {
             let recipes = try c.recipes(title)
-            for id in recipes.recipes.keys { XCTAssertFalse(try c.payloads(title:title,achievement:id,xuid:"0").isEmpty); count += 1 }
+            for id in recipes.recipes.keys {
+                let bodies = try c.payloads(title:title,achievement:id,xuid:"0")
+                XCTAssertFalse(bodies.isEmpty)
+                for body in bodies { XCTAssertFalse(body.contains("\n")); XCTAssertFalse(body.contains("\r")) }
+                count += 1
+            }
         }
         XCTAssertGreaterThan(count,16000)
     }
 }
+
