@@ -425,11 +425,6 @@ struct SettingsView: View {
                 }
     }
     @ViewBuilder private var appSettings: some View {
-                Section("Home-screen widget") {
-                    Text("Long-press the iPhone or iPad home screen → Edit → Add Widget → Achievement Labs → Labs sessions.").font(.caption)
-                    Text("The widget shows session timers and the next achievement. Its controls open the app. Widgets do not keep sessions running in the background.").font(.caption2).foregroundStyle(.secondary)
-                    Text(WidgetSnapshotStore.available ? "Sharing session status with widgets is available." : "This signing profile does not provide App Groups storage. The widget can open the app, but live session data needs App Groups support when signing.").font(.caption2).foregroundStyle(.secondary)
-                }
                 Section("Background sessions · experimental") {
                     Toggle("Allow standalone background spoofing",isOn:$m.continueSpoofInBackground).disabled(m.running || m.presenceRunning).onChange(of:m.continueSpoofInBackground) { _,_ in m.updateBackgroundPreference() }
                     if m.continueSpoofInBackground {

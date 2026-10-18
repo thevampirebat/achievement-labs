@@ -585,7 +585,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
-    func terminating() { WidgetSnapshotStore.write(nil,active:false); queueTask?.cancel(); presenceTask?.cancel(); liveStatus.end(); extendedAudio.stop() }
+    func terminating() { queueTask?.cancel(); presenceTask?.cancel(); liveStatus.end(); extendedAudio.stop() }
     func stopPresence(reason: String = "Stopped by user.", notifyStop: Bool = false) async {
         guard !presenceStopping, presenceTask != nil || presenceStarted != nil || presenceCleanupNeeded else { return }
         presenceStopping = true; presenceCleanupNeeded = false

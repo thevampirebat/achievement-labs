@@ -1,4 +1,4 @@
-# Session timers and home-screen widgets
+# Session timers and Android home-screen widget
 
 The iOS spoof timer is bounded by the expiry of the last accepted Xbox heartbeat (600 seconds), rather than a 45-second UI refresh. Each accepted heartbeat renews the deadline. This is elapsed session time, not Xbox-recorded playtime. If the app stops updating, the card eventually asks you to check status. Force-quitting cannot guarantee an immediate stop request to Xbox.
 
@@ -14,9 +14,9 @@ To add the home-screen widget, open Settings → App → Add Labs sessions widge
 
 ## iPhone and iPad
 
-Long-press the home screen → Edit → Add Widget → Achievement Labs → Labs sessions. Medium and large sizes are included. Controls open the app to pause, stop or review/resume. The widget does not grant extra background execution, and iPadOS decides when to refresh widget data; the Live Activity remains the more immediate session display.
+The iOS app uses a Live Activity for its lock-screen and Dynamic Island session displays. Keep the LabsSessionWidget extension when signing: it provides the Live Activity, despite the target name. It does not require App Groups.
 
-Session-data sharing uses the App Group `group.org.achievementlabs.mobile` in both the main app and widget extension. No authorization, renewal or event tokens are placed in widget storage. The signing profile must authorize the same group for both targets. Keep the widget extension when signing. The unsigned IPA alone cannot guarantee that Signulous will supply this capability. Settings → App reports whether shared widget storage is available. Without it, the home widget still opens the app, but cannot show current session data. AppGroups.entitlements is provided for signing setups that support the group.
+The iPhone/iPad Home Screen widget and its shared-storage option have been removed because the current signing setup cannot provision a custom App Group. No App Groups entitlement or signing template is included. Android retains its Home Screen widget.
 
 ## Manual queue sync
 

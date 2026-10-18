@@ -23,10 +23,13 @@ device=run('xcrun','simctl','create','Achievement Labs CI',device_type,runtime).
 print('Chosen fresh simulator: '+model['name']+' · '+runtime,flush=True)
 import atexit
 def cleanup():
-    subprocess.run(['xcrun','simctl','shutdown',device],check=False,timeout=30)
-    subprocess.run(['xcrun','simctl','delete',device],check=False,timeout=30)
+    for action in ['shutdown','delete']:
+        try: subprocess.run(['xcrun','simctl',action,device],check=False,timeout=30)
+        except subprocess.TimeoutExpired: print('Simulator cleanup timed out: '+action,flush=True)
 atexit.register(cleanup)
-subprocess.run(['open','-a','Simulator'],check=False,timeout=30)
+# Avoid opening Simulator.app: it can boot an unrelated default device alongside
+# the fresh test device and exhaust the runner during iOS 26 startup.
+subprocess.run(['xcrun','simctl','shutdown','all'],check=False,timeout=60)
 subprocess.run(['xcrun','simctl','boot',device],check=True,timeout=60)
 print('Waiting for iOS 26 simulator boot',flush=True)
 subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True,timeout=300)

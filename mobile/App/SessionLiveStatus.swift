@@ -6,11 +6,9 @@ import ActivityKit
     private var drain: Task<Void,Never>?
     private var generation = UUID()
     init() {
-        WidgetSnapshotStore.write(nil,active:false)
         for old in Activity<LabsSessionAttributes>.activities { Task { await old.end(nil,dismissalPolicy:.immediate) } }
     }
     func update(_ state: LabsSessionAttributes.ContentState, enabled: Bool) {
-        WidgetSnapshotStore.write(state,active:enabled)
         guard enabled, ActivityAuthorizationInfo().areActivitiesEnabled else { end(); return }
         pending = state
         // One writer prevents a slow previous update from overwriting the next achievement.
