@@ -16,6 +16,26 @@ public partial class AutoUnlockerViewModel
     private SavedGameQueueInfo? selectedSavedGameQueue;
     public SavedGameQueueInfo? SelectedSavedGameQueue { get => selectedSavedGameQueue; set => SetProperty(ref selectedSavedGameQueue,value); }
     public Func<AutoUnlockState, Task>? AppendSavedGameAsync { get; set; }
+    public Func<bool> CanDeleteSavedQueue { get; set; } = () => true;
+    public async Task DeleteSavedGameQueueAsync(string titleId, string ownerXuid)
+    {
+        if (IsRunning || !CanDeleteSavedQueue() || account.XUIDOnly != ownerXuid) { StatusText = "Pause Auto Unlock before deleting saved queues."; return; }
+        try
+        {
+            if (!Regex.IsMatch(ownerXuid,@"^\d{1,20}$") || !uint.TryParse(titleId,out var title) || title == 0) return;
+            var entry = SavedGameQueues.FirstOrDefault(x => x.TitleId == titleId);
+            if (entry == null) return;
+            var legacy = LoadState();
+            // Remove the loaded checkpoint too, so legacy migration cannot recreate the save.
+            if (legacy != null && OwnSavedState(legacy) && legacy.TitleId == titleId && File.Exists(StatePath)) File.Delete(StatePath);
+            if (_state != null && OwnSavedState(_state) && _state.TitleId == titleId) await ClearExistingSession();
+            File.Delete(Path.Combine(SavedGamesDirectory,titleId+".json"));
+            RefreshSavedGameQueues();
+            CheckForExistingState();
+            StatusText = "Saved game queue deleted. Other saved games were retained.";
+        }
+        catch { StatusText = "Could not finish deleting the saved queue. Check folder access and try again."; }
+    }
     public string SavedGameQueuesRoot { get; set; } = Path.Combine(Path.GetDirectoryName(AutoUnlockState.GetSavePath())!,"saved-game-queues");
     private string SavedGamesDirectory => Path.Combine(SavedGameQueuesRoot,account.XUIDOnly);
 

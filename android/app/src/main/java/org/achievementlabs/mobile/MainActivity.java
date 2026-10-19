@@ -20,6 +20,15 @@ public final class MainActivity extends Activity {
   @JavascriptInterface public void call(String id,String action,String data){if(id.length()>100||data.length()>2*1024*1024)return;engine.work.execute(()->{try{Object value=engine.handle(action,new JSONObject(data));engine.emit(id,value,null);}catch(Exception e){engine.notice=engine.safe(e);engine.emit(id,null,engine.notice);}engine.push();});}
  }
  void queueQr(boolean exporting,java.util.ArrayList<String> frames){if(exporting)startActivity(new Intent(this,QueueQRActivity.class).putStringArrayListExtra("frames",frames));else startActivityForResult(new Intent(this,ScanActivity.class).putExtra("queueOnly",true),22);}
+ void confirmDeleteGameQueue(String title,String name,String owner){
+  new AlertDialog.Builder(this).setTitle("Delete " + name + "?")
+   .setMessage("This removes the saved game and its loaded queue items. Other games and Xbox achievements are unchanged.")
+   .setNegativeButton("Cancel",null).setPositiveButton("Delete saved queue",(dialog,which)->engine.work.execute(()->{
+    try{engine.handle("deleteGameQueue",new JSONObject().put("title",title).put("owner",owner));engine.emit("external",engine.publicState(true),null);}
+    catch(Exception error){engine.notice=engine.safe(error);engine.emit("external",null,engine.notice);}
+    engine.push();
+   })).show();
+ }
  void confirmQueueQr(JSONObject wrapper){try{JSONObject transfer=wrapper.getJSONObject("queue");QueueTransfer.validate(transfer,engine.account==null?"":engine.account.getString("xuid"));new AlertDialog.Builder(this).setTitle("Import "+transfer.getJSONArray("games").length()+" saved game queues?").setMessage("Matching saved queues will be replaced after Xbox verifies achievements. Nothing starts automatically.").setNegativeButton("Cancel",null).setPositiveButton("Import",(d,w)->engine.work.execute(()->{try{engine.importQueues(transfer.toString());}catch(Exception e){engine.notice=engine.safe(e);}try{engine.emit("external",engine.publicState(true),null);}catch(Exception ignored){}})).show();}catch(Exception e){new AlertDialog.Builder(this).setMessage(engine.safe(e)).setPositiveButton("Close",null).show();}}
  void queueFile(boolean exporting){Intent intent=new Intent(exporting?Intent.ACTION_CREATE_DOCUMENT:Intent.ACTION_OPEN_DOCUMENT).setType("application/json").addCategory(Intent.CATEGORY_OPENABLE);if(exporting)intent.putExtra(Intent.EXTRA_TITLE,"AchievementLabs-Queues.json");startActivityForResult(intent,exporting?40:41);}
  void receiveQueueFile(int request,Intent data)throws Exception{if(data==null||data.getData()==null)return;if(engine.queueGate.busy())throw new Exception("Pause Auto Unlock before transferring queues.");if(request==40){engine.save();String json=QueueTransfer.export(engine.auth().getString("xuid"),engine.savedQueues).toString(2);try(OutputStream out=getContentResolver().openOutputStream(data.getData(),"wt")){if(out==null)throw new IOException("Could not open queue file.");out.write(Core.utf(json));}engine.notice="Queue sync file saved; no sign-in tokens included.";}else{try(InputStream in=getContentResolver().openInputStream(data.getData());ByteArrayOutputStream out=new ByteArrayOutputStream()){if(in==null)throw new IOException("Could not read queue file.");byte[] buffer=new byte[16384];int n;while((n=in.read(buffer))!=-1){if(out.size()+n>8*1024*1024)throw new IOException("Queue file exceeds 8 MB.");out.write(buffer,0,n);}engine.importQueues(Core.text(out.toByteArray()));}}}
@@ -30,4 +39,3 @@ public final class MainActivity extends Activity {
  @Override protected void onDestroy(){if(engine.screen.get()==this)engine.screen.clear();if(web!=null){web.removeJavascriptInterface("LabsNative");web.destroy();web=null;}super.onDestroy();}
  @Override public void onBackPressed(){if(web!=null)web.evaluateJavascript("window.goBack()",null);else super.onBackPressed();}
 }
-

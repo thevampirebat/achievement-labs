@@ -30,6 +30,11 @@ public struct SavedQueueBook: Codable {
             if let title = group.first?.game.id { games[title] = SavedGameQueue(items:group) }
         }
     }
+    /// Remove its loaded items as well so a later autosave cannot resurrect this save.
+    public mutating func deleteGame(_ id: String) {
+        games.removeValue(forKey:id)
+        current.removeAll { $0.game.id == id }
+    }
     public func validate() throws {
         for list in [current] + games.values.map(\.items) {
             guard list.count <= 20000, Set(list.map(\.id)).count == list.count,

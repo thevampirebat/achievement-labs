@@ -13,6 +13,17 @@ final class SavedQueueTests: XCTestCase {
         XCTAssertEqual(restored.games["7"]?.items.count,1); XCTAssertEqual(restored.games["8"]?.items.count,1)
         XCTAssertEqual(restored.current.first?.delay,120); try restored.validate()
     }
+    func testDeletedGameDoesNotReturnAfterAutosaveOrRestart() throws {
+        var book = SavedQueueBook(); let a = try item("7","1"), b = try item("8","1")
+        book.capture([a,b]); book.deleteGame("7")
+        XCTAssertNil(book.games["7"]); XCTAssertEqual(book.current.map(\.id),["8/1"])
+        book.capture(book.current)
+        var restarted = try JSONDecoder().decode(SavedQueueBook.self,from:JSONEncoder().encode(book))
+        restarted.capture(restarted.current); try restarted.validate()
+        XCTAssertNil(restarted.games["7"]); XCTAssertNotNil(restarted.games["8"])
+        restarted.deleteGame("8"); restarted.capture(restarted.current)
+        XCTAssertTrue(restarted.current.isEmpty); XCTAssertTrue(restarted.games.isEmpty)
+    }
     func testRemovalUpdatesOnlyTheAffectedSavedGame() throws {
         var book = SavedQueueBook(); let a = try item("7","1"), b = try item("7","2"), other = try item("8","1")
         book.capture([a,b]); book.saveSeparate([other]); book.capture([b])

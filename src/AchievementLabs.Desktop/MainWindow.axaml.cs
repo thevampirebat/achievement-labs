@@ -512,6 +512,23 @@ public partial class MainWindow : Window
             await dialog.ShowDialog(this); model.Notice="Encrypted mobile transfer exported.";
         } catch { model.Notice="Could not export mobile sign-in. Connect Xbox and check the destination."; }
     }
+    private async void DeleteSavedGameQueue(object? sender, RoutedEventArgs e)
+    {
+        if (model.QueueActive || model.XboxQueue.IsRunning || model.XboxBuildQueue.IsAdding) { model.Notice = "Pause Auto Unlock before deleting saved queues."; return; }
+        var saved = model.XboxQueue.SelectedSavedGameQueue;
+        if (saved == null) { model.Notice = "Choose a saved game queue first."; return; }
+        var owner = model.QueueOwnerXuid;
+        var dialog = new Window { Title = "Delete saved queue?", Width = 460, Height = 240, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        var remove = new Button { Content = "Delete saved queue" };
+        var cancel = new Button { Content = "Cancel" };
+        remove.Click += (_, _) => dialog.Close(true); cancel.Click += (_, _) => dialog.Close(false);
+        dialog.Content = new Border { Padding = new Thickness(24), Child = new StackPanel { Spacing = 16, Children = {
+            new TextBlock { Text = "Delete " + saved.Name + "?", FontSize = 20, TextWrapping = TextWrapping.Wrap },
+            new TextBlock { Text = "This also removes its loaded Auto Unlock queue. Other games and Xbox achievements are unchanged.", TextWrapping = TextWrapping.Wrap },
+            new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 10, Children = { cancel, remove } }
+        } } };
+        if (await dialog.ShowDialog<bool>(this)) await model.XboxQueue.DeleteSavedGameQueueAsync(saved.TitleId, owner);
+    }
     private async void CheckUpdates(object? s, RoutedEventArgs e) => await model.CheckForUpdatesAsync(true);
     private void InstallUpdate(object? s, RoutedEventArgs e) { if (model.InstallUpdate()) Close(); }
     private async void SaveSettings(object? s, RoutedEventArgs e) => await model.SavePreferencesAsync();
@@ -565,4 +582,3 @@ public partial class MainWindow : Window
         model.MintAccent = !model.MintAccent;
     }
 }
-

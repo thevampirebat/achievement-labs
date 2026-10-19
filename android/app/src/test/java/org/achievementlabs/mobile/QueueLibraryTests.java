@@ -9,6 +9,15 @@ public class QueueLibraryTests {
   JSONObject restored=new JSONObject(saved.toString());assertEquals("7/1",QueueLibrary.key(QueueLibrary.restore(restored.getJSONObject("7")).getJSONObject(0)));assertTrue(restored.has("8"));
   JSONArray combined=QueueLibrary.append(a,b);assertEquals(2,combined.length());assertEquals(1,a.length());assertEquals(2,QueueLibrary.append(combined,b).length());
  }
+ @Test public void deleteSurvivesAutosaveAndRestartWithoutRemovingOtherGames()throws Exception{
+  JSONObject saved=new JSONObject();JSONArray active=new JSONArray().put(item("7","1")).put(item("8","1"));
+  QueueLibrary.capture(saved,new JSONArray(),active);JSONArray previous=QueueLibrary.copy(active);
+  active=QueueLibrary.deleteGame(saved,active,"7");QueueLibrary.capture(saved,previous,active);
+  assertFalse(saved.has("7"));assertTrue(saved.has("8"));assertEquals("8/1",QueueLibrary.key(active.getJSONObject(0)));
+  JSONObject restored=new JSONObject(saved.toString());JSONArray loaded=new JSONArray(active.toString());QueueLibrary.capture(restored,new JSONArray(),loaded);
+  assertFalse(restored.has("7"));assertTrue(restored.has("8"));
+  loaded=QueueLibrary.deleteGame(restored,loaded,"8");QueueLibrary.capture(restored,active,loaded);assertEquals(0,loaded.length());assertEquals(0,restored.length());
+ }
  @Test public void removalUsesIdentityAfterIndicesShift()throws Exception{
   JSONArray items=new JSONArray().put(item("7","1")).put(item("7","2")).put(item("8","1"));
   JSONObject saved=new JSONObject();QueueLibrary.capture(saved,new JSONArray(),items);JSONArray before=QueueLibrary.copy(items);
