@@ -9,7 +9,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: publish-v1.0.8-fork.9
+  group: publish-v1.0.8-fork.10
   cancel-in-progress: false
 jobs:
   publish:
@@ -20,9 +20,9 @@ jobs:
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: v1.0.8-fork.9
-      SOURCE_SHA: 1b53c62c89aad8ab1127c5ecea36e042e8dc280c
-      BUILD_SHA: e5fa2366b25d78bf105f16e7e80f885a4e0960ae
+      RELEASE_TAG: v1.0.8-fork.10
+      SOURCE_SHA: 8f94a3994ade0fe8ec09b5d1c333c0857879ea23
+      BUILD_SHA: fe8c82348e98c967cc34b8ed1102ec3e31b7f0c9
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse "$SOURCE_SHA^{tree}")" = "$(git rev-parse "$BUILD_SHA^{tree}")"
-          for run in 39168392769 39168392633 39168392738; do
+          for run in 39255411145 39255411207 39255411064; do
             test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .conclusion)" = success
             test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .head_sha)" = "$BUILD_SHA"
           done
@@ -41,19 +41,19 @@ jobs:
         with:
           name: AchievementLabs-Windows-x64
           path: downloads/windows
-          run-id: 39168392769
+          run-id: 39255411145
           github-token: ${{ github.token }}
       - uses: actions/download-artifact@v4
         with:
           name: AchievementLabs-Android-Beta
           path: downloads/android
-          run-id: 39168392633
+          run-id: 39255411207
           github-token: ${{ github.token }}
       - uses: actions/download-artifact@v4
         with:
           name: AchievementLabs-iOS-Standalone-Unsigned
           path: downloads/ios
-          run-id: 39168392738
+          run-id: 39255411064
           github-token: ${{ github.token }}
       - name: Verify and package release assets
         shell: bash
@@ -70,36 +70,37 @@ jobs:
               assert len(matches) == 1, (pattern, matches)
               return matches[0]
           exe = one('AchievementLabs.exe')
-          apk = one('AchievementLabs-Android-0.6.0.apk')
-          ipa = one('AchievementLabs-iOS-0.12.2-UNSIGNED.ipa')
+          apk = one('AchievementLabs-Android-0.6.1.apk')
+          ipa = one('AchievementLabs-iOS-0.12.3-UNSIGNED.ipa')
           for binary in (exe, apk, ipa):
               digest = hashlib.sha256(binary.read_bytes()).hexdigest()
               checksum = (binary.parent / 'SHA256.txt').read_text(encoding='utf-8-sig').lower()
               assert digest in checksum, 'Checksum mismatch: ' + binary.name
               shutil.copy2(binary, out / binary.name)
           metadata = json.loads((exe.parent / 'update.json').read_text(encoding='utf-8-sig'))
-          assert metadata['version'] == '1.0.8.9'
+          assert metadata['version'] == '1.0.8.10'
           assert metadata['bytes'] == exe.stat().st_size
           assert metadata['sha256'].lower() == hashlib.sha256(exe.read_bytes()).hexdigest()
           signature = one('APK-SIGNATURE.txt').read_text().lower().replace(':', '')
           assert 'ca0f945ac761e14ed97bafe54c806c4167635466060978448e6903b8ec545813' in signature
           with zipfile.ZipFile(ipa) as z:
               info = plistlib.loads(z.read('Payload/AchievementLabsMobile.app/Info.plist'))
-              assert info['CFBundleShortVersionString'] == '0.12.2'
-              assert str(info['CFBundleVersion']) == '20'
+              assert info['CFBundleShortVersionString'] == '0.12.3'
+              assert str(info['CFBundleVersion']) == '21'
               assert any('.appex/Info.plist' in n for n in z.namelist()), 'Live Activity extension missing'
           shutil.copy2(exe.parent / 'update.json', out / 'update.json')
           shutil.copy2('docs/releases/START-HERE.md', out / 'START-HERE.md')
-          shutil.copy2('docs/releases/v1.0.8-fork.9.md', out / 'RELEASE-NOTES.md')
+          shutil.copy2('docs/releases/v1.0.8-fork.10.md', out / 'RELEASE-NOTES.md')
+          shutil.copy2('docs/auto-unlock-preferences-and-delete.md', out / 'QUEUE-SETTINGS.md')
           shutil.copy2(exe.parent / 'BUILD-INFO.txt', out / 'BUILD-INFO.txt')
           with (out / 'BUILD-INFO.txt').open('a') as f:
               f.write('\nRelease source: ' + os.environ['SOURCE_SHA'] + '\nTested build source: ' + os.environ['BUILD_SHA'] + '\nAll platform workflows passed; source trees identical.\n')
-          for label, binary in [('Windows-1.0.8.9', exe), ('Android-0.6.0', apk), ('iOS-0.12.2', ipa)]:
+          for label, binary in [('Windows-1.0.8.10', exe), ('Android-0.6.1', apk), ('iOS-0.12.3', ipa)]:
               with zipfile.ZipFile(out / ('AchievementLabs-' + label + '.zip'), 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
                   for p in binary.parent.rglob('*'):
                       if p.is_file():
                           z.write(p, p.relative_to(binary.parent))
-                  for name in ('START-HERE.md', 'RELEASE-NOTES.md'):
+                  for name in ('START-HERE.md', 'RELEASE-NOTES.md', 'QUEUE-SETTINGS.md'):
                       z.write(out / name, name)
           (out / 'SHA256.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest() + '  ' + p.name + '\n' for p in sorted(out.iterdir()) if p.is_file() and p.name != 'SHA256.txt'))
           print('Verified assets:', ', '.join(p.name for p in out.iterdir()))
@@ -111,7 +112,7 @@ jobs:
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft > release-state.txt 2>/dev/null; then
             test "$(cat release-state.txt)" = true
           else
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs Beta — PC 1.0.8.9 / Android 0.6.0 / iOS 0.12.2' --notes-file docs/releases/v1.0.8-fork.9.md --draft
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs Beta — PC 1.0.8.10 / Android 0.6.1 / iOS 0.12.3' --notes-file docs/releases/v1.0.8-fork.10.md --draft
           fi
           gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" release-assets/* --clobber
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
