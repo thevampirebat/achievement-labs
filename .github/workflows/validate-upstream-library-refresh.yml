@@ -1,0 +1,27 @@
+name: Validate upstream library refresh contribution
+on:
+  push:
+    branches: [validation/upstream-library-refresh]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Build contribution against upstream
+        run: dotnet build tests/AchievementLabs.Enhancements.Tests -c Release -p:NuGetAudit=false
+      - name: Check streamed library progress
+        run: dotnet run --no-build --project tests/AchievementLabs.Enhancements.Tests -c Release -- --library-refresh
+      - name: Check native window bindings
+        run: dotnet run --no-build --project tests/AchievementLabs.Enhancements.Tests -c Release -- --integration
