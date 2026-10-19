@@ -11,8 +11,8 @@ settings:
     SWIFT_VERSION: "5.0"
     TARGETED_DEVICE_FAMILY: "1,2"
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: "0.12.2"
-    CURRENT_PROJECT_VERSION: "20"
+    MARKETING_VERSION: "0.12.3"
+    CURRENT_PROJECT_VERSION: "21"
 targets:
   AchievementLabsMobile:
     type: application
@@ -77,9 +77,3 @@ schemes:
     build:
       targets:
         AchievementLabsMobile: all
-
-
-
-
-
-

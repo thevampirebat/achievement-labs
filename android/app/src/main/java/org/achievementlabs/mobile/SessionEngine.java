@@ -132,6 +132,19 @@ try{preview=BuildConfig.DEBUG&&previewMode;previewPage=startPage;vault=new Vault
    case "editQueue":{if(queueGate.busy())throw new Exception("Pause before editing.");int index=QueueLibrary.find(queue,p.getString("id"));if(index<0||index>=queue.length())throw new Exception("Queue item missing.");if(p.optBoolean("remove"))queue.remove(index);else if(p.has("status")){String status=p.getString("status");if(!status.equals("Waiting")&&!status.equals("Skipped by user"))throw new Exception("Invalid queue action.");queue.getJSONObject(index).put("status",status).remove("remainingDelay");}else {queue.getJSONObject(index).put("delay",Math.max(0,Math.min(31536000,p.getDouble("delay"))));queue.getJSONObject(index).remove("remainingDelay");}save();return publicState(true);}
    case "removeCompleted":{if(queueGate.busy())throw new Exception("Pause first.");JSONArray next=new JSONArray();Map<String,JSONArray> loaded=new HashMap<>();for(int i=0;i<queue.length();i++){JSONObject item=queue.getJSONObject(i),g=item.getJSONObject("game");String id=g.getString("titleId");if(!loaded.containsKey(id))loaded.put(id,rows(g,auth().getString("xuid")));if(!unlocked(selectRow(loaded.get(id),item.getString("achievementId"))))next.put(item);}queue=next;save();return publicState(true);}
    case "loadGameQueue":{if(queueGate.busy())throw new Exception("Pause before loading a saved queue.");String title=Core.numeric(p.getString("title"));JSONArray items=QueueLibrary.restore(savedQueues.getJSONObject(title));save();if(!p.optBoolean("append")){queue=new JSONArray();previousQueue=new JSONArray();}queue=QueueLibrary.append(queue,items);save();notice="Saved game loaded. Review and press Start when ready.";return publicState(true);}
+   case "confirmDeleteGameQueue":{
+    if(queueGate.busy()||account==null)throw new Exception("Sign in and pause Auto Unlock first.");String title=Core.numeric(p.getString("title")),owner=account.getString("xuid"),name=savedQueues.getJSONObject(title).optString("name","Game");
+    main.post(()->{MainActivity ui=screen.get();if(ui!=null)ui.confirmDeleteGameQueue(title,name,owner);});return new JSONObject();
+   }
+   case "deleteGameQueue":{
+    if(queueGate.busy())throw new Exception("Pause Auto Unlock before deleting saved queues.");
+    if(account==null||!account.getString("xuid").equals(p.getString("owner")))throw new Exception("The signed-in account changed. Choose the queue again.");String title=Core.numeric(p.getString("title"));
+    if(!savedQueues.has(title))throw new Exception("Saved queue no longer exists.");save();
+    JSONObject beforeSaved=new JSONObject(savedQueues.toString());JSONArray beforeQueue=QueueLibrary.copy(queue),beforePrevious=QueueLibrary.copy(previousQueue);
+    try{queue=QueueLibrary.deleteGame(savedQueues,queue,title);previousQueue=QueueLibrary.copy(queue);save();}
+    catch(Exception error){savedQueues=beforeSaved;queue=beforeQueue;previousQueue=beforePrevious;throw error;}
+    notice="Saved game queue deleted, including its loaded items. Other games were retained.";return publicState(true);
+   }
    case "saveQueue":save();return publicState(true);
    case "queueStart":startQueue();return publicState(true);
    case "queuePause":pause();keepAwake();return publicState(true);
@@ -150,4 +163,3 @@ try{preview=BuildConfig.DEBUG&&previewMode;previewPage=startPage;vault=new Vault
  }
 
 }
-

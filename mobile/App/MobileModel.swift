@@ -409,6 +409,15 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         guard !running, !busy else { return }
         queue.removeAll { $0.id == id }; _ = saveQueue()
     }
+    func deleteSavedGameQueue(_ id: String) {
+        guard !running, !busy, account != nil, queueBook.games[id] != nil else { return }
+        guard saveQueue() else { return }
+        let previous = queueBook
+        queueBook.deleteGame(id)
+        guard writeQueueBook() else { queueBook = previous; return }
+        queue = queueBook.current
+        status = "Saved game queue deleted, including its loaded items. Other games were retained."
+    }
     func resetQueueItem(_ id: String) {
         guard !running, !busy, let i = queue.firstIndex(where:{ $0.id == id }) else { return }
         queue[i].status = "Waiting"; queue[i].remainingDelay = nil; _ = saveQueue()
@@ -903,7 +912,3 @@ private final class PreviewOfflineProtocol: URLProtocol {
     override func stopLoading() {}
 }
 #endif
-
-
-
-

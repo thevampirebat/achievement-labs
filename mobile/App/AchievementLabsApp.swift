@@ -165,6 +165,8 @@ struct QueueView: View {
     @EnvironmentObject var m: MobileModel
     @State private var options = false
     @State private var savedExpanded = false
+    @State private var deletingSaved: SavedGameQueue?
+    @State private var deletingOwner = ""
     @State private var exportQueues = false
     @State private var importQueues = false
     @State private var queueQR = false
@@ -229,6 +231,7 @@ struct QueueView: View {
                                 Spacer()
                                 Button("Add to end of queue") { m.loadGameQueue(saved.id,append:true) }
                             }.font(.caption).buttonStyle(.borderless).disabled(m.running || m.busy)
+                            Button("Delete saved queue",role:.destructive) { deletingOwner = m.account?.xuid ?? ""; deletingSaved = saved }.font(.caption).buttonStyle(.borderless).disabled(m.running || m.busy)
                         }
                     }
                     Text("To sync: Export queue sync file → copy the JSON file to your other device → Import queue sync file there while signed into the same account. This is a manual transfer; loading requires Start.").font(.caption2).foregroundStyle(.secondary)
@@ -239,6 +242,12 @@ struct QueueView: View {
                     if m.queue.isEmpty { Text("Build a timing queue above, or select achievements from Library.").font(.caption).foregroundStyle(.secondary) }
                 }
             }.scrollDismissesKeyboard(.interactively).listSectionSpacing(.compact).navigationTitle("Auto Unlock").navigationBarTitleDisplayMode(.inline)
+            .confirmationDialog("Delete saved queue?",isPresented:Binding(get:{ deletingSaved != nil },set:{ if !$0 { deletingSaved = nil } }),titleVisibility:.visible) {
+                if let saved = deletingSaved {
+                    Button("Delete " + saved.name,role:.destructive) { if m.account?.xuid == deletingOwner { m.deleteSavedGameQueue(saved.id) }; deletingSaved = nil }
+                }
+                Button("Cancel",role:.cancel) { deletingSaved = nil }
+            } message: { Text("This removes the saved game and its loaded queue items. Other games and Xbox achievements are unchanged.") }
             .sheet(isPresented:$queueQR) { QueueQRSyncView() }
             .fileExporter(isPresented:$exportQueues,document:queueDocument,contentType:.json,defaultFilename:"AchievementLabs-Queues") { result in if case .failure(let error) = result { m.error = error.localizedDescription } }
             .fileImporter(isPresented:$importQueues,allowedContentTypes:[.json]) { result in
@@ -460,8 +469,3 @@ struct SettingsView: View {
                 }
     }
 }
-
-
-
-
-

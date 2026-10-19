@@ -26,6 +26,27 @@ public static class SavedGameQueueTests
             restarted.AppendSavedGameAsync = state => { appended=state; return Task.CompletedTask; };
             restarted.AppendSelectedGameQueueCommand.ExecuteAsync(null).GetAwaiter().GetResult();
             Assert(appended?.TitleId=="7" && restarted.PreparedState?.TitleId=="7","Append hands the selected checkpoint to build queue without replacing active state");
+            restarted.SelectedSavedGameQueue = restarted.SavedGameQueues.Single(x => x.TitleId=="8");
+            restarted.DeleteSavedGameQueueAsync("8","43").GetAwaiter().GetResult();
+            Assert(restarted.SavedGameQueues.Count==2,"A confirmation for a different account cannot delete queues");
+            restarted.DeleteSavedGameQueueAsync("8","42").GetAwaiter().GetResult();
+            Assert(restarted.PreparedState?.TitleId=="7" && File.Exists(restarted.StatePath),"Deleting another game preserves the loaded checkpoint");
+            var afterDelete = Model(account); afterDelete.OnNavigatedTo();
+            Assert(afterDelete.SavedGameQueues.Count==1 && afterDelete.SavedGameQueues[0].TitleId=="7","Deleted queue stays absent after restart");
+            restarted.DeleteSavedGameQueueAsync("7","42").GetAwaiter().GetResult();
+            Assert(restarted.PreparedState==null && !File.Exists(restarted.StatePath),"Deleting the loaded game clears its legacy checkpoint");
+            var empty = Model(account); empty.OnNavigatedTo();
+            Assert(empty.SavedGameQueues.Count==0,"Legacy migration does not resurrect deleted games");
+            var settingsPath = Path.Combine(root,"options.json");
+            var store = new AchievementLabs.Core.AutoUnlockPreferencesStore(settingsPath);
+            Assert(store.Load()==null,"Old installations without preference files use defaults");
+            var options = new AchievementLabs.Core.AutoUnlockPreferences { RefreshTokenOnFailure=true,NotifyOnFailure=false,StopOnFailure=true,
+                StopOnSpoofFailure=true,NotifyOnCompletion=false,SpeedMultiplier=2.5,BuildSpeedMultiplier=3,BuildBufferSeconds=120,ReferenceGamertag="Offline reference" };
+            store.Save(options);
+            Assert(new AchievementLabs.Core.AutoUnlockPreferencesStore(settingsPath).Load()==options,"All Auto Unlock preferences survive restart independently of queue deletion");
+            try { store.Save(options with { SpeedMultiplier=double.NaN }); throw new Exception("Invalid speed was saved"); }
+            catch (InvalidDataException) { }
+            Assert(store.Load()==options,"Invalid settings preserve the previous file");
             var other = Model(new NativeAccountContext { XUIDOnly="43",XAUTH="synthetic-offline" });other.OnNavigatedTo();
             Assert(other.SavedGameQueues.Count==0,"Saved queues are partitioned by Xbox account");
             Console.WriteLine("PASS: per-game queue persistence, restart, explicit resume, append handoff, remaining delay and account partitioning. No network.");
