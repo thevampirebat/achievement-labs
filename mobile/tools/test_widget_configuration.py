@@ -16,6 +16,11 @@ with tempfile.TemporaryDirectory() as temporary:
     assert 'DEVELOPMENT_TEAM: ABCDE12345' in text
     assert 'com.example.widgettester.queue.*' in text
     assert plistlib.loads((source/'AppGroups.entitlements').read_bytes())['com.apple.security.application-groups']==['group.com.example.widgettester']
+    # An identifier extending the old prefix must not duplicate its suffix in the group.
+    args.bundle_id='com.example.widgettester.friend'; args.group_id='group.com.example.widgettester.friend'
+    helper.configure(args); helper.configure(args)
+    assert (source/'project.yml').read_text().count('LabsWidgetAppGroup: group.com.example.widgettester.friend\n')==2
+    args.bundle_id='com.example.widgettester'; args.group_id='group.com.example.widgettester'
     ipa=work/'original.ipa'; output=work/'configured.ipa'
     info={'CFBundleIdentifier':'org.achievementlabs.widgettest','CFBundleShortVersionString':'0.12.4'}
     with zipfile.ZipFile(ipa,'w') as archive:
