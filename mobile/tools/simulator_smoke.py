@@ -36,24 +36,24 @@ subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True,timeout=30
 app='mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app'
 subprocess.run(['xcrun','simctl','install',device,app],check=True)
 try:
-    output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--storage-self-test')
+    output=run('xcrun','simctl','launch',device,'org.achievementlabs.widgettest','--storage-self-test')
 except subprocess.CalledProcessError:
-    subprocess.run(['xcrun','simctl','spawn',device,'log','show','--last','2m','--style','compact','--predicate','process == "AchievementLabsMobile" OR eventMessage CONTAINS "org.achievementlabs.mobile"'],check=False,timeout=120)
+    subprocess.run(['xcrun','simctl','spawn',device,'log','show','--last','2m','--style','compact','--predicate','process == "AchievementLabsMobile" OR eventMessage CONTAINS "org.achievementlabs.widgettest"'],check=False,timeout=120)
     raise
 print(output)
 pid=output.strip().rsplit(':',1)[-1].strip()
 time.sleep(5)
 subprocess.run(['xcrun','simctl','spawn',device,'launchctl','list'],check=True,stdout=subprocess.DEVNULL)
 processes=run('xcrun','simctl','spawn',device,'launchctl','list')
-assert any(line.split() and line.split()[0] == pid and 'org.achievementlabs.mobile' in line for line in processes.splitlines()), 'App exited after launch'
+assert any(line.split() and line.split()[0] == pid and 'org.achievementlabs.widgettest' in line for line in processes.splitlines()), 'App exited after launch'
 Path('mobile/artifacts').mkdir(exist_ok=True)
 subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPhone-launch.png'],check=True)
-subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.widgettest'],check=True)
 print('Simulator launch passed; no account connected or network actions requested.')
 
 # A real iOS URLSession check, unlike the macOS command-line probe: ATS applies.
-output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--collector-self-test')
-container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.mobile','data').strip())
+output=run('xcrun','simctl','launch',device,'org.achievementlabs.widgettest','--collector-self-test')
+container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.widgettest','data').strip())
 marker=container/'Documents'/'Collector-self-test.json'
 for _ in range(30):
     if marker.exists(): break
@@ -61,10 +61,10 @@ for _ in range(30):
 result=json.loads(marker.read_text())
 print('Actual iOS app collector TLS check: '+str(result),flush=True)
 assert result['scopedATS'] and result['passed'], 'Actual iOS app collector TLS failed'
-subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.widgettest'],check=True)
 
-output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--audio-self-test')
-container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.mobile','data').strip())
+output=run('xcrun','simctl','launch',device,'org.achievementlabs.widgettest','--audio-self-test')
+container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.widgettest','data').strip())
 marker=container/'Documents'/'Audio-self-test.json'
 for _ in range(15):
     if marker.exists(): break
@@ -72,33 +72,31 @@ for _ in range(15):
 result=json.loads(marker.read_text())
 print('Offline audio start/stop check: '+str(result),flush=True)
 assert result.get('playing') and result.get('stopped') and result['audioManifest'] and result['liveManifest'], 'Audio/session manifest check failed'
-subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.widgettest'],check=True)
 
 for page in ['library','queue','spoof','settings','settings-sync','settings-library','settings-app','home']:
-    output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--ui-preview='+page)
+    output=run('xcrun','simctl','launch',device,'org.achievementlabs.widgettest','--ui-preview='+page)
     preview_pid=output.strip().rsplit(':',1)[-1].strip()
     time.sleep(3)
     processes=run('xcrun','simctl','spawn',device,'launchctl','list')
-    assert any(line.split() and line.split()[0] == preview_pid and 'org.achievementlabs.mobile' in line for line in processes.splitlines()), 'Preview exited: '+page
+    assert any(line.split() and line.split()[0] == preview_pid and 'org.achievementlabs.widgettest' in line for line in processes.splitlines()), 'Preview exited: '+page
     subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPhone-'+page+'.png'],check=True)
-    subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+    subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.widgettest'],check=True)
 print('Eight offline refinement screens launched. All preview network requests are blocked.')
 
-output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--web-callback-self-test')
+output=run('xcrun','simctl','launch',device,'org.achievementlabs.widgettest','--web-callback-self-test')
 time.sleep(5)
-container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.mobile','data').strip())
+container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.widgettest','data').strip())
 marker=container/'Documents'/'Callback-self-test.txt'
 assert marker.read_text() == 'passed', 'Embedded WebKit did not capture and validate the synthetic redirect'
-subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
+subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.widgettest'],check=True)
 print('Embedded WebKit automatic callback capture and full redirect validation passed without credentials or OAuth requests.')
 
-output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--ui-preview=queue','--background-self-test')
+output=run('xcrun','simctl','launch',device,'org.achievementlabs.widgettest','--ui-preview=queue','--background-self-test')
 time.sleep(12)
-container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.mobile','data').strip())
+container=Path(run('xcrun','simctl','get_app_container',device,'org.achievementlabs.widgettest','data').strip())
 result=json.loads((container/'Documents'/'Background-self-test.json').read_text())
 assert result['available'] and result['finishedInactive'], 'Background request did not finish safely'
 assert result['manifestValid'], 'Background identifiers/modes missing from the built app'
 print('iOS 26 background API request completed or safely declined with no network: '+str(result))
-subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
-
-
+subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.widgettest'],check=True)
