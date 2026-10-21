@@ -17,6 +17,7 @@ static class Test
  static void Submit(Window d)=>Click(Desc<Button>(d).Single(b=>(b.Content as string)=="Unlock / retry selected"));
  public static void Main(string[] args)
  {
+  AppContext.SetSwitch("AchievementLabs.OfflineChecks", true);
   if(args.Contains("--token-validation")){EventTokenRegressionTests.Run();return;}
   if(args.Contains("--ui-tweaks")){UITweakTests.Run();return;}
   if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();SavedGameQueueTests.Run();
@@ -49,7 +50,7 @@ static class Test
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="lookup-spoof")==1,"Only title lookup accepts Enter, never start presence");
    Assert(!Desc<TextBox>(window).Any(c=>c.AcceptsReturn && c.Tag is string tag && tag=="save-token"),"Multiline text keeps normal Enter behaviour");
    var settingsTabs=Desc<TabControl>(window).Single(t=>t.Name=="DesktopSettingsTabs");
-   Assert(settingsTabs.Items.OfType<TabItem>().Select(t=>t.Header?.ToString()).SequenceEqual(new[]{"Account","Sync","Library","App","Debug"}),"Desktop settings categories are explicit and complete");
+   Assert(settingsTabs.Items.OfType<TabItem>().Select(t=>t.Header?.ToString()).SequenceEqual(new[]{"Account","Sync","Library","App","Debug","Appearance"}),"Desktop settings categories are explicit and complete");
    Assert(Desc<Button>(window).Count(b=>b.Name=="SaveAllSettings")==1,"One global save remains accessible above settings tabs");
    using (var routeClient = new AchievementLabs.Core.EventCatalogClient(true)) {
        Assert(!routeClient.BundledTitleIds.Contains("345903534"),"Legacy Minecraft uses upstream route rather than Bedrock bundled data");
@@ -111,7 +112,7 @@ static class Test
    Assert(!Desc<Button>(window).Single(b=>b.Name=="AcquireConnectedAccountEventToken").IsEnabled,"Explicit matching-account token request disabled disconnected");
    Assert(Desc<CheckBox>(window).Single(b=>b.Name=="ShowEventToken").IsChecked==false,"Token hidden by default");
    Assert(Desc<Button>(window).Count(b=>b.Name=="OpenGameAutoSpoofer")==1,"Game queue shortcut attached");
-   Assert(Equals(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Content,"Open Auto Unlock"),"Game shortcut label matches destination");
+   Assert(!Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").IsVisible && Equals(Desc<Button>(window).Single(b=>b.Name=="OpenGameTitleSpoofer").Content,"Open in Game session"),"One visible game-session shortcut replaces the separate queue shortcut");
    Assert(Desc<Button>(window).Single(b=>b.Name=="OpenGameAutoSpoofer").Parent is Grid, "Game shortcut sits in filter toolbar");
    Assert(Desc<SelectableTextBlock>(window).Any(), "Game titles support text selection");
    Assert(!Desc<Button>(window).Any(b=>b.Name=="StartQueueSpoofing"), "Queue start spoofing control removed");
@@ -163,7 +164,7 @@ static class Test
     typedModel.Navigate("Queues"); Dispatcher.UIThread.RunJobs();
     Assert(Desc<Button>(window).Single(b=>b.Name=="XboxAutoUnlockNav").Classes.Contains("active") && !Desc<Button>(window).Single(b=>b.Name=="SteamAutoUnlockNav").Classes.Contains("active"),"Xbox queue keeps its independent navigation");
     var libraryRow=Desc<ListBox>(window).Single(l=>l.Name=="XboxLibraryList").ItemTemplate!.Build(new AchievementLabs.Desktop.Game("1","Fixture","XboxOne",0,1,0))!;
-    Assert(libraryRow.GetLogicalDescendants().OfType<Button>().Select(b=>b.Content?.ToString()).SequenceEqual(new[]{"Copy ID","Open achievements","Open stats"}),"Library has exactly three requested actions");
+    Assert(libraryRow.GetLogicalDescendants().OfType<Button>().Select(b=>b.Content?.ToString()).SequenceEqual(new[]{"Copy ID","Open achievements","Open stats","Open Game Session"}),"Library has four actions including the unified game session");
     var spooferPlaytime=Desc<TextBlock>(window).Single(t=>t.Name=="QueueRecordedPlaytime");
     Assert(Desc<TextBlock>(window).Any(t=>t.Text=="TITLE SPOOFER"), "Separate spoofer status tile present in Auto Unlock");
     typedModel.GetType().GetProperty("ActiveSpoofTitle")!.SetValue(typedModel,"Synthetic title · 42");

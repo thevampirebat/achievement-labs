@@ -105,6 +105,9 @@ namespace AchievementLabs.Models
 
         public static string GetSavePath()
         {
+            // Explicit offline checks must never load or overwrite a user's queue.
+            if (AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var offline) && offline)
+                return Path.Combine(Path.GetTempPath(), "AchievementLabs-OfflineChecks", Environment.ProcessId.ToString(), "auto_unlock_state.json");
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AchievementLabs", "auto_unlock_state.json");
         }
 

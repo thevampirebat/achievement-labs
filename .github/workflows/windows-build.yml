@@ -41,8 +41,25 @@ jobs:
       - name: Run upstream updater checks
         run: dotnet run --project tools/UpdaterChecks -c Release
 
+      - name: Run offline presentation logic checks
+        run: ./tools/Test-Presentation.ps1
+
       - name: Build self-contained Windows executable
-        run: ./tools/Build-Release.ps1 -Version 1.0.8 -BuildRevision 10
+        run: ./tools/Build-Release.ps1 -Version 1.0.8 -BuildRevision 11
+
+      - name: Check packaged layout and library scrolling
+        run: |
+          $taskExecutable = @(Get-ChildItem releases -Filter AchievementLabs.exe -Recurse -File)
+          if ($taskExecutable.Count -ne 1) { throw 'Expected one published executable.' }
+          ./tools/Test-Presentation.ps1 -Executable $taskExecutable[0].FullName
+
+      - name: Upload presentation checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AchievementLabs-Presentation-Checks
+          path: artifacts/presentation-checks/
+          if-no-files-found: warn
 
       - name: Prepare download and checksum
         run: |
@@ -63,6 +80,7 @@ jobs:
             "Version: $taskFileVersion"
             'Signing: unsigned'
             'Offline enhancement checks: passed'
+            'Offline presentation logic and packaged layout/scroll checks: passed'
             'Live Xbox sign-in, event delivery and licensing have not been verified by this workflow.'
           ) | Set-Content artifacts/download/BUILD-INFO.txt -Encoding utf8
           @(

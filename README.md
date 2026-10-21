@@ -6,7 +6,9 @@ Achievement, stat, presence, and save tooling for Windows PC and Xbox titles. Th
 desktop client uses Avalonia and includes Xbox, Xbox 360, Games for Windows Live,
 Steam, Epic, and Ubisoft workflows.
 
-**[Download the latest release](https://github.com/ethanwp28/achievement-labs/releases/latest)**
+**[Download the latest fork release](https://github.com/thevampirebat/achievement-labs/releases/latest)**
+
+The Windows client includes a combined Game Session and customizable glass appearance. See [Game Session and appearance](docs/game-session-and-appearance.md) for controls, completion summaries and offline validation.
 
 Windows only. Editing achievement and stat data can carry account risk on a live
 service. Use test accounts and keep the backups created by the application.
