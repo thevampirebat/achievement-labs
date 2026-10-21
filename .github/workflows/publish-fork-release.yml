@@ -9,110 +9,101 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: publish-v1.0.8-fork.10
+  group: publish-v1.0.8-fork.11
   cancel-in-progress: false
 jobs:
   publish:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 55
     permissions:
       contents: write
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: v1.0.8-fork.10
-      SOURCE_SHA: 8f94a3994ade0fe8ec09b5d1c333c0857879ea23
-      BUILD_SHA: fe8c82348e98c967cc34b8ed1102ec3e31b7f0c9
+      RELEASE_TAG: v1.0.8-fork.11
+      SOURCE_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           persist-credentials: false
-      - name: Verify tested source and successful builds
+      - name: Wait for the tested Windows build of this commit
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse "$SOURCE_SHA^{tree}")" = "$(git rev-parse "$BUILD_SHA^{tree}")"
-          for run in 39255411145 39255411207 39255411064; do
-            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .conclusion)" = success
-            test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .head_sha)" = "$BUILD_SHA"
+          for attempt in $(seq 1 100); do
+            run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/windows-build.yml/runs?head_sha=$SOURCE_SHA&event=push&per_page=10" --jq '.workflow_runs[0].id // empty')
+            if [ -n "$run" ]; then
+              state=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .status)
+              if [ "$state" = completed ]; then
+                test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .conclusion)" = success
+                test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .head_sha)" = "$SOURCE_SHA"
+                gh run download "$run" --repo "$GITHUB_REPOSITORY" --name AchievementLabs-Windows-x64 --dir downloads/windows
+                exit 0
+              fi
+            fi
+            sleep 30
           done
-      - uses: actions/download-artifact@v4
-        with:
-          name: AchievementLabs-Windows-x64
-          path: downloads/windows
-          run-id: 39255411145
-          github-token: ${{ github.token }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: AchievementLabs-Android-Beta
-          path: downloads/android
-          run-id: 39255411207
-          github-token: ${{ github.token }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: AchievementLabs-iOS-Standalone-Unsigned
-          path: downloads/ios
-          run-id: 39255411064
-          github-token: ${{ github.token }}
+          echo 'Timed out waiting for a successful Windows build.' >&2
+          exit 1
+      - name: Retain unchanged mobile downloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p downloads/mobile
+          gh release download v1.0.8-fork.10 --repo "$GITHUB_REPOSITORY" --dir downloads/mobile \
+            --pattern 'AchievementLabs-Android-0.6.1.apk' --pattern 'AchievementLabs-Android-0.6.1.zip' \
+            --pattern 'AchievementLabs-iOS-0.12.3-UNSIGNED.ipa' --pattern 'AchievementLabs-iOS-0.12.3.zip' --pattern SHA256.txt
       - name: Verify and package release assets
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          import hashlib, json, shutil, zipfile, plistlib, os
-          root = Path('downloads')
+          import hashlib, json, shutil, zipfile, os
+          windows = Path('downloads/windows')
+          mobile = Path('downloads/mobile')
           out = Path('release-assets')
           out.mkdir()
-          def one(pattern):
-              matches = list(root.rglob(pattern))
-              assert len(matches) == 1, (pattern, matches)
-              return matches[0]
-          exe = one('AchievementLabs.exe')
-          apk = one('AchievementLabs-Android-0.6.1.apk')
-          ipa = one('AchievementLabs-iOS-0.12.3-UNSIGNED.ipa')
-          for binary in (exe, apk, ipa):
-              digest = hashlib.sha256(binary.read_bytes()).hexdigest()
-              checksum = (binary.parent / 'SHA256.txt').read_text(encoding='utf-8-sig').lower()
-              assert digest in checksum, 'Checksum mismatch: ' + binary.name
-              shutil.copy2(binary, out / binary.name)
-          metadata = json.loads((exe.parent / 'update.json').read_text(encoding='utf-8-sig'))
-          assert metadata['version'] == '1.0.8.10'
+          def digest(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+          exe = windows / 'AchievementLabs.exe'
+          metadata = json.loads((windows / 'update.json').read_text(encoding='utf-8-sig'))
+          assert metadata['version'] == '1.0.8.11'
           assert metadata['bytes'] == exe.stat().st_size
-          assert metadata['sha256'].lower() == hashlib.sha256(exe.read_bytes()).hexdigest()
-          signature = one('APK-SIGNATURE.txt').read_text().lower().replace(':', '')
-          assert 'ca0f945ac761e14ed97bafe54c806c4167635466060978448e6903b8ec545813' in signature
-          with zipfile.ZipFile(ipa) as z:
-              info = plistlib.loads(z.read('Payload/AchievementLabsMobile.app/Info.plist'))
-              assert info['CFBundleShortVersionString'] == '0.12.3'
-              assert str(info['CFBundleVersion']) == '21'
-              assert any('.appex/Info.plist' in n for n in z.namelist()), 'Live Activity extension missing'
-          shutil.copy2(exe.parent / 'update.json', out / 'update.json')
+          assert metadata['sha256'].lower() == digest(exe)
+          build_info = (windows / 'BUILD-INFO.txt').read_text(encoding='utf-8-sig')
+          assert 'Commit: ' + os.environ['SOURCE_SHA'] in build_info
+          assert 'packaged layout/scroll checks: passed' in build_info
+          expected = {}
+          for line in (mobile / 'SHA256.txt').read_text(encoding='utf-8-sig').splitlines():
+              if line.strip():
+                  sha, name = line.split(maxsplit=1)
+                  expected[name.lstrip('*')] = sha.lower()
+          for path in mobile.iterdir():
+              if path.name != 'SHA256.txt':
+                  assert expected.get(path.name) == digest(path), 'Mobile checksum mismatch: ' + path.name
+                  shutil.copy2(path, out / path.name)
+          shutil.copy2(exe, out / exe.name)
+          shutil.copy2(windows / 'update.json', out / 'update.json')
           shutil.copy2('docs/releases/START-HERE.md', out / 'START-HERE.md')
-          shutil.copy2('docs/releases/v1.0.8-fork.10.md', out / 'RELEASE-NOTES.md')
-          shutil.copy2('docs/auto-unlock-preferences-and-delete.md', out / 'QUEUE-SETTINGS.md')
-          shutil.copy2(exe.parent / 'BUILD-INFO.txt', out / 'BUILD-INFO.txt')
-          with (out / 'BUILD-INFO.txt').open('a') as f:
-              f.write('\nRelease source: ' + os.environ['SOURCE_SHA'] + '\nTested build source: ' + os.environ['BUILD_SHA'] + '\nAll platform workflows passed; source trees identical.\n')
-          for label, binary in [('Windows-1.0.8.10', exe), ('Android-0.6.1', apk), ('iOS-0.12.3', ipa)]:
-              with zipfile.ZipFile(out / ('AchievementLabs-' + label + '.zip'), 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
-                  for p in binary.parent.rglob('*'):
-                      if p.is_file():
-                          z.write(p, p.relative_to(binary.parent))
-                  for name in ('START-HERE.md', 'RELEASE-NOTES.md', 'QUEUE-SETTINGS.md'):
-                      z.write(out / name, name)
-          (out / 'SHA256.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest() + '  ' + p.name + '\n' for p in sorted(out.iterdir()) if p.is_file() and p.name != 'SHA256.txt'))
+          shutil.copy2('docs/releases/v1.0.8-fork.11.md', out / 'RELEASE-NOTES.md')
+          shutil.copy2('docs/game-session-and-appearance.md', out / 'GAME-SESSION.md')
+          (out / 'BUILD-INFO.txt').write_text(build_info + '\nMobile assets retained unchanged from v1.0.8-fork.10.\n')
+          with zipfile.ZipFile(out / 'AchievementLabs-Windows-1.0.8.11.zip', 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+              for name in ('AchievementLabs.exe', 'update.json', 'START-HERE.md', 'RELEASE-NOTES.md', 'GAME-SESSION.md', 'BUILD-INFO.txt'):
+                  z.write(out / name, name)
+          (out / 'SHA256.txt').write_text(''.join(digest(p) + '  ' + p.name + '\n' for p in sorted(out.iterdir()) if p.is_file() and p.name != 'SHA256.txt'))
           print('Verified assets:', ', '.join(p.name for p in out.iterdir()))
           PY
-      - name: Publish beta-labelled release
+      - name: Publish release
         shell: bash
         run: |
           set -euo pipefail
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft > release-state.txt 2>/dev/null; then
             test "$(cat release-state.txt)" = true
           else
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs Beta — PC 1.0.8.10 / Android 0.6.1 / iOS 0.12.3' --notes-file docs/releases/v1.0.8-fork.10.md --draft
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs Beta — PC 1.0.8.11 / Android 0.6.1 / iOS 0.12.3' --notes-file docs/releases/v1.0.8-fork.11.md --draft
           fi
           gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" release-assets/* --clobber
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
