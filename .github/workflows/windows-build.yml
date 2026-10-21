@@ -49,6 +49,7 @@ jobs:
 
       - name: Check packaged layout and library scrolling
         run: |
+          ./tools/Set-CIDisplay.ps1
           $taskExecutable = @(Get-ChildItem releases -Filter AchievementLabs.exe -Recurse -File)
           if ($taskExecutable.Count -ne 1) { throw 'Expected one published executable.' }
           ./tools/Test-Presentation.ps1 -Executable $taskExecutable[0].FullName
