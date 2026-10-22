@@ -1,4 +1,4 @@
-name: iOS standalone beta
+name: iOS App Groups widget test
 on:
   pull_request:
     branches: [main]
@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ios-build-${{ github.ref }}
+  group: ios-widget-test-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   network-probe:
@@ -41,6 +41,22 @@ jobs:
         env:
           LABS_CATALOGUE: ${{ github.workspace }}/mobile/Catalogue
         run: swift test --package-path mobile/Core
+      - name: Check widget snapshot privacy and signing configuration
+        run: |
+          cat mobile/Shared/HomeWidgetSnapshot.swift mobile/tools/test_home_widget.swift > /tmp/widget-tests.swift
+          swift /tmp/widget-tests.swift
+          python3 mobile/tools/test_widget_configuration.py
+      - name: Render production Home Screen widget previews
+        run: |
+          mkdir -p mobile/home-widget-previews
+          cat mobile/Widget/HomeWidgetCard.swift mobile/tools/render_home_widget.swift > /tmp/home-widget-preview.swift
+          swift /tmp/home-widget-preview.swift
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AchievementLabs-Home-Widget-Previews
+          path: mobile/home-widget-previews/
+          retention-days: 30
+          if-no-files-found: error
       - name: Render native Live Activity layouts without booting a simulator
         run: |
           mkdir -p mobile/layout-previews
@@ -74,18 +90,34 @@ jobs:
           mkdir -p mobile/artifacts/Payload
           cp -R mobile/build/Build/Products/Release-iphoneos/AchievementLabsMobile.app mobile/artifacts/Payload/
           cd mobile/artifacts
-          /usr/bin/zip -qry AchievementLabs-iOS-0.12.3-UNSIGNED.ipa Payload
-          shasum -a 256 AchievementLabs-iOS-0.12.3-UNSIGNED.ipa > SHA256.txt
+          /usr/bin/zip -qry AchievementLabs-iOS-0.12.4-WIDGET-TEST-UNSIGNED.ipa Payload
+          shasum -a 256 AchievementLabs-iOS-0.12.4-WIDGET-TEST-UNSIGNED.ipa > SHA256.txt
           cp ../Catalogue/catalogue-report.json .
           cp ../README.md .
+          cp ../WIDGET-TEST.md .
+          cp ../AppGroups.entitlements .
+          cp ../tools/configure_widget_test.py .
+          cp ../home-widget-previews/AchievementLabs-Widget-Preview.png .
           cp ../WIDGETS.md .
           cp ../QUEUE-QR.md .
           cp ../App/Assets.xcassets/AppIcon.appiconset/Icon.png AppIcon.png
           rm -rf Payload
       - uses: actions/upload-artifact@v4
         with:
-          name: AchievementLabs-iOS-Standalone-Unsigned
+          name: AchievementLabs-iOS-Home-Widget-Test
           path: mobile/artifacts/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Package matching developer source project
+        run: |
+          mkdir -p /tmp/LabsWidgetTest-Source
+          rsync -a --exclude build --exclude simulator --exclude artifacts --exclude .build --exclude .swiftpm --exclude layout-previews --exclude home-widget-previews mobile/ /tmp/LabsWidgetTest-Source/
+          cd /tmp
+          /usr/bin/zip -qry AchievementLabs-Widget-Test-Source.zip LabsWidgetTest-Source
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AchievementLabs-Widget-Test-Source
+          path: /tmp/AchievementLabs-Widget-Test-Source.zip
           retention-days: 30
           if-no-files-found: error
       - name: Verify iOS 26 simulator screens and safe background request

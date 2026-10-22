@@ -55,8 +55,8 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     private var pendingPCExpiry: Date?
     @Published var pcSyncStatus = "Import an encrypted transfer exported from the PC app."
     @AppStorage("autoSyncEvents") var autoSyncEvents = true
-    @AppStorage("checkMobileUpdates") var checkMobileUpdates = true
-    @AppStorage("notifyMobileUpdates") var notifyMobileUpdates = true
+    @AppStorage("checkMobileUpdates") var checkMobileUpdates = false
+    @AppStorage("notifyMobileUpdates") var notifyMobileUpdates = false
     @AppStorage("autoRefreshLibrary") var autoRefreshLibrary = true
     private var lifecycleRunning = false
     private var lastLibraryRefresh = Date.distantPast
@@ -106,6 +106,9 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     @AppStorage("useExtendedAudio") var useExtendedAudio = false
     let extendedAudio = ExtendedAudioSession()
     let liveStatus = SessionLiveStatus()
+    @AppStorage("shareHomeWidget") var shareHomeWidget = true
+    @AppStorage("homeWidgetDemo") var homeWidgetDemo = false
+    @Published var widgetStatus = "Widget test build: matching App Group profiles required."
     var extendedBackgroundAllowed: Bool { useExtendedAudio && extendedAudio.active && (presenceDeadline ?? .distantPast) > Date() }
     var queueBackgroundAllowed: Bool { continueQueueInBackground && running && queueTask?.isCancelled != true && (continuedQueue.active || extendedBackgroundAllowed) }
     var presenceBackgroundAllowed: Bool { presenceRunning && presenceTask?.isCancelled != true && (extendedBackgroundAllowed || (continuedQueue.active && ((continueSpoofInBackground && (presenceDeadline ?? .distantPast) > Date()) || (continueSpoofWithQueue && queueBackgroundAllowed)))) }
@@ -153,6 +156,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         var next = input
         if rememberSignIn { try SecureStore.save(JSONEncoder().encode(next),allowBackground:continueQueueInBackground || continueSpoofInBackground) }
         else { next.refreshToken = nil; try SecureStore.remove() }
+        if account?.xuid != next.xuid { WidgetSnapshotStore.clear() }
         account = next
     }
     private func authorizedAccount(force: Bool = false) async throws -> Account {
@@ -253,7 +257,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         busy = true; defer { busy = false }
         browserLogin = nil; browserPending = false; generation = UUID(); renewalTask?.cancel()
         pauseQueue(); if let queueTask { await queueTask.value }; await stopPresence(); generation = UUID()
-        do { try SecureStore.remove(); await clearMicrosoftCookies(); account = nil; games = []; rows = []; queue = []; queueBook = SavedQueueBook(); pendingQueueItems = []; selectedGame = nil; baseCompleted = []; checkedCompletion = []; savedTotals = [:]; titleDetails = [:]; playedHours = [:]; status = "Disconnected." }
+        do { try SecureStore.remove(); WidgetSnapshotStore.clear(); await clearMicrosoftCookies(); account = nil; games = []; rows = []; queue = []; queueBook = SavedQueueBook(); pendingQueueItems = []; selectedGame = nil; baseCompleted = []; checkedCompletion = []; savedTotals = [:]; titleDetails = [:]; playedHours = [:]; status = "Disconnected." }
         catch { self.error = "Could not remove the Keychain session." }
     }
     func refreshGames() async {
@@ -594,7 +598,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
-    func terminating() { queueTask?.cancel(); presenceTask?.cancel(); liveStatus.end(); extendedAudio.stop() }
+    func terminating() { queueTask?.cancel(); presenceTask?.cancel(); liveStatus.end(); WidgetSnapshotStore.clear(); extendedAudio.stop() }
     func stopPresence(reason: String = "Stopped by user.", notifyStop: Bool = false) async {
         guard !presenceStopping, presenceTask != nil || presenceStarted != nil || presenceCleanupNeeded else { return }
         presenceStopping = true; presenceCleanupNeeded = false
@@ -644,7 +648,17 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
+    func refreshHomeWidget() {
+        updateSessionCard()
+        widgetStatus = WidgetSnapshotStore.available ? "Shared App Group is accessible. Add Labs Widget Test from the Home Screen widget gallery." : "Shared App Group unavailable. Register the group and include it in both signing profiles."
+    }
+    func showHomeWidgetDemo() {
+        guard !running, !presenceRunning else { return }
+        homeWidgetDemo = true
+        widgetStatus = WidgetSnapshotStore.write(.demo(),force:true) ? "Sample widget data shared. It does not start spoofing or unlock achievements." : "Shared container unavailable. Check both App Group signing profiles."
+    }
     func updateSessionCard() {
+        if running || presenceRunning { homeWidgetDemo = false }
         let accepted = queue.filter { $0.status.hasPrefix("Accepted") || $0.status == "Already unlocked" }.count
         let queueText = running ? "Queue \(accepted)/\(queue.count) processed" : (queue.isEmpty ? "No queue running" : "Queue ready")
         let spoofText: String
@@ -656,13 +670,19 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         let current = nextQueueItem
         let expiry = SessionTiming.spoofExpiry(lastHeartbeat:lastHeartbeat,started:presenceStarted)
         let stale = SessionTiming.staleDate(now:Date(),spoofExpiry:presenceRunning ? expiry : nil,nextAction:nextAction,queueRunning:running)
+        let shared = HomeWidgetSnapshot(updatedAt:Date(),validUntil:stale,sharingEnabled:shareHomeWidget,
+            spoofStarted:presenceRunning ? presenceStarted : nil,spoofExpires:expiry,
+            spoofGame:gameForTitle(presenceTitle)?.name ?? presenceTitle,queueRunning:running,nextAction:nextAction,
+            queueGame:current?.game.name ?? "",nextAchievement:current?.achievement.name ?? "",
+            handled:queue.filter { QueuePolicy.terminal($0.status) }.count,total:queue.count)
+        _ = WidgetSnapshotStore.write(shareHomeWidget ? (homeWidgetDemo ? .demo() : shared) : .idle(enabled:false))
         liveStatus.update(.init(spoofStarted:presenceStarted,queueHandled:queue.filter { QueuePolicy.terminal($0.status) }.count,queueTotal:queue.count,queueRunning:running,nextAction:nextAction,spoofGame:gameForTitle(presenceTitle)?.name ?? presenceTitle,queueGame:current?.game.name ?? "",nextAchievement:current?.achievement.name ?? "",updatedAt:Date(),validUntil:stale,spoofExpires:expiry,queueItemID:current?.id),enabled:presenceRunning || running)
     }
     func finishSessionIfIdle() {
         let queueWanted = running && queueTask?.isCancelled != true && continueQueueInBackground
         let spoofWanted = presenceRunning && presenceTask?.isCancelled != true && ((continueSpoofInBackground && (presenceDeadline ?? .distantPast) > Date()) || (continueSpoofWithQueue && queueWanted))
         if queueWanted || spoofWanted || (foreground && (running || presenceRunning)) { updateSessionCard(); return }
-        continuedQueue.finish(success:!backgroundHadFailure); liveStatus.end()
+        continuedQueue.finish(success:!backgroundHadFailure); liveStatus.end(); _ = WidgetSnapshotStore.write(shareHomeWidget && homeWidgetDemo ? .demo() : .idle(enabled:shareHomeWidget),force:true)
         sessionStatusGeneration = UUID(); sessionStatusTask?.cancel(); sessionStatusTask = nil
     }
     func rememberTransport(_ error: Error) {

@@ -39,7 +39,7 @@ import UniformTypeIdentifiers
                 await model.maintainOnOpen()
             }
             .onOpenURL { url in
-                guard url.scheme == "achievementlabs" else { return }
+                guard url.scheme == WidgetSnapshotStore.scheme else { return }
                 if url.host == "queue" { model.selectedTab = 1; if url.path == "/pause" { model.pauseQueue() } }
                 else if url.host == "spoof" { model.selectedTab = 2; if url.path == "/stop" { Task { await model.stopPresence() } } }
                 else { model.selectedTab = 4 }
@@ -436,6 +436,13 @@ struct SettingsView: View {
                 }
     }
     @ViewBuilder private var appSettings: some View {
+                Section("Home Screen widget · developer test") {
+                    Toggle("Share session status with widget",isOn:$m.shareHomeWidget).onChange(of:m.shareHomeWidget) { _,_ in m.refreshHomeWidget() }
+                    Toggle("Show sample widget data",isOn:$m.homeWidgetDemo).disabled(m.running || m.presenceRunning || !m.shareHomeWidget).onChange(of:m.homeWidgetDemo) { _,_ in m.refreshHomeWidget() }
+                    Button("Check App Group / refresh widget") { m.refreshHomeWidget() }
+                    Text(m.widgetStatus).font(.caption).foregroundStyle(.secondary)
+                    Text("Requires a developer-signed test app and matching App Group on both targets. Add Labs Widget Test from the Home Screen widget gallery. Controls open this test app; only display data is shared.").font(.caption2).foregroundStyle(.secondary)
+                }
                 Section("Background sessions · experimental") {
                     Toggle("Allow standalone background spoofing",isOn:$m.continueSpoofInBackground).disabled(m.running || m.presenceRunning).onChange(of:m.continueSpoofInBackground) { _,_ in m.updateBackgroundPreference() }
                     if m.continueSpoofInBackground {

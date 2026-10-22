@@ -73,6 +73,5 @@ struct LabsSessionWidget: Widget {
 
 
 @main struct LabsWidgets: WidgetBundle {
-    var body: some Widget { LabsSessionWidget() }
+    var body: some Widget { LabsHomeWidget(); LabsSessionWidget() }
 }
-
