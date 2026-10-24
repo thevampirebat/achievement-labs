@@ -1,16 +1,20 @@
-> This fork combines upstream v1.0.8 with the retained fork improvements. See [the latest integration notes](docs/upstream-v1.0.8-port.md) for changes, catalogue update behavior and validation. Fork executable updates continue to use this repository.
+# Achievement Labs — unofficial fork
 
-# Achievement Labs
+> **This is an independently maintained, unofficial fork of [Achievement-Labs/achievement-labs](https://github.com/Achievement-Labs/achievement-labs), the upstream/main project. It is not the official release repository.**
+>
+> Download this fork’s Windows, Android and iOS builds from [thevampirebat releases](https://github.com/thevampirebat/achievement-labs/releases). App update checks for this fork use this repository; event JSON updates come from the upstream Achievement Labs repository. Feature contributions are submitted as PRs to the upstream project.
 
 Achievement, stat, presence, and save tooling for Windows PC and Xbox titles. The
 desktop client uses Avalonia and includes Xbox, Xbox 360, Games for Windows Live,
 Steam, Epic, and Ubisoft workflows.
 
-**[Download the latest fork release](https://github.com/thevampirebat/achievement-labs/releases/latest)**
+**[Download this fork’s current feature batch — Windows 1.0.8.14 / Android 0.6.4 / iOS 0.12.6](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.14)**
+
+This prerelease corresponds to [upstream PR #15](https://github.com/Achievement-Labs/achievement-labs/pull/15), which remains open. Earlier installed builds may still check the old official app-update feed; that routing is being corrected. Event JSON continues to come from upstream.
 
 The Windows client includes a combined Game Session and customizable glass appearance. See [Game Session and appearance](docs/game-session-and-appearance.md) for controls, completion summaries and offline validation.
 
-Windows only. Editing achievement and stat data can carry account risk on a live
+The desktop app runs on Windows; separate Android APK and unsigned iOS IPA downloads are provided in Releases. Editing achievement and stat data can carry account risk on a live
 service. Use test accounts and keep the backups created by the application.
 
 ## Build from source
