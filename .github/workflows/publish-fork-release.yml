@@ -1,109 +1,112 @@
-name: Publish fork release
-
+name: Publish tested feature batch
 on:
-  push:
-    branches: [main]
-    paths: [.github/workflows/publish-fork-release.yml]
   workflow_dispatch:
-
 permissions:
   contents: read
 concurrency:
-  group: publish-v1.0.8-fork.11
+  group: publish-v1.0.8-fork.14
   cancel-in-progress: false
 jobs:
   publish:
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 35
     permissions:
       contents: write
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: v1.0.8-fork.11
-      SOURCE_SHA: ${{ github.sha }}
+      RELEASE_TAG: v1.0.8-fork.14
+      SOURCE_SHA: 08cb600fff0fef3d16880a5ce0e5f71eb572b97d
+      EXPECTED_WINDOWS_SHA: fee8b254273983df5c9e5087bba3bf1fcba4c928e01fca05205bf40a96b35c25
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Wait for the tested Windows build of this commit
+      - name: Wait for the exact tested mobile and PR builds
         shell: bash
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 100); do
-            run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/windows-build.yml/runs?head_sha=$SOURCE_SHA&event=push&per_page=10" --jq '.workflow_runs[0].id // empty')
-            if [ -n "$run" ]; then
-              state=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .status)
+          for item in thevampirebat/achievement-labs:40048811718 thevampirebat/achievement-labs:40048901269 Achievement-Labs/achievement-labs:40048710934 Achievement-Labs/achievement-labs:40048710980 Achievement-Labs/achievement-labs:40048710989; do
+            repo="${item%:*}"
+            run="${item##*:}"
+            complete=false
+            for attempt in $(seq 1 100); do
+              test "$(gh api "repos/$repo/actions/runs/$run" --jq .head_sha)" = "$SOURCE_SHA"
+              state=$(gh api "repos/$repo/actions/runs/$run" --jq .status)
               if [ "$state" = completed ]; then
-                test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .conclusion)" = success
-                test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .head_sha)" = "$SOURCE_SHA"
-                gh run download "$run" --repo "$GITHUB_REPOSITORY" --name AchievementLabs-Windows-x64 --dir downloads/windows
-                exit 0
+                test "$(gh api "repos/$repo/actions/runs/$run" --jq .conclusion)" = success
+                complete=true
+                break
               fi
-            fi
-            sleep 30
+              sleep 15
+            done
+            test "$complete" = true
           done
-          echo 'Timed out waiting for a successful Windows build.' >&2
-          exit 1
-      - name: Retain unchanged mobile downloads
+      - name: Download verified package artifacts and draft Windows assets
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p downloads/mobile
-          gh release download v1.0.8-fork.10 --repo "$GITHUB_REPOSITORY" --dir downloads/mobile \
-            --pattern 'AchievementLabs-Android-0.6.1.apk' --pattern 'AchievementLabs-Android-0.6.1.zip' \
-            --pattern 'AchievementLabs-iOS-0.12.3-UNSIGNED.ipa' --pattern 'AchievementLabs-iOS-0.12.3.zip' --pattern SHA256.txt
-      - name: Verify and package release assets
+          test "$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = true
+          gh run download 40048811718 --repo "$GITHUB_REPOSITORY" --name AchievementLabs-Android-Beta --dir downloads/android
+          gh run download 40048901269 --repo "$GITHUB_REPOSITORY" --name AchievementLabs-iOS-Standalone-Unsigned --dir downloads/ios
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir downloads/windows --pattern AchievementLabs.exe --pattern update.json --pattern Windows-SHA256.txt
+          gh release download android-v0.6.3 --repo "$GITHUB_REPOSITORY" --dir downloads/previous --pattern AchievementLabs-Android-0.6.3.apk
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'build-tools;35.0.0'
+      - name: Verify Android signing continuity
+        shell: bash
+        run: |
+          set -euo pipefail
+          signer="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          "$signer" verify --verbose --print-certs downloads/android/AchievementLabs-Android-0.6.4.apk > new-signature.txt
+          "$signer" verify --verbose --print-certs downloads/previous/AchievementLabs-Android-0.6.3.apk > previous-signature.txt
+          grep 'Signer #1 certificate SHA-256 digest:' new-signature.txt > new-cert.txt
+          grep 'Signer #1 certificate SHA-256 digest:' previous-signature.txt > previous-cert.txt
+          test -s new-cert.txt
+          cmp new-cert.txt previous-cert.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging downloads/android/AchievementLabs-Android-0.6.4.apk > apk-info.txt
+          grep "versionCode='12'" apk-info.txt
+          grep "versionName='0.6.4'" apk-info.txt
+      - name: Verify and prepare the feature-batch assets
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          import hashlib, json, shutil, zipfile, os
-          windows = Path('downloads/windows')
-          mobile = Path('downloads/mobile')
-          out = Path('release-assets')
-          out.mkdir()
-          def digest(path):
-              return hashlib.sha256(path.read_bytes()).hexdigest()
-          exe = windows / 'AchievementLabs.exe'
-          metadata = json.loads((windows / 'update.json').read_text(encoding='utf-8-sig'))
-          assert metadata['version'] == '1.0.8.11'
-          assert metadata['bytes'] == exe.stat().st_size
-          assert metadata['sha256'].lower() == digest(exe)
-          build_info = (windows / 'BUILD-INFO.txt').read_text(encoding='utf-8-sig')
-          assert 'Commit: ' + os.environ['SOURCE_SHA'] in build_info
-          assert 'packaged layout/scroll checks: passed' in build_info
-          expected = {}
-          for line in (mobile / 'SHA256.txt').read_text(encoding='utf-8-sig').splitlines():
-              if line.strip():
-                  sha, name = line.split(maxsplit=1)
-                  expected[name.lstrip('*')] = sha.lower()
-          for path in mobile.iterdir():
-              if path.name != 'SHA256.txt':
-                  assert expected.get(path.name) == digest(path), 'Mobile checksum mismatch: ' + path.name
-                  shutil.copy2(path, out / path.name)
-          shutil.copy2(exe, out / exe.name)
-          shutil.copy2(windows / 'update.json', out / 'update.json')
-          shutil.copy2('docs/releases/START-HERE.md', out / 'START-HERE.md')
-          shutil.copy2('docs/releases/v1.0.8-fork.11.md', out / 'RELEASE-NOTES.md')
-          shutil.copy2('docs/game-session-and-appearance.md', out / 'GAME-SESSION.md')
-          (out / 'BUILD-INFO.txt').write_text(build_info + '\nMobile assets retained unchanged from v1.0.8-fork.10.\n')
-          with zipfile.ZipFile(out / 'AchievementLabs-Windows-1.0.8.11.zip', 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
-              for name in ('AchievementLabs.exe', 'update.json', 'START-HERE.md', 'RELEASE-NOTES.md', 'GAME-SESSION.md', 'BUILD-INFO.txt'):
-                  z.write(out / name, name)
-          (out / 'SHA256.txt').write_text(''.join(digest(p) + '  ' + p.name + '\n' for p in sorted(out.iterdir()) if p.is_file() and p.name != 'SHA256.txt'))
-          print('Verified assets:', ', '.join(p.name for p in out.iterdir()))
+          import hashlib, json, os, plistlib, shutil, zipfile
+          out=Path('release-assets'); out.mkdir()
+          def digest(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+          exe=Path('downloads/windows/AchievementLabs.exe')
+          metadata=json.loads(Path('downloads/windows/update.json').read_text(encoding='utf-8-sig'))
+          assert metadata['version']=='1.0.8.14'
+          assert metadata['bytes']==exe.stat().st_size
+          assert metadata['sha256']==digest(exe)==os.environ['EXPECTED_WINDOWS_SHA']
+          apk=Path('downloads/android/AchievementLabs-Android-0.6.4.apk')
+          ipa=Path('downloads/ios/AchievementLabs-iOS-0.12.6-UNSIGNED.ipa')
+          for package, folder in [(apk,'android'),(ipa,'ios')]:
+              checks=Path('downloads',folder,'SHA256.txt').read_text(encoding='utf-8-sig')
+              assert any(line.split()[0].lower()==digest(package) and line.split()[-1].lstrip('*').endswith(package.name) for line in checks.splitlines() if line.strip())
+          with zipfile.ZipFile(ipa) as z:
+              info=plistlib.loads(z.read('Payload/AchievementLabsMobile.app/Info.plist'))
+              assert info['CFBundleShortVersionString']=='0.12.6'
+              assert info['CFBundleVersion']=='24'
+          for package in [apk,ipa]: shutil.copy2(package,out/package.name)
+          shutil.copy2('new-signature.txt',out/'Android-APK-SIGNATURE.txt')
+          (out/'Android-SHA256.txt').write_text(digest(apk)+'  '+apk.name+'\n')
+          (out/'iOS-SHA256.txt').write_text(digest(ipa)+'  '+ipa.name+'\n')
+          (out/'BUILD-INFO.txt').write_text(
+              'Source PR: https://github.com/Achievement-Labs/achievement-labs/pull/15\n'
+              'Source commit: '+os.environ['SOURCE_SHA']+'\n'
+              'Source tree: ac94bd7c9cb5bd07aef00c6a239e8da7ad0e698d\n'
+              'Windows version: 1.0.8.14; self-contained EXE; packaged startup checks passed.\n'
+              'Android version: 0.6.4 (12); permanent signing certificate matches 0.6.3.\n'
+              'iOS version: 0.12.6 (24); unsigned IPA requires user signing.\n'
+              'Mobile artifacts and official PR checks passed for the exact source commit.\n')
+          print('Verified Windows checksum, Android signing/version and iOS version; mobile checksums match CI artifacts.')
           PY
-      - name: Publish release
+      - name: Attach mobile packages and publish the reviewed prerelease
         shell: bash
         run: |
           set -euo pipefail
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft > release-state.txt 2>/dev/null; then
-            test "$(cat release-state.txt)" = true
-          else
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title 'Achievement Labs Beta — PC 1.0.8.11 / Android 0.6.1 / iOS 0.12.3' --notes-file docs/releases/v1.0.8-fork.11.md --draft
-          fi
+          test "$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = true
           gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" release-assets/* --clobber
-          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --draft=false --prerelease --latest=false
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json url,isDraft,isPrerelease,assets
