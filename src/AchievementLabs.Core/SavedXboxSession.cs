@@ -22,7 +22,7 @@ public static class SavedXboxSession
             : XboxOAuthClientProfile.KnownProfiles.FirstOrDefault(p => p.Name == native.ProfileName) ?? throw new InvalidDataException("Unknown saved OAuth profile.");
         var oauth = new CodeFlowLiveApiClient(profile.ClientId, XboxAuthConstants.XboxScope, http);
         var fresh = await oauth.RefreshToken(new CodeFlowRefreshTokenParameter { RefreshToken = saved.RefreshToken }, cancellationToken);
-        var connected = await GenerateAsync(fresh, cancellationToken, profile);
+        var connected = await GenerateAsync(fresh, cancellationToken, profile, requestEvents: !OperatingSystem.IsMacOS());
         if (native != null) await NativeSessionStore.SaveAsync(sessionPath, new(profile.Name, fresh), cancellationToken);
         return connected;
     }

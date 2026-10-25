@@ -33,10 +33,12 @@ public partial class MainWindow : Window
         model.WindowsNotification = (title, message) =>
         {
             if (AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var checks) && checks) return;
-            if (!WindowsNotifications.TryShow(title, message)) model.Notice = "Windows notification could not be sent. Check Windows notification settings for Achievement Labs.";
+            if (OperatingSystem.IsMacOS()) notifications.Show(new Notification(title,message,NotificationType.Information,TimeSpan.FromSeconds(10)));
+            else if (!WindowsNotifications.TryShow(title, message)) model.Notice = "Windows notification could not be sent. Check Windows notification settings for Achievement Labs.";
         };
         AchievementLabs.MultiSelect.BatchPicker.Attach(this);
         Presentation.GameSessionWorkspace.Attach(this);
+        ApplyMacPlatformControls();
         AchievementLabs.MultiSelect.SearchClearButtons.Attach(this);
         Workflows.NativeClipboard.WriteAsync = async text => { try { if (Clipboard != null) await Clipboard.SetTextAsync(text); } catch { model.Notice = "Could not copy to the clipboard."; } };
         xboxPresenceTimer.Tick += (_, _) => model.RefreshXboxPcAppPresence();
@@ -85,6 +87,7 @@ public partial class MainWindow : Window
         };
         Opened += async (_, _) =>
         {
+            if (Environment.GetCommandLineArgs().Contains("--mac-smoke-test")) { await RunMacSmokeAsync(); return; }
             // Headless regression tests must never attach to a real account.
             if (offlineChecks)
             {

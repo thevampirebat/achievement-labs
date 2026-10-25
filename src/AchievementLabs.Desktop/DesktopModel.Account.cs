@@ -14,6 +14,7 @@ public sealed partial class DesktopModel
 
     public void RefreshXboxPcAppPresence()
     {
+        if (!OperatingSystem.IsWindows()) return;
         using var process = Process.GetProcessesByName("XboxPcApp").FirstOrDefault();
         XboxPcAppDetected = process != null;
         if (XboxPcAttached && process == null)
@@ -31,6 +32,7 @@ public sealed partial class DesktopModel
 
     public async Task AttachXboxPcAppAsync()
     {
+        if (OperatingSystem.IsMacOS()) { PrepareMacSignIn(); if (CanConnect && File.Exists(NativeSessionStore.DefaultPath)) { SessionPath=NativeSessionStore.DefaultPath; await ConnectSavedOAuthFallbackAsync(); } return; }
         if (!CanConnect) return;
         Busy(true);
         XboxApiClient? candidate = null;
@@ -75,6 +77,7 @@ public sealed partial class DesktopModel
 
     public async Task LaunchXboxPcAppAndAttachAsync()
     {
+        if (!OperatingSystem.IsWindows()) { PrepareMacSignIn(); StartBrowserLogin(); return; }
         if (!CanConnect) return;
         try
         {
@@ -274,7 +277,7 @@ public sealed partial class DesktopModel
                     SessionPath = NativeSessionStore.DefaultPath;
                     activeOAuthSessionPath = NativeSessionStore.DefaultPath;
                     await SavePreferencesAsync();
-                    Notice = "Signed in. Session saved for this Windows user; use Connect saved session next time.";
+                    Notice = "Signed in. Session saved securely for this user; use Connect saved session next time.";
                 }
                 catch (OperationCanceledException) { throw; }
                 catch { Notice = "Signed in for this app session, but the saved session could not be written."; }

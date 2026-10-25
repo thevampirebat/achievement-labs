@@ -29,7 +29,7 @@ public sealed class BrowserXboxLogin : IDisposable
         var code = ValidateRedirect(redirect, state);
         consumed = true;
         var response = await oauth.GetAccessToken(new CodeFlowAccessTokenParameter { Code = code, CodeVerifier = verifier, RedirectUrl = CodeFlowLiveApiClient.OAuthDesktop }, cancellationToken);
-        return await SavedXboxSession.GenerateAsync(response, cancellationToken, profile);
+        return await SavedXboxSession.GenerateAsync(response, cancellationToken, profile, requestEvents: !OperatingSystem.IsMacOS());
     }
     public static string ValidateRedirect(string redirect, string expectedState)
     {
