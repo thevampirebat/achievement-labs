@@ -20,6 +20,12 @@ for entry in published.iterdir():
     if target!=link:
         if link.is_symlink():link.unlink()
         link.symlink_to(os.path.relpath(target,mac),target_is_directory=target.is_dir())
+    # The apphost resolves the managed entry-point symlink to Resources/App.
+    # Keep native runtime dependencies visible from that application base too.
+    if native and target.parent==frameworks:
+        dependency=resources/entry.name
+        if dependency.is_symlink():dependency.unlink()
+        dependency.symlink_to(os.path.relpath(target,resources))
 PY
 chmod +x "$APP/Contents/MacOS/AchievementLabs"
 python3 - "$APP" <<'PY'
