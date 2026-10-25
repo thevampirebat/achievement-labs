@@ -5,9 +5,9 @@ import time
 import re
 from pathlib import Path
 
-def run(*args):
+def run(*args, timeout=120):
     print('Checking: '+' '.join(args),flush=True)
-    return subprocess.check_output(args,text=True,timeout=120)
+    return subprocess.check_output(args,text=True,timeout=timeout)
 devices=json.loads(run('xcrun','simctl','list','devices','available','--json'))['devices']
 available=[(runtime,d) for runtime,group in devices.items() if 'iOS-26' in runtime for d in group if d['name'].startswith('iPhone')]
 assert available, 'No iOS 26 simulator for background API checks'
@@ -36,8 +36,11 @@ subprocess.run(['xcrun','simctl','bootstatus',device,'-b'],check=True,timeout=30
 app='mobile/simulator/Build/Products/Debug-iphonesimulator/AchievementLabsMobile.app'
 subprocess.run(['xcrun','simctl','install',device,app],check=True)
 try:
-    output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--storage-self-test')
-except subprocess.CalledProcessError:
+    # A fresh iOS 26 device can still be initializing launch services after
+    # bootstatus and install succeed. Allow that initial launch extra time;
+    # subsequent launches and all app assertions retain their normal limits.
+    output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--storage-self-test',timeout=300)
+except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
     subprocess.run(['xcrun','simctl','spawn',device,'log','show','--last','2m','--style','compact','--predicate','process == "AchievementLabsMobile" OR eventMessage CONTAINS "org.achievementlabs.mobile"'],check=False,timeout=120)
     raise
 print(output)
@@ -74,15 +77,22 @@ print('Offline audio start/stop check: '+str(result),flush=True)
 assert result.get('playing') and result.get('stopped') and result['audioManifest'] and result['liveManifest'], 'Audio/session manifest check failed'
 subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
 
-for page in ['library','queue','spoof','settings','settings-sync','settings-library','settings-app','home']:
+for page in ['library','lookup','queue','spoof','settings','settings-sync','settings-library','settings-app','settings-appearance','session-settings','home','xbox360']:
     output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--ui-preview='+page)
     preview_pid=output.strip().rsplit(':',1)[-1].strip()
     time.sleep(3)
+    if page == 'xbox360':
+        marker=container/'Documents'/'Xbox360-self-test.json'
+        for attempt in range(45):
+            if marker.exists(): break
+            time.sleep(1)
+        assert marker.exists(), '360 WebView bridge test did not finish'
+        result=json.loads(marker.read_text()); assert result.get('passed'),result
     processes=run('xcrun','simctl','spawn',device,'launchctl','list')
     assert any(line.split() and line.split()[0] == preview_pid and 'org.achievementlabs.mobile' in line for line in processes.splitlines()), 'Preview exited: '+page
     subprocess.run(['xcrun','simctl','io',device,'screenshot','mobile/artifacts/iPhone-'+page+'.png'],check=True)
     subprocess.run(['xcrun','simctl','terminate',device,'org.achievementlabs.mobile'],check=True)
-print('Eight offline refinement screens launched. All preview network requests are blocked.')
+print('Nine offline refinement screens launched. All preview network requests are blocked.')
 
 output=run('xcrun','simctl','launch',device,'org.achievementlabs.mobile','--web-callback-self-test')
 time.sleep(5)

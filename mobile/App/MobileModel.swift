@@ -64,6 +64,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     private var lastUpdateCheck = Date.distantPast
     @Published var refreshingSignIn = false
     @Published var sessionStatus = ""
+    @Published var eventTokenProbeStatus = ""
     @Published var spoofDiagnostics = ""
     @AppStorage("launchPage") var launchPage = 4
     @AppStorage("rememberSignIn") var rememberSignIn = true
@@ -144,7 +145,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             do { try catalogue?.loadCache(directory.appendingPathComponent("synced-events.json")); eventSyncStatus = "Cached synced event data loaded." }
             catch { eventSyncStatus = "Synced cache could not be validated. Bundled data retained." }
         }
-        selectedTab = account == nil ? 4 : ([0,1,2,3,4].contains(launchPage) ? launchPage : 4)
+        selectedTab = account == nil ? 4 : ([0,1,2,3,4,5].contains(launchPage) ? (launchPage == 2 ? 1 : launchPage) : 4)
         #if DEBUG
         if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--ui-preview=") }) { configurePreview(String(argument.dropFirst("--ui-preview=".count))) }
         #endif
@@ -153,6 +154,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         var next = input
         if rememberSignIn { try SecureStore.save(JSONEncoder().encode(next),allowBackground:continueQueueInBackground || continueSpoofInBackground) }
         else { next.refreshToken = nil; try SecureStore.remove() }
+        if account?.xuid != next.xuid { eventTokenProbeStatus = "" }
         account = next
     }
     private func authorizedAccount(force: Bool = false) async throws -> Account {
@@ -182,6 +184,17 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         return try await task.value
     }
     /// Only read operations may be repeated after a 401; unlocks and failed heartbeats are never replayed here.
+    func openGameSession(_ game:Game) {
+        titleDetails[game.id] = game
+        if !running && !presenceRunning && !busy {
+            if queueBook.shouldRestore(game.id, current:queue, active:running || presenceRunning) {
+                loadGameQueue(game.id, append:false)
+            }
+            queueTitle = game.id; presenceTitle = game.id
+        }
+        else if queueTitle != game.id || presenceTitle != game.id { status = "Stop active sessions before changing games." }
+        selectedTab = 1
+    }
     private func readWithAccount<T>(_ operation: (Account) async throws -> T) async throws -> T {
         let current = try await authorizedAccount()
         do { return try await operation(current) }
@@ -242,6 +255,30 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             status = "Connected as \(next.gamertag). Refresh the library."
         } catch { self.error = error.localizedDescription }
     }
+    func testMobileEventToken() async {
+        guard !busy, !refreshingSignIn, !running, !presenceRunning, let current = account else { return }
+        guard rememberSignIn, current.loginProfile == LoginProfile.ios.rawValue, current.refreshToken?.isEmpty == false else {
+            eventTokenProbeStatus = "Sign in with Xbox iOS and Remember sign-in enabled on this device first. PC QR/manual sessions cannot run this test."; return
+        }
+        busy = true; refreshingSignIn = true; defer { busy = false }
+        eventTokenProbeStatus = "Requesting mobile event-token authorization… No achievement events are sent."
+        let version = generation
+        let task = Task { @MainActor [self] () async throws -> Account in
+            defer { renewalTask = nil; refreshingSignIn = false }
+            let next = try await BrowserLogin(profile:.ios).acquireEventToken(current) { rotated in
+                guard version == self.generation, self.account?.xuid == current.xuid, self.rememberSignIn else { throw CancellationError() }
+                var saved = rotated; saved.eventToken = self.account?.eventToken ?? rotated.eventToken
+                try self.saveAccount(saved)
+            }
+            guard version == generation, account?.xuid == current.xuid, rememberSignIn else { throw CancellationError() }
+            try saveAccount(next); return next
+        }
+        renewalTask = task
+        do { _ = try await task.value; eventTokenProbeStatus = "Microsoft issued a matching event token; saved securely. No achievement events were sent. Collector acceptance is not tested." }
+        catch is CancellationError { eventTokenProbeStatus = "Test cancelled. No event token was replaced." }
+        catch let problem as LabsError { eventTokenProbeStatus = (problem.errorDescription ?? "Authorization failed.") + " Existing event token retained." }
+        catch { eventTokenProbeStatus = "Mobile event-token test could not complete. Existing event token retained. No achievement events were sent." }
+    }
     func saveEventToken(_ input: String) {
         guard var current = account, !running, !busy else { return }
         do { current.eventToken = try Tokens.normalize(input, event: true); try saveAccount(current); status = "Event token saved in this device's Keychain." }
@@ -275,6 +312,10 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             if loaded.contains(where: \.eventBased) { for i in loaded.indices { loaded[i].eventBased = true } }
             guard version == generation else { return }
             rows = loaded; selectedGame = game; rowResults = [:]
+            if !games.contains(where:{ $0.id == game.id }) {
+                let found = TitleSearch.applyingProgress(game,rows:loaded)
+                titleDetails[game.id] = found; selectedGame = found
+            }
             rememberCompletion(loaded, game:game)
             // Never overwrite valid legacy/library progress with an empty response.
             if !loaded.isEmpty, (!game.legacy || loaded.filter(\.unlocked).count >= game.unlocked), let i = games.firstIndex(where: { $0.id == game.id }) { games[i].unlocked = loaded.filter(\.unlocked).count; games[i].total = loaded.count }
@@ -750,6 +791,19 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         do { let game = try await readWithAccount { try await api.game(id,account:$0) }; guard !Task.isCancelled, version == generation else { return }; titleDetails[id] = withTotal(game) }
         catch { /* Keep typed IDs usable when title lookup is unavailable. */ }
     }
+    func resolveFoundGame(_ candidate: Game) async throws -> Game {
+        guard account != nil else { throw LabsError.message("Sign in to Xbox to open achievements.") }
+        let version = generation
+        var game = gameForTitle(candidate.id) ?? candidate
+        do { game = try await readWithAccount { try await api.game(candidate.id,account:$0) } }
+        catch { try Task.checkCancellation() /* Public metadata remains usable when TitleHub has no history row. */ }
+        guard version == generation else { throw LabsError.message("Account changed. Open the game again.") }
+        if game.name.isEmpty { game.name = candidate.name }
+        if game.platforms.isEmpty { game.platforms = candidate.platforms }
+        if candidate.legacy { game.platforms = candidate.platforms }
+        game = withTotal(game); titleDetails[game.id] = game
+        return game
+    }
     func readPlaytime(_ title: String) async {
         guard let account, JSON.numeric(title) else { return }; let version = generation
         do { if let minutes = try await readWithAccount({ try await api.playedMinutes(title,account:$0) }), version == generation, !Task.isCancelled { playedHours[title] = minutes / 60 } }
@@ -797,6 +851,16 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             let added = try catalogue.merge(feed,cache:directory.appendingPathComponent("synced-events.json"))
             lastEventsCheck = Date(); eventSyncStatus = "\(feed.upstreamRelease) · \(added) new titles added · checked " + Date().formatted(date:.abbreviated,time:.shortened)
         } catch { eventSyncStatus = error.localizedDescription + " Existing mappings retained." }
+    }
+    func importEventPack(_ data: Data) {
+        guard !eventsSyncing, !running else { eventSyncStatus = "Pause Auto Unlock before importing event data."; return }
+        eventsSyncing = true; defer { eventsSyncing = false }
+        do {
+            guard data.count <= 32*1024*1024, let catalogue else { throw LabsError.message("Event pack exceeds 32 MB or catalogue is unavailable.") }
+            let feed = try JSONDecoder().decode(EventFeed.self,from:data)
+            let added = try catalogue.merge(feed,cache:directory.appendingPathComponent("synced-events.json"))
+            eventSyncStatus = "Imported \(added) new titles from event pack (Testing). Existing mappings retained."
+        } catch { eventSyncStatus = "Could not import event pack: " + error.localizedDescription + " Existing data retained. Choose a pack containing templates and mappings." }
     }
     func checkForMobileUpdates() async {
         guard !updateChecking else { return }; updateChecking = true; defer { updateChecking = false }
@@ -862,7 +926,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
         queue = [QueueItem(game:second,achievement:row,delay:120)]
         referenceInfo = "Reference profile · 1 queued · 2 skipped"; status = "Timing queue loaded. Review delays, then start when ready."
         spoofStatus = "No heartbeat sent."; playedHours[second.id] = 12.5
-        selectedTab = page == "queue" ? 1 : page == "spoof" ? 2 : page.hasPrefix("settings") ? 3 : page == "home" ? 4 : 0
+        selectedTab = (page == "queue" || page == "session-settings") ? 1 : page == "spoof" ? 1 : page == "xbox360" ? 5 : page.hasPrefix("settings") ? 3 : page == "home" ? 4 : 0
     }
     #endif
     private struct CompletionCache: Codable { var mythic: Set<String>; var checked: Set<String>; var totals: [String:Int] }

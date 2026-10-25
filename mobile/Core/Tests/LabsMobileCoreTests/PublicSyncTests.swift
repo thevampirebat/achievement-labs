@@ -41,6 +41,8 @@ final class PublicSyncTests: XCTestCase {
           ["draft":false,"html_url":"https://github.com/thevampirebat/achievement-labs/releases/tag/ios-v0.4.0","assets":[["name":"AchievementLabs-iOS-0.4.0-UNSIGNED.ipa","browser_download_url":"https://github.com/thevampirebat/achievement-labs/releases/download/ios-v0.4.0/AchievementLabs-iOS-0.4.0-UNSIGNED.ipa"]]]
         ]
         XCTAssertEqual(try MobileRelease.latest(JSON.data(releases))?.version,"0.4.0")
+        var oldRepository = releases[1]; oldRepository["html_url"] = "https://github.com/Achievement-Labs/achievement-labs/releases/tag/ios-v0.4.0"
+        XCTAssertNil(try MobileRelease.latest(JSON.data([oldRepository])))
         var invalid = releases[1]; invalid["html_url"] = "https://example.com/releases/tag/x"
         XCTAssertNil(try MobileRelease.latest(JSON.data([invalid])))
     }
@@ -54,7 +56,9 @@ final class PublicSyncTests: XCTestCase {
         let remote = SyncedTitle(template:#"{"data":{"baseData":{"titleId":"999999999","serviceConfigId":"00000000-0000-0000-0000-000000000001","id":REPLACEID}}}"#,recipes:requests)
         let feed = EventFeed(schemaVersion:1,upstreamRelease:"v1.0.8",archiveSHA256:String(repeating:"a",count:64),generatedAt:ISO8601DateFormatter().string(from:Date()),titles:["999999999":remote,"572802557":remote])
         let old = c.index["572802557"]!.count
-        XCTAssertEqual(try c.merge(feed,cache:cache),1); XCTAssertEqual(c.index["572802557"]?.count,old)
+        let importedPack = try JSONDecoder().decode(EventFeed.self,from:JSONEncoder().encode(feed))
+        XCTAssertEqual(try c.merge(importedPack,cache:cache),1); XCTAssertEqual(c.index["572802557"]?.count,old)
+        XCTAssertEqual(try c.merge(importedPack,cache:cache),0)
         XCTAssertFalse(try c.payloads(title:"999999999",achievement:"1",xuid:"0").isEmpty)
         let before = try Data(contentsOf:cache)
         let invalid = EventFeed(schemaVersion:1,upstreamRelease:"v1.0.8",archiveSHA256:String(repeating:"b",count:64),generatedAt:feed.generatedAt,titles:["888888888":remote])
