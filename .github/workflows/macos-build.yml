@@ -1,0 +1,56 @@
+name: macOS desktop preview
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths: [src/AchievementLabs.Desktop/**, src/AchievementLabs.Core/**, src/AchievementLabs.App/Services/Xbox360/**, tools/macos/**, docs/macos-preview.md, .github/workflows/macos-build.yml]
+permissions:
+  contents: read
+concurrency:
+  group: macos-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  apple-silicon:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/macos-desktop-preview'
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Build and ad-hoc sign the Apple Silicon app
+        run: bash tools/macos/build-preview.sh
+      - name: Check native window, Keychain and synthetic profile signing
+        run: |
+          python3 - <<'PY'
+          import subprocess,pathlib
+          root=pathlib.Path.cwd();out=root/'artifacts/macos-preview/checks';out.mkdir(exist_ok=True)
+          executable=root/'artifacts/macos-preview/Achievement Labs.app/Contents/MacOS/AchievementLabs'
+          result=subprocess.run([str(executable),'--mac-smoke-test','--fixture',str(root/'mobile/Shared360/synthetic.dat'),'--output',str(out)],timeout=120)
+          if result.returncode or not (out/'mac-smoke.txt').exists():
+              error=out/'mac-smoke-error.txt'
+              print(error.read_text() if error.exists() else 'Native Mac smoke test did not finish.')
+              raise SystemExit(1)
+          print((out/'mac-smoke.txt').read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AchievementLabs-macOS-Apple-Silicon-Preview
+          path: |
+            artifacts/macos-preview/AchievementLabs-macOS-0.1.0.1-arm64.zip
+            artifacts/macos-preview/SHA256.txt
+            artifacts/macos-preview/README.md
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: AchievementLabs-macOS-Checks
+          path: |
+            artifacts/macos-preview/checks/*.png
+            artifacts/macos-preview/checks/mac-smoke*.txt
+          if-no-files-found: ignore
+          retention-days: 7
