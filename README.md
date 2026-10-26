@@ -8,9 +8,9 @@ Achievement, stat, presence, and save tooling for Windows PC and Xbox titles. Th
 desktop client uses Avalonia and includes Xbox, Xbox 360, Games for Windows Live,
 Steam, Epic, and Ubisoft workflows.
 
-**[Download this fork’s current feature batch — Android 0.6.8 / iOS 0.12.10](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.16)**
+**[Download this fork’s current feature batch — Android 0.6.12 / iOS 0.12.15](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.17)**
 
-This mobile release corresponds to [upstream PR #15](https://github.com/Achievement-Labs/achievement-labs/pull/15). It adds direct mobile event-token requests and automatic QR recognition for sign-in, event tokens and saved queues. [Windows 1.0.8.15 remains available in fork .15](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.15). App update checks use this fork; event JSON continues to come from upstream. Older installed binaries may need a one-time manual corrected install.
+This mobile release corresponds to [upstream PR #15](https://github.com/Achievement-Labs/achievement-labs/pull/15). It adds event-token expiry/time remaining, QR scanning throughout the app and embedded iOS sign-in media controls. Spoofing uses PC-transferred/manual account authorization; phone-only event-token acquisition remains available. [Windows 1.0.8.15 remains available in fork .15](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.15). App update checks use this fork; event JSON continues to come from upstream. Older installed binaries may need a one-time manual corrected install.
 
 The Windows client includes a combined Game Session and customizable glass appearance. See [Game Session and appearance](docs/game-session-and-appearance.md) for controls, completion summaries and offline validation.
 

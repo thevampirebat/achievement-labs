@@ -152,6 +152,10 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     private func saveAccount(_ input: Account) throws {
         var next = input
+        if let previous=account,previous.xuid == next.xuid {
+            if previous.eventToken == next.eventToken && next.eventTokenExpiryHash == nil { next.eventTokenExpiresAt=previous.eventTokenExpiresAt;next.eventTokenExpiryHash=previous.eventTokenExpiryHash }
+        }
+        if EventTokenLifetime.expiry(next) == nil { next.eventTokenExpiresAt=nil;next.eventTokenExpiryHash=nil }
         if rememberSignIn { try SecureStore.save(JSONEncoder().encode(next),allowBackground:continueQueueInBackground || continueSpoofInBackground) }
         else { next.refreshToken = nil; try SecureStore.remove() }
         if account?.xuid != next.xuid { eventTokenProbeStatus = "" }
@@ -605,7 +609,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 if Task.isCancelled { return }
                 self.rememberTransport(error); self.backgroundHadFailure = true; self.spoofStopReason = "Heartbeat failed: " + error.localizedDescription; self.spoofStatus = self.spoofStopReason
                 if let failure = error as? XboxHTTPFailure {
-                    self.spoofDiagnostics = "Title spoofing · " + Date().formatted(date:.numeric,time:.standard) + "\nTitle ID: " + title + "\nSign-in profile: " + (self.account?.loginProfile ?? "Manual / previous beta") + "\n" + failure.diagnostic
+                    self.spoofDiagnostics = "Title spoofing · " + Date().formatted(date:.numeric,time:.standard) + "\nTitle ID: " + title + "\nSign-in profile: " + (self.account?.loginProfile ?? "Manual / previous beta") + "\nPresence request: " + "Account authorization" + "\n" + failure.diagnostic
                     if failure.status == 403 {
                         do {
                             let current = self.account ?? account
@@ -617,7 +621,7 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 }
                 var guidance = ""
                 if let failure = error as? XboxHTTPFailure, failure.status == 403, self.account?.loginProfile != "PC transfer" {
-                    guidance = "\nUse Settings → Scan PC QR and import the full Sign-in + event token QR. Event-token-only sync does not change heartbeat authorization."
+                    guidance = "\nFor title spoofing, scan the PC app’s full sign-in QR. An event-token-only QR does not supply spoofing authorization."
                 }
                 self.error = "Title spoofing stopped: \(error.localizedDescription)" + guidance
                 if self.stopOnPresenceFailure { self.pauseQueue() }
