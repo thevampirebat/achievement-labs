@@ -80,34 +80,40 @@ final class SignInWindow: NSObject, NSApplicationDelegate, NSWindowDelegate, WKN
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { finish("loadFailed") }
 }
 
-let selfTest = CommandLine.arguments.contains("--self-test")
-var start: URL?, state = "synthetic-state"
-if selfTest {
-    let good = "https://login.live.com/oauth20_desktop.srf?code=synthetic&state=synthetic-state"
-    guard CallbackGate.valid(URL(string: good)!, state: state) else { exit(1) }
-    for bad in [good + "&code=duplicate", good + "&state=duplicate", good + "&error=denied", good + "#fragment",
-                good.replacingOccurrences(of: "login.live.com", with: "example.com"),
-                good.replacingOccurrences(of: "https:", with: "http:"),
-                good.replacingOccurrences(of: "synthetic-state", with: "wrong-state"),
-                "https://login.live.com/oauth20_desktop.srf?removed=true"] {
-        guard !CallbackGate.valid(URL(string: bad)!, state: state) else { exit(1) }
+@main
+struct MicrosoftSignInApp {
+    @MainActor
+    static func main() {
+        let selfTest = CommandLine.arguments.contains("--self-test")
+        var start: URL?, state = "synthetic-state"
+        if selfTest {
+            let good = "https://login.live.com/oauth20_desktop.srf?code=synthetic&state=synthetic-state"
+            guard CallbackGate.valid(URL(string: good)!, state: state) else { exit(1) }
+            for bad in [good + "&code=duplicate", good + "&state=duplicate", good + "&error=denied", good + "#fragment",
+                        good.replacingOccurrences(of: "login.live.com", with: "example.com"),
+                        good.replacingOccurrences(of: "https:", with: "http:"),
+                        good.replacingOccurrences(of: "synthetic-state", with: "wrong-state"),
+                        "https://login.live.com/oauth20_desktop.srf?removed=true"] {
+                guard !CallbackGate.valid(URL(string: bad)!, state: state) else { exit(1) }
+            }
+        } else {
+            guard let line = readLine(), line.utf8.count <= 16384, let data = line.data(using: .utf8),
+                  let input = try? JSONSerialization.jsonObject(with: data) as? [String:String],
+                  let raw = input["startUri"], let url = URL(string: raw),
+                  url.scheme == "https", url.host == "login.live.com", url.path == "/oauth20_authorize.srf",
+                  url.user == nil, url.password == nil, url.fragment == nil, (url.port == nil || url.port == 443),
+                  let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else { exit(1) }
+            let states = items.filter { $0.name == "state" }
+            guard states.count == 1, let value = states[0].value, value.count >= 16,
+                  items.filter({ $0.name == "redirect_uri" }).map(\.value) == ["https://login.live.com/oauth20_desktop.srf"],
+                  items.filter({ $0.name == "code_challenge_method" }).map(\.value) == ["S256"],
+                  items.contains(where: { $0.name == "code_challenge" && ($0.value?.count ?? 0) >= 43 }) else { exit(1) }
+            start = url; state = value
+        }
+        let application = NSApplication.shared
+        application.setActivationPolicy(.accessory)
+        let delegate = SignInWindow(start: start, state: state, selfTest: selfTest)
+        application.delegate = delegate
+        application.run()
     }
-} else {
-    guard let line = readLine(), line.utf8.count <= 16384, let data = line.data(using: .utf8),
-          let input = try? JSONSerialization.jsonObject(with: data) as? [String:String],
-          let raw = input["startUri"], let url = URL(string: raw),
-          url.scheme == "https", url.host == "login.live.com", url.path == "/oauth20_authorize.srf",
-          url.user == nil, url.password == nil, url.fragment == nil, (url.port == nil || url.port == 443),
-          let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else { exit(1) }
-    let states = items.filter { $0.name == "state" }
-    guard states.count == 1, let value = states[0].value, value.count >= 16,
-          items.filter({ $0.name == "redirect_uri" }).map(\.value) == ["https://login.live.com/oauth20_desktop.srf"],
-          items.filter({ $0.name == "code_challenge_method" }).map(\.value) == ["S256"],
-          items.contains(where: { $0.name == "code_challenge" && ($0.value?.count ?? 0) >= 43 }) else { exit(1) }
-    start = url; state = value
 }
-let application = NSApplication.shared
-application.setActivationPolicy(.accessory)
-let delegate = SignInWindow(start: start, state: state, selfTest: selfTest)
-application.delegate = delegate
-application.run()

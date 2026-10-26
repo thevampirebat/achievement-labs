@@ -38,7 +38,7 @@ chmod +x "$APP/Contents/MacOS/AchievementLabs"
 mkdir -p "$APP/Contents/Helpers"
 SWIFT_ARCH="$ARCH"
 if [ "$ARCH" = x64 ]; then SWIFT_ARCH=x86_64; fi
-xcrun swiftc -swift-version 5 -O -target "${SWIFT_ARCH}-apple-macos14.0" tools/macos/MicrosoftSignIn.swift -o "$APP/Contents/Helpers/MicrosoftSignIn"
+xcrun swiftc -parse-as-library -swift-version 5 -O -target "${SWIFT_ARCH}-apple-macos14.0" tools/macos/MicrosoftSignIn.swift -o "$APP/Contents/Helpers/MicrosoftSignIn"
 python3 - "$APP" <<'PY'
 from pathlib import Path
 import plistlib,sys
