@@ -23,6 +23,8 @@ jobs:
           dotnet-version: '9.0.x'
       - name: Build and ad-hoc sign the Apple Silicon app
         run: bash tools/macos/build-preview.sh
+      - name: Check extracted ZIP and normal Finder-style launch
+        run: python3 tools/macos/check-package-launch.py
       - name: Check native window, Keychain and synthetic profile signing
         run: |
           python3 - <<'PY'
@@ -52,5 +54,6 @@ jobs:
           path: |
             artifacts/macos-preview/checks/*.png
             artifacts/macos-preview/checks/mac-smoke*.txt
+            artifacts/macos-preview/checks/finder-*
           if-no-files-found: ignore
           retention-days: 7
