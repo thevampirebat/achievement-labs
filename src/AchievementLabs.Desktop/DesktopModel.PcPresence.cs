@@ -6,6 +6,14 @@ public sealed partial class DesktopModel
 {
     private PcPresenceAuthorization? pairedPcPresence;
     private int pairedPcPresenceGeneration;
+    private string pcPresenceComparison = "Pair PC authorization, then compare its public envelope metadata with the Mac account token. The report contains no credentials or account claims.";
+    public string PcPresenceComparison { get => pcPresenceComparison; private set { pcPresenceComparison = value; Changed(); } }
+    public void ComparePcPresenceMetadata()
+    {
+        if (session == null || pairedPcPresence == null || sessionGeneration != pairedPcPresenceGeneration || session.Xuid != pairedPcPresence.Xuid)
+        { PcPresenceComparison = "Import a PC pairing for the current account before comparing."; return; }
+        PcPresenceComparison = PresenceAuthorizationMetadata.Compare(session.Authorization, pairedPcPresence.Authorization);
+    }
     public bool IsMacPlatform => OperatingSystem.IsMacOS();
     public PcPresenceAuthorization ReadPcPresence(byte[] bytes, string key)
         => PcPresenceTransfer.Read(bytes, key, session?.Xuid ?? "", DateTimeOffset.UtcNow);
@@ -28,6 +36,7 @@ public sealed partial class DesktopModel
                 throw new InvalidDataException();
             pairedPcPresence = imported;
             pairedPcPresenceGeneration = generation;
+            PcPresenceComparison = "PC authorization paired. Choose Compare authorization metadata to generate a local report; no network request is sent.";
             Changed(nameof(PcPresenceStatus));
             Notice = "PC authorization verified for the same account. No heartbeat sent. Open Game Session and start the spoofer to test it.";
         }
@@ -38,6 +47,7 @@ public sealed partial class DesktopModel
     {
         if (PresenceRunning) { Notice = "Stop the spoofer before removing its PC pairing."; return; }
         pairedPcPresence = null;
+        PcPresenceComparison = "No PC pairing is loaded.";
         Changed(nameof(PcPresenceStatus));
     }
 

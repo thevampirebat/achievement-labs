@@ -70,4 +70,5 @@ public partial class MainWindow
 
     private void RemovePcPresence(object? sender, RoutedEventArgs args) => model.ClearPcPresence();
     private async void RememberMacSignIn(object? sender, RoutedEventArgs args) => await model.ApplyMacRememberSignInAsync();
+    private void ComparePcPresenceMetadata(object? sender, RoutedEventArgs args) => model.ComparePcPresenceMetadata();
 }

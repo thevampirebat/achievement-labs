@@ -10,6 +10,7 @@ public sealed partial class DesktopModel
         ? "Sign in in the Microsoft window. Achievement Labs connects automatically when you finish. You can also use a protected saved sign-in."
         : "Use Microsoft browser sign-in when Xbox PC app attachment is unavailable. Try a protected saved sign-in first. For a new sign-in, copy the final login.live.com address and use the single paste-and-finish button.";
     public string OAuthStartLabel => OperatingSystem.IsMacOS() ? "Sign in with Microsoft" : "Open Microsoft sign-in";
+    public string SavedSignInLabel => OperatingSystem.IsMacOS() ? "Use saved Microsoft sign-in" : "Use saved OAuth fallback";
     public string RememberOAuthLabel => OperatingSystem.IsMacOS() ? "Remember this sign-in securely on this Mac" : "Remember this fallback sign-in for this Windows user";
     public string PlatformUserLabel => OperatingSystem.IsMacOS() ? "Mac user" : "Windows user";
     public string PlatformAccountLabel => OperatingSystem.IsMacOS() ? "Mac account" : "Windows account";
