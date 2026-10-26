@@ -114,6 +114,6 @@ struct MicrosoftSignInApp {
         application.setActivationPolicy(.accessory)
         let delegate = SignInWindow(start: start, state: state, selfTest: selfTest)
         application.delegate = delegate
-        application.run()
+        withExtendedLifetime(delegate) { application.run() }
     }
 }
