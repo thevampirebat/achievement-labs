@@ -514,7 +514,7 @@ public partial class MainWindow : Window
     private void OpenApiAddress(object? s, RoutedEventArgs e) => model.OpenApiAddress();
     private void RestartElevated(object? s, RoutedEventArgs e) => model.RestartElevated();
     private async void AttachManual(object? s, RoutedEventArgs e) => await model.AttachManualAsync();
-    private void StartBrowserLogin(object? s, RoutedEventArgs e) => model.StartBrowserLogin();
+    private async void StartBrowserLogin(object? s, RoutedEventArgs e) => await model.StartBrowserLoginAsync();
     private async void CompleteBrowserLogin(object? s, RoutedEventArgs e) => await model.CompleteBrowserLoginAsync();
     private async void UnlockSelected(object? s, RoutedEventArgs e) => await model.UnlockSelectedAsync();
     private async void UnlockAll(object? s, RoutedEventArgs e) => await model.UnlockAllAsync();

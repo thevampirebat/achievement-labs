@@ -12,7 +12,7 @@ concurrency:
 jobs:
   apple-silicon:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/macos-desktop-preview'
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import struct,zipfile
-          archive=Path('artifacts/macos-preview/AchievementLabs-macOS-0.1.0.2-arm64.zip')
+          archive=Path('artifacts/macos-preview/AchievementLabs-macOS-0.1.0.3-arm64.zip')
           with zipfile.ZipFile(archive) as z:
               entry=z.getinfo('Achievement Labs.app/Contents/MacOS/libhostfxr.dylib')
               data=z.read(entry)
@@ -48,6 +48,16 @@ jobs:
           LABS_MAC_RUNTIME: ${{ runner.arch == 'X64' && 'osx-x64' || 'osx-arm64' }}
           LABS_MAC_OUTPUT: ${{ github.workspace }}/artifacts/${{ runner.arch == 'X64' && 'macos-x64-check' || 'macos-preview' }}
         run: python3 tools/macos/check-package-launch.py
+      - name: Check native WebKit callback capture without credentials or network
+        run: |
+          python3 - <<'PY'
+          import pathlib,platform,subprocess,json
+          root=pathlib.Path.cwd()
+          helper=root/('artifacts/macos-x64-check' if platform.machine()=='x86_64' else 'artifacts/macos-preview')/'Achievement Labs.app/Contents/Helpers/MicrosoftSignIn'
+          result=subprocess.run([str(helper),'--self-test'],stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True,timeout=45,check=True)
+          assert json.loads(result.stdout)=={'status':'selfTestPassed'}
+          print('PASS: native WKWebView intercepts synthetic callback before network; invalid origin, duplicate/missing fields, wrong state and fragments rejected.')
+          PY
       - name: Check native window, Keychain and synthetic profile signing
         run: |
           python3 - <<'PY'
@@ -69,7 +79,7 @@ jobs:
         with:
           name: AchievementLabs-macOS-Apple-Silicon-Preview
           path: |
-            artifacts/macos-preview/AchievementLabs-macOS-0.1.0.2-arm64.zip
+            artifacts/macos-preview/AchievementLabs-macOS-0.1.0.3-arm64.zip
             artifacts/macos-preview/SHA256.txt
             artifacts/macos-preview/README.md
             artifacts/macos-preview/BUILD-INFO.json

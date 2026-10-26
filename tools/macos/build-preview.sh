@@ -35,10 +35,14 @@ shutil.copy2(target/'libhostfxr.dylib',app/'Contents/MacOS/libhostfxr.dylib')
 assert not any(p.is_symlink() for p in app.rglob('*'))
 PY
 chmod +x "$APP/Contents/MacOS/AchievementLabs"
+mkdir -p "$APP/Contents/Helpers"
+SWIFT_ARCH="$ARCH"
+if [ "$ARCH" = x64 ]; then SWIFT_ARCH=x86_64; fi
+xcrun swiftc -swift-version 5 -O -target "${SWIFT_ARCH}-apple-macos14.0" tools/macos/MicrosoftSignIn.swift -o "$APP/Contents/Helpers/MicrosoftSignIn"
 python3 - "$APP" <<'PY'
 from pathlib import Path
 import plistlib,sys
-app=Path(sys.argv[1]);info={'CFBundleName':'Achievement Labs','CFBundleDisplayName':'Achievement Labs','CFBundleIdentifier':'org.achievementlabs.desktop.macos.preview','CFBundleExecutable':'AchievementLabs','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.1.0','CFBundleVersion':'2','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,'CFBundleIconFile':'AchievementLabs.icns','NSHumanReadableCopyright':'Unofficial Achievement Labs fork; upstream: Achievement-Labs/achievement-labs'}
+app=Path(sys.argv[1]);info={'CFBundleName':'Achievement Labs','CFBundleDisplayName':'Achievement Labs','CFBundleIdentifier':'org.achievementlabs.desktop.macos.preview','CFBundleExecutable':'AchievementLabs','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.1.0','CFBundleVersion':'3','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,'CFBundleIconFile':'AchievementLabs.icns','NSHumanReadableCopyright':'Unofficial Achievement Labs fork; upstream: Achievement-Labs/achievement-labs'}
 (app/'Contents/Info.plist').write_bytes(plistlib.dumps(info))
 PY
 ICONSET="$OUT/AchievementLabs.iconset"
@@ -54,7 +58,7 @@ PLIST
 # Ad-hoc signing is for local testing only; Developer ID/notarization is a later release step.
 while IFS= read -r -d '' binary; do
   if file -b "$binary" | grep -q 'Mach-O'; then codesign --force --sign - --options runtime --entitlements "$OUT/entitlements.plist" "$binary"; fi
-done < <(find "$APP/Contents/MacOS" "$APP/Contents/Resources/App" -type f -print0)
+done < <(find "$APP/Contents/Helpers" "$APP/Contents/Resources/App" "$APP/Contents/MacOS" -type f -print0)
 codesign --force --sign - --options runtime --entitlements "$OUT/entitlements.plist" "$APP"
 codesign --verify --strict --verbose=2 "$APP"
 python3 - "$APP" <<'PY'
@@ -65,6 +69,6 @@ assert not bad,bad
 print('Verified Mac bundle excludes Windows EXEs, source/debug files and personal-profile/credential stores.')
 PY
 cp docs/macos-preview.md "$OUT/README.md"
-ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.2-${ARCH}.zip"
-(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.2-${ARCH}.zip > SHA256.txt)
+ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.3-${ARCH}.zip"
+(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.3-${ARCH}.zip > SHA256.txt)
 echo "Built self-contained $RUNTIME Mac preview: $OUT"

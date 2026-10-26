@@ -77,7 +77,7 @@ public sealed partial class DesktopModel
 
     public async Task LaunchXboxPcAppAndAttachAsync()
     {
-        if (!OperatingSystem.IsWindows()) { PrepareMacSignIn(); StartBrowserLogin(); return; }
+        if (!OperatingSystem.IsWindows()) { PrepareMacSignIn(); await StartBrowserLoginAsync(); return; }
         if (!CanConnect) return;
         try
         {
@@ -244,11 +244,23 @@ public sealed partial class DesktopModel
     public bool RememberBrowserSession { get; set; }
     private string loginRedirect = "";
     public string LoginRedirect { get => loginRedirect; set { loginRedirect = value ?? ""; Changed(); } }
-    public void StartBrowserLogin()
+    public async Task StartBrowserLoginAsync()
     {
         if (!CanConnect || !OAuthFallbackAvailable) return;
         browserLogin?.Dispose(); browserLogin = new(SelectedOAuthProfile);
-        browserProfileName = SelectedOAuthProfile.Name;
+        browserProfileName = SelectedOAuthProfile.Name; LoginRedirect = "";
+        if (OperatingSystem.IsMacOS())
+        {
+            Busy(true);
+            Notice = "Complete Microsoft sign-in in the sign-in window. This app will connect automatically.";
+            try { LoginRedirect = await MacMicrosoftSignIn.CaptureAsync(browserLogin.StartUri, lifetime.Token); }
+            catch (OperationCanceledException) { Notice = "Sign-in cancelled."; }
+            catch { Notice = "Microsoft sign-in could not complete. Try signing in again."; }
+            finally { Busy(false); }
+            if (!string.IsNullOrWhiteSpace(LoginRedirect)) await CompleteBrowserLoginAsync();
+            else { browserLogin?.Dispose(); browserLogin = null; }
+            return;
+        }
         try { Process.Start(new ProcessStartInfo(browserLogin.StartUri.AbsoluteUri) { UseShellExecute = true }); Notice = "Complete Microsoft sign-in, then paste the final login.live.com redirect URL below."; }
         catch { browserLogin.Dispose(); browserLogin = null; Notice = "Could not open the system browser."; }
     }
@@ -284,7 +296,7 @@ public sealed partial class DesktopModel
             }
         }
         catch (OperationCanceledException) { Notice = "Sign-in cancelled."; }
-        catch { Notice = "Sign-in did not complete. Start a new browser sign-in and use its final redirect URL."; }
+        catch { Notice = OperatingSystem.IsMacOS() ? "Sign-in did not complete. Start a new Microsoft sign-in and try again." : "Sign-in did not complete. Start a new browser sign-in and use its final redirect URL."; }
         finally { login.Dispose(); candidate?.Dispose(); Busy(false); }
         if (session != null) { await RefreshLibraryAsync(); Navigate("Library"); }
     }

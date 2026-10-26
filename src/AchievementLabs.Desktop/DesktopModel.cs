@@ -156,7 +156,7 @@ public sealed partial class DesktopModel : Observable, IDisposable
         Changed(nameof(VisibleAchievements)); Changed(nameof(NoResults)); Changed(nameof(ResultLabel)); Changed(nameof(CanExport));
     }
     private void Busy(bool value) { busy = value; RefreshXbox360Signing(); Changed(nameof(CanAcquireAccountEventToken)); Changed(nameof(CanConnect)); Changed(nameof(CanInteract)); Changed(nameof(CanDisconnect)); Changed(nameof(CanQuery)); Changed(nameof(CanLookupSpoofTitle)); Changed(nameof(CanFillTotals)); Changed(nameof(CanStartPresence)); NotifyActions(); }
-    public Task ConnectAsync() { if (OperatingSystem.IsMacOS()) { PrepareMacSignIn(); StartBrowserLogin(); return Task.CompletedTask; } return AttachXboxPcAppAsync(); }
+    public Task ConnectAsync() { if (OperatingSystem.IsMacOS()) { PrepareMacSignIn(); return StartBrowserLoginAsync(); } return AttachXboxPcAppAsync(); }
 
     private async Task ActivateXboxSessionAsync(ConnectedXboxSession connected, XboxApiClient candidate, string method)
     {
