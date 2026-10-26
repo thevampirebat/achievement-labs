@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """Exercise the downloaded bundle through LaunchServices, outside the build directory."""
 from pathlib import Path
-import atexit,json,os,shutil,signal,subprocess,sys,tempfile,time
+import json,os,signal,subprocess,sys,tempfile,time
 root=Path(__file__).resolve().parents[2]
 out=root/'artifacts/macos-preview/checks';out.mkdir(exist_ok=True)
-archive=root/'artifacts/macos-preview/AchievementLabs-macOS-0.1.0.2-arm64.zip'
-def copy_startup_report():
-    report=Path.home()/'Library/Logs/AchievementLabs/startup.log'
-    if report.exists():shutil.copy2(report,out/'mac-startup.txt')
-atexit.register(copy_startup_report)
+package_root=Path(os.environ.get('LABS_MAC_OUTPUT',str(root/'artifacts/macos-preview'))).resolve()
+arch=os.environ.get('LABS_MAC_RUNTIME','osx-arm64').removeprefix('osx-')
+archive=package_root/('AchievementLabs-macOS-0.1.0.2-'+arch+'.zip')
 window_query=out/'windows.swift'
 window_query.write_text('''import CoreGraphics
 import Foundation
@@ -23,35 +21,33 @@ print(String(data:bytes,encoding:.utf8)!)
 ''')
 query=out/'window-query'
 subprocess.run(['swiftc',str(window_query),'-o',str(query)],check=True)
+# Hosted CI only: refuse to run against an existing account/configuration.
+assert os.environ.get('GITHUB_ACTIONS')=='true', 'This check is restricted to a clean hosted CI runner'
+for folder in ['Library/Application Support/AchievementLabs','Library/Application Support/UltimateAchievementLabs','Library/Caches/AchievementLabs','Documents/AchievementLabs','.local/share/AchievementLabs']:
+    assert not (Path.home()/folder).exists(), 'Refusing to launch with pre-existing app user data'
 with tempfile.TemporaryDirectory(prefix='Achievement Labs downloaded app ') as folder:
     app=Path(folder)/'Achievement Labs.app'
     subprocess.run(['ditto','-x','-k',str(archive),folder],check=True)
     subprocess.run(['codesign','--verify','--strict','--verbose=2',str(app)],check=True)
     missing=[str(p.relative_to(app)) for p in app.rglob('*') if p.is_symlink() and not p.exists()]
     assert not missing,('Broken packaged links',missing)
-    with (out/'finder-stdout.txt').open('w') as stdout,(out/'finder-stderr.txt').open('w') as stderr:
-        launch=subprocess.Popen(['open','-W','-n',str(app)],cwd='/',stdout=stdout,stderr=stderr)
-        windows=[]
+    launch=subprocess.Popen(['open','-W','-n',str(app)],cwd='/',stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    windows=[]
+    try:
         for attempt in range(30):
             windows=json.loads(subprocess.check_output([str(query)],text=True))
             if windows:break
             if launch.poll() not in (None,0):break
             time.sleep(1)
-        if not windows:
-            # Capture host-resolution errors without reading any account data.
-            env=dict(os.environ,COREHOST_TRACE='1',COREHOST_TRACEFILE=str(out/'finder-host-trace.txt'))
-            try:
-                result=subprocess.run([str(app/'Contents/MacOS/AchievementLabs')],cwd='/',env=env,stdout=stdout,stderr=stderr,timeout=15)
-            except subprocess.TimeoutExpired:pass
-            raise RuntimeError('Downloaded .app did not create a visible window through LaunchServices; see finder-stderr/host-trace.')
+        assert windows, 'Downloaded .app did not create a visible window through LaunchServices'
         time.sleep(5)
         assert json.loads(subprocess.check_output([str(query)],text=True)), 'Normal startup window disappeared'
-        try:subprocess.run(['screencapture','-x','-l',str(windows[0]['id']),str(out/'Mac-Finder-launch.png')],check=True)
-        except subprocess.CalledProcessError:pass
+    finally:
         for window in windows:
             try:os.kill(window['pid'],signal.SIGTERM)
             except ProcessLookupError:pass
-        launch.wait(timeout=20)
+        try:launch.wait(timeout=20)
+        except subprocess.TimeoutExpired:launch.terminate()
     subprocess.run(['codesign','--verify','--strict',str(app)],check=True)
-    (out/'finder-launch.json').write_text(json.dumps(dict(passed=True,archiveExtracted=True,launchServices=True,normalStartup=True,workingDirectory='/',visibleWindows=len(windows),signatureValidAfterLaunch=True),indent=2))
+    (out/'finder-launch.json').write_text(json.dumps(dict(passed=True,archiveExtracted=True,launchServices=True,normalStartup=True,workingDirectory='/',visibleWindows=len(windows),signatureValidAfterLaunch=True,checkedArchitecture=arch),indent=2))
     print('PASS: downloaded ZIP extraction, intact links/signature and normal Finder-style startup from / with a visible native window.')

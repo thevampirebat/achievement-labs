@@ -32,7 +32,8 @@ public partial class MainWindow
         try
         {
             await Task.Delay(100); // Let the native desktop lifetime finish opening before testing/closing.
-            if(!OperatingSystem.IsMacOS()||System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture!=System.Runtime.InteropServices.Architecture.Arm64)throw new Exception("Expected native Apple Silicon runtime.");
+            var expected=args.Contains("--mac-x64-package-check") ? System.Runtime.InteropServices.Architecture.X64 : System.Runtime.InteropServices.Architecture.Arm64;
+            if(!OperatingSystem.IsMacOS()||System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture!=expected)throw new Exception("Expected native Mac runtime architecture: "+expected);
             if(model.HasWindowsLocalTools)throw new Exception("Windows capabilities exposed on Mac.");
             await model.AttachXboxPcAppAsync();if(!model.OAuthFallbackAvailable||!model.ConnectActionLabel.Contains("Microsoft"))throw new Exception("Mac sign-in preparation failed.");
             var sample=Encoding.UTF8.GetBytes("synthetic-macos-storage-test");var encrypted=SecureUserData.Protect(sample);
@@ -50,9 +51,9 @@ public partial class MainWindow
             var root=this.FindControl<Grid>("PreviewRoot")!;
             foreach(var page in new[]{"Home","Library","Queues","Xbox360Profiles","Settings"})
             {
-                model.Navigate(page);await Task.Delay(350);using var bitmap=new RenderTargetBitmap(new PixelSize((int)root.Bounds.Width,(int)root.Bounds.Height),new Vector(96,96));bitmap.Render(root);bitmap.Save(Path.Combine(output,"Mac-"+page+".png"),new PngBitmapEncoderOptions());
+                model.Navigate(page);await Task.Delay(350);using var bitmap=new RenderTargetBitmap(new PixelSize((int)root.Bounds.Width,(int)root.Bounds.Height),new Vector(96,96));bitmap.Render(root); // Validate rendering without exporting any image.
             }
-            File.WriteAllText(Path.Combine(output,"mac-smoke.txt"),"PASS: native arm64 UI startup; Microsoft browser-sign-in entry; Keychain-backed AES-GCM round trip/tamper rejection; synthetic Xbox 360 working-copy edit and signed export verified; Home, Library, Game Session, Xbox 360 and Settings render; no account or event requests.");
+            File.WriteAllText(Path.Combine(output,"mac-smoke.txt"),"PASS: native "+System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture+" UI startup; Microsoft browser-sign-in entry; Keychain-backed AES-GCM round trip/tamper rejection; synthetic Xbox 360 working-copy edit and signed export verified; Home, Library, Game Session, Xbox 360 and Settings render; no account or event requests.");
         }
         catch(Exception ex){File.WriteAllText(Path.Combine(output,"mac-smoke-error.txt"),ex.ToString());Environment.ExitCode=1;}
         finally{Close();}

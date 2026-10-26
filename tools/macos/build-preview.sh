@@ -4,10 +4,13 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 OUT="${LABS_MAC_OUTPUT:-$ROOT/artifacts/macos-preview}"
 APP="$OUT/Achievement Labs.app"
+RUNTIME="${LABS_MAC_RUNTIME:-osx-arm64}"
+case "$RUNTIME" in osx-arm64|osx-x64) ;; *) echo 'Unsupported Mac runtime' >&2; exit 1;; esac
+ARCH="${RUNTIME#osx-}"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 python3 mobile/tools/prepare_360.py
 
-dotnet publish src/AchievementLabs.Desktop/AchievementLabs.Desktop.csproj -c Release -r osx-arm64 --self-contained true -p:LabsMacOS=true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:NuGetAudit=false -p:LabsXbox360SigningFile="$ROOT/mobile/Shared360/signing.dat" -o "$OUT/publish"
+dotnet publish src/AchievementLabs.Desktop/AchievementLabs.Desktop.csproj -c Release -r "$RUNTIME" --self-contained true -p:LabsMacOS=true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:NuGetAudit=false -p:LabsXbox360SigningFile="$ROOT/mobile/Shared360/signing.dat" -o "$OUT/publish"
 # Keep the self-contained host, runtime and managed entry point adjacent.
 # Do not depend on archive extractors preserving hundreds of runtime symlinks.
 python3 - "$OUT/publish" "$APP/Contents/MacOS" <<'PY'
@@ -51,6 +54,6 @@ assert not bad,bad
 print('Verified Mac bundle excludes Windows EXEs, source/debug files and personal-profile/credential stores.')
 PY
 cp docs/macos-preview.md "$OUT/README.md"
-ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.2-arm64.zip"
-(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.2-arm64.zip > SHA256.txt)
-echo "Built Apple Silicon Mac preview: $OUT"
+ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.2-${ARCH}.zip"
+(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.2-${ARCH}.zip > SHA256.txt)
+echo "Built self-contained $RUNTIME Mac preview: $OUT"
