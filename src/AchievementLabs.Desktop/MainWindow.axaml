@@ -303,13 +303,22 @@
       <Button Content="Export encrypted mobile sign-in" Click="ExportMobileTransfer" IsEnabled="{Binding CanQuery}"/>
      </StackPanel></Border>
 <Border Classes="panel" Padding="24" IsVisible="{Binding IsMacPlatform}"><StackPanel Spacing="12">
-      <TextBlock Text="PC-to-Mac spoofer test" FontSize="22"/>
+      <TextBlock Text="Pair with Windows" FontSize="22"/>
+      <TextBlock Text="Pair directly on the same local network. Open the pairing window on Windows, find your PC here, and approve the matching code on both devices. Remembered devices need approval without re-entering a key." TextWrapping="Wrap" Classes="muted"/>
+      <Button Content="Pair with Windows on this network…" Click="ConnectLanPairing" IsEnabled="{Binding CanQuery}"/>
+      <Button Content="Forget remembered network devices" Click="ForgetLanPairing"/>
       <TextBlock Text="On Windows, attach the Xbox PC app for the same account, then export an encrypted mobile sign-in file. Import that .labslink file here within 10 minutes and enter its separate pairing key. This test changes only the Game Session spoofer; Auto Unlock keeps its existing authorization." TextWrapping="Wrap" Classes="muted"/>
       <Button Content="Import PC authorization for spoofer…" Click="ImportPcPresence" IsEnabled="{Binding CanQuery}"/>
       <Button Content="Remove PC pairing" Click="RemovePcPresence"/>
       <TextBlock Text="{Binding PcPresenceStatus}" TextWrapping="Wrap" Classes="muted"/>
       <Button Content="Compare authorization metadata" Click="ComparePcPresenceMetadata" IsEnabled="{Binding CanQuery}"/>
       <SelectableTextBlock Text="{Binding PcPresenceComparison}" TextWrapping="Wrap" Classes="muted"/>
+     </StackPanel></Border>
+<Border Classes="panel" Padding="24" IsVisible="{Binding IsWindowsPlatform}"><StackPanel Spacing="12">
+      <TextBlock Text="Pair a Mac" FontSize="22"/>
+      <TextBlock Text="Share fresh Xbox PC app authorization directly with your Mac on the same local network. Both devices must approve. Listening stops when the window closes, after one connection, or after two minutes." TextWrapping="Wrap" Classes="muted"/>
+      <Button Content="Pair a Mac on this network…" Click="HostLanPairing" IsEnabled="{Binding CanQuery}"/>
+      <Button Content="Forget remembered network devices" Click="ForgetLanPairing"/>
      </StackPanel></Border>
      </StackPanel></ScrollViewer></TabItem>
      <TabItem Header="Library"><ScrollViewer><StackPanel Spacing="18" MaxWidth="900" Margin="0,14,14,14">

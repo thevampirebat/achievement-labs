@@ -15,13 +15,25 @@ public sealed partial class DesktopModel
         PcPresenceComparison = PresenceAuthorizationMetadata.Compare(session.Authorization, pairedPcPresence.Authorization);
     }
     public bool IsMacPlatform => OperatingSystem.IsMacOS();
+    public bool IsWindowsPlatform => OperatingSystem.IsWindows();
+    internal string LanPairingAccount => session?.Xuid ?? throw new InvalidOperationException();
+    internal int LanPairingSession => sessionGeneration;
+    internal async Task<MobileTransferFile> CreateLanPresenceTransferAsync(string expectedXuid, CancellationToken token)
+    {
+        if (!OperatingSystem.IsWindows() || session?.Xuid != expectedXuid || !CanQuery) throw new InvalidOperationException();
+        var generation = sessionGeneration;
+        var authorization = await XboxPcAppAuthorizationReader.TryReadValidatedAsync(expectedXuid, RegionOverride, token);
+        if (string.IsNullOrWhiteSpace(authorization) || session?.Xuid != expectedXuid || generation != sessionGeneration || token.IsCancellationRequested)
+            throw new InvalidOperationException();
+        return MobileTransfer.Create(authorization, expectedXuid, "", null, signInOnly: true);
+    }
     public PcPresenceAuthorization ReadPcPresence(byte[] bytes, string key)
         => PcPresenceTransfer.Read(bytes, key, session?.Xuid ?? "", DateTimeOffset.UtcNow);
     public string PcPresenceStatus => pairedPcPresence != null && pairedPcPresenceGeneration == sessionGeneration
         ? $"PC pairing test stops by {pairedPcPresence.ExpiresAt.LocalDateTime:g}. " + (pairedPcPresence.IssuerExpiryKnown ? "Known authorization expiry is respected. " : "Token expiry is unknown; this is a local test limit. ") + "Start the spoofer to test acceptance. Automatic renewal is unavailable."
         : "Optional test: import a PC sync file for the same Xbox account. Mac sign-in and event tokens stay in place. The pairing is kept in memory only.";
 
-    public async Task ImportPcPresenceAsync(PcPresenceAuthorization imported)
+    public async Task ImportPcPresenceAsync(PcPresenceAuthorization imported, CancellationToken token = default)
     {
         if (!OperatingSystem.IsMacOS() || !CanQuery || PresenceRunning || WorkflowBusy) throw new InvalidOperationException();
         var generation = sessionGeneration;
@@ -30,8 +42,10 @@ public sealed partial class DesktopModel
         Busy(true);
         try
         {
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token, token);
             using var api = new XboxApiClient(imported.Authorization, RegionOverride);
-            var profile = await api.GetBasicProfileAsync(lifetime.Token);
+            var profile = await api.GetBasicProfileAsync(linked.Token);
+            linked.Token.ThrowIfCancellationRequested();
             if (profile?.ProfileUsers.FirstOrDefault()?.Id != xuid || session?.Xuid != xuid || sessionGeneration != generation)
                 throw new InvalidDataException();
             pairedPcPresence = imported;
