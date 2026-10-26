@@ -34,7 +34,7 @@ public partial class MainWindow : Window
         model.WindowsNotification = (title, message) =>
         {
             if (AppContext.TryGetSwitch("AchievementLabs.OfflineChecks", out var checks) && checks) return;
-            if (OperatingSystem.IsMacOS()) notifications.Show(new Notification(title,message,NotificationType.Information,TimeSpan.FromSeconds(10)));
+            if (OperatingSystem.IsMacOS()) { _ = SendMacNotificationAsync(title, message, false); }
             else if (!WindowsNotifications.TryShow(title, message)) model.Notice = "Windows notification could not be sent. Check Windows notification settings for Achievement Labs.";
         };
         AchievementLabs.MultiSelect.BatchPicker.Attach(this);
@@ -553,7 +553,16 @@ public partial class MainWindow : Window
     }
     private void ShowSettings(object? s, RoutedEventArgs e) => model.Navigate("Settings");
     private void ShowDiagnostics(object? s, RoutedEventArgs e) => model.Navigate("Diagnostics");
-    private void TestWindowsNotification(object? s, RoutedEventArgs e) => model.TestWindowsNotification();
+    private async void TestWindowsNotification(object? s, RoutedEventArgs e)
+    {
+        if (OperatingSystem.IsMacOS()) await SendMacNotificationAsync("Achievement Labs", "Mac notifications test.", true);
+        else model.TestWindowsNotification();
+    }
+    private async Task SendMacNotificationAsync(string title, string message, bool explicitTest)
+    {
+        var result = await MacNotifications.ShowAsync(title, message, explicitTest);
+        model.Notice = MacNotifications.ResultMessage(result);
+    }
     private async void ShowMobileSync(object? sender, RoutedEventArgs args)
     {
         if (!model.CanQuery) return;
@@ -652,7 +661,7 @@ public partial class MainWindow : Window
         var cancel = new Button { Content = "Cancel" };
         openSettings.Click += (_, _) => dialog.Close(true);
         cancel.Click += (_, _) => dialog.Close(false);
-        dialog.Content = new Border { Padding = new Thickness(24), Child = new StackPanel { Spacing = 16, Children = { new TextBlock { Text = "An event token is needed", FontSize = 22 }, new TextBlock { Text = "Paste a current event token in Settings before unlocking an event-based achievement. The saved token is encrypted for your Windows account.", TextWrapping = TextWrapping.Wrap }, new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 10, Children = { openSettings, cancel } } } } };
+        dialog.Content = new Border { Padding = new Thickness(24), Child = new StackPanel { Spacing = 16, Children = { new TextBlock { Text = "An event token is needed", FontSize = 22 }, new TextBlock { Text = OperatingSystem.IsMacOS() ? "Get an event token on this Mac in Settings before unlocking an event-based achievement. Saved tokens use this Mac’s Keychain-backed protection." : "Paste a current event token in Settings before unlocking an event-based achievement. The saved token is encrypted for your Windows account.", TextWrapping = TextWrapping.Wrap }, new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 10, Children = { openSettings, cancel } } } } };
         if (await dialog.ShowDialog<bool>(this)) model.Navigate("Settings");
     }
     private async void TestEventReplacements(object? s, RoutedEventArgs e) => await model.TestEventReplacementsAsync();

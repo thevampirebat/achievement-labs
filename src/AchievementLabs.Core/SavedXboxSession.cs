@@ -26,6 +26,12 @@ public static class SavedXboxSession
         if (native != null) await NativeSessionStore.SaveAsync(sessionPath, new(profile.Name, fresh), cancellationToken);
         return connected;
     }
+    public static async Task<MicrosoftOAuthResponse> RefreshOAuthAsync(MicrosoftOAuthResponse saved, XboxOAuthClientProfile profile, CancellationToken ct)
+    {
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(30) };
+        var oauth = new CodeFlowLiveApiClient(profile.ClientId, XboxAuthConstants.XboxScope, http);
+        return await oauth.RefreshToken(new CodeFlowRefreshTokenParameter { RefreshToken = saved.RefreshToken }, ct);
+    }
     public static async Task<ConnectedXboxSession> RefreshAuthorizationAsync(MicrosoftOAuthResponse saved, CancellationToken cancellationToken, XboxOAuthClientProfile profile,
         Func<MicrosoftOAuthResponse, Task>? onOAuthRefreshed = null)
     {

@@ -134,6 +134,7 @@ public sealed partial class DesktopModel
         {
             savedEventsToken = await EventTokenStore.ReadAsync(lifetime.Token);
             ResetEventTokenFreshness();
+            try { eventTokenIssuerExpiry = await EventTokenIssuerExpiry.ReadAsync(savedEventsToken, lifetime.Token); } catch { eventTokenIssuerExpiry = null; }
             EventTokenInput = savedEventsToken;
             EventTokenValidator.TryValidate(savedEventsToken, out _, out var message);
             EventTokenStatus = message;
@@ -142,10 +143,12 @@ public sealed partial class DesktopModel
         catch { savedEventsToken = ""; EventTokenStatus = "The saved event token could not be read."; }
     }
     private bool acquiringAccountEventToken;
-    public bool CanAcquireAccountEventToken => session != null && !acquiringAccountEventToken;
+    private DateTimeOffset? eventTokenIssuerExpiry;
+    public bool CanAcquireAccountEventToken => session != null && !acquiringAccountEventToken && !busy && !QueueActive && !PresenceRunning;
     public async Task AcquireAccountEventTokenAsync(Avalonia.Controls.Window owner)
     {
         if (!CanAcquireAccountEventToken || session == null) return;
+        if (OperatingSystem.IsMacOS()) { await AcquireMacEventTokenAsync(); return; }
         var xuid=session.Xuid;var generation=sessionGeneration;
         acquiringAccountEventToken=true;Changed(nameof(CanAcquireAccountEventToken));
         EventTokenStatus="Requesting an event token for the connected Xbox account…";
@@ -170,6 +173,7 @@ public sealed partial class DesktopModel
             await EventTokenStore.SaveAsync(value, lifetime.Token);
             savedEventsToken = value;
             ResetEventTokenFreshness();
+            try { eventTokenIssuerExpiry = await EventTokenIssuerExpiry.ReadAsync(value, lifetime.Token); } catch { eventTokenIssuerExpiry = null; }
             queueAccount.EventsToken = value;
             if (session != null) session = session with { EventsToken = value };
             queueAccount.EventsToken = value;
@@ -178,7 +182,7 @@ public sealed partial class DesktopModel
             EventTokenValidator.TryValidate(value, out _, out message);
             EventTokenStatus = "Saved securely · " + message
                 + (hashMismatch ? " · Note: its user hash differs from the attached Xbox session; Xbox will reject it if it is for another account." : "");
-            Notice = "Event token saved securely for this Windows user.";
+            Notice = $"Event token saved securely for this {PlatformUserLabel}.";
         }
         catch { EventTokenStatus = "The event token could not be saved."; }
         finally { eventTokenWrites.Release(); }

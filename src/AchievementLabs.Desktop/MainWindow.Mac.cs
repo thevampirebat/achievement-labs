@@ -49,6 +49,14 @@ public partial class MainWindow
                 try { BrowserXboxLogin.ValidateRedirect(invalid, "expected"); throw new Exception("Invalid callback accepted."); }
                 catch (InvalidDataException) { }
             }
+            var notificationStatus = await MacNotifications.StatusAsync();
+            if (notificationStatus < 100 || notificationStatus > 104) throw new Exception("Native Mac notification status query failed.");
+            await MacEventTokenChecks.RunAsync();
+            var syntheticExpiry = DateTimeOffset.UtcNow.AddMinutes(30);
+            await EventTokenIssuerExpiry.SaveAsync("synthetic-event-token", syntheticExpiry, CancellationToken.None);
+            if (await EventTokenIssuerExpiry.ReadAsync("synthetic-event-token", CancellationToken.None) != syntheticExpiry ||
+                await EventTokenIssuerExpiry.ReadAsync("different-token", CancellationToken.None) != null)
+                throw new Exception("Event issuer expiry was not bound to its exact token.");
             var sample=Encoding.UTF8.GetBytes("synthetic-macos-storage-test");var encrypted=SecureUserData.Protect(sample);
             if(encrypted.AsSpan().IndexOf(sample)>=0||!SecureUserData.Unprotect(encrypted).SequenceEqual(sample))throw new Exception("Keychain storage round trip failed.");
             encrypted[^1]^=1;try{SecureUserData.Unprotect(encrypted);throw new Exception("Tampered storage accepted.");}catch(AuthenticationTagMismatchException){}
@@ -66,7 +74,7 @@ public partial class MainWindow
             {
                 model.Navigate(page);await Task.Delay(350);using var bitmap=new RenderTargetBitmap(new PixelSize((int)root.Bounds.Width,(int)root.Bounds.Height),new Vector(96,96));bitmap.Render(root); // Validate rendering without exporting any image.
             }
-            File.WriteAllText(Path.Combine(output,"mac-smoke.txt"),"PASS: native "+System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture+" UI startup; Microsoft sign-in entry and callback validation; Keychain-backed AES-GCM round trip/tamper rejection; synthetic Xbox 360 working-copy edit and signed export verified; Home, Library, Game Session, Xbox 360 and Settings render; no account or event requests.");
+            File.WriteAllText(Path.Combine(output,"mac-smoke.txt"),"PASS: native "+System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture+" UI startup; Microsoft sign-in entry and callback validation; native notification bridge status query (no permission prompt or delivery); mobile-style event exchange with fake transport and account/expiry rejection; Keychain-backed AES-GCM round trip/tamper rejection; synthetic Xbox 360 working-copy edit and signed export verified; Home, Library, Game Session, Xbox 360 and Settings render; no account or event requests.");
         }
         catch(Exception ex){File.WriteAllText(Path.Combine(output,"mac-smoke-error.txt"),ex.ToString());Environment.ExitCode=1;}
         finally{Close();}

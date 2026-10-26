@@ -24,7 +24,7 @@ public sealed partial class DesktopModel
     public Action<string, string>? WindowsNotification { get; set; }
     public Action<string>? SpooferFailure { get; set; }
     public void NotifyWindows(string title, string message) { if (WindowsNotificationsEnabled && !lifetime.IsCancellationRequested) WindowsNotification?.Invoke(title, message); }
-    public void TestWindowsNotification() => NotifyWindows("Achievement Labs", "Windows notifications are enabled.");
+    public void TestWindowsNotification() => NotifyWindows("Achievement Labs", $"{NotificationsLabel} test.");
     private bool autoRefreshEvents = true;
     public bool AutoRefreshEvents { get => autoRefreshEvents; set { autoRefreshEvents = value; Changed(); } }
     private bool autoRefreshDlc = true, showMythicIcon = true, highlightCompletedDlcs = true, debugExpanded;

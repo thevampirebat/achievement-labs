@@ -39,10 +39,11 @@ mkdir -p "$APP/Contents/Helpers"
 SWIFT_ARCH="$ARCH"
 if [ "$ARCH" = x64 ]; then SWIFT_ARCH=x86_64; fi
 xcrun swiftc -parse-as-library -swift-version 5 -O -target "${SWIFT_ARCH}-apple-macos14.0" tools/macos/MicrosoftSignIn.swift -o "$APP/Contents/Helpers/MicrosoftSignIn"
+xcrun swiftc -emit-library -parse-as-library -swift-version 5 -O -target "${SWIFT_ARCH}-apple-macos14.0" tools/macos/MacNotifications.swift -o "$APP/Contents/Resources/App/libLabsMacNotifications.dylib"
 python3 - "$APP" <<'PY'
 from pathlib import Path
 import plistlib,sys
-app=Path(sys.argv[1]);info={'CFBundleName':'Achievement Labs','CFBundleDisplayName':'Achievement Labs','CFBundleIdentifier':'org.achievementlabs.desktop.macos.preview','CFBundleExecutable':'AchievementLabs','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.1.0','CFBundleVersion':'3','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,'CFBundleIconFile':'AchievementLabs.icns','NSHumanReadableCopyright':'Unofficial Achievement Labs fork; upstream: Achievement-Labs/achievement-labs'}
+app=Path(sys.argv[1]);info={'CFBundleName':'Achievement Labs','CFBundleDisplayName':'Achievement Labs','CFBundleIdentifier':'org.achievementlabs.desktop.macos.preview','CFBundleExecutable':'AchievementLabs','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.1.0','CFBundleVersion':'4','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,'CFBundleIconFile':'AchievementLabs.icns','NSHumanReadableCopyright':'Unofficial Achievement Labs fork; upstream: Achievement-Labs/achievement-labs'}
 (app/'Contents/Info.plist').write_bytes(plistlib.dumps(info))
 PY
 ICONSET="$OUT/AchievementLabs.iconset"
@@ -69,6 +70,6 @@ assert not bad,bad
 print('Verified Mac bundle excludes Windows EXEs, source/debug files and personal-profile/credential stores.')
 PY
 cp docs/macos-preview.md "$OUT/README.md"
-ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.3-${ARCH}.zip"
-(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.3-${ARCH}.zip > SHA256.txt)
+ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.4-${ARCH}.zip"
+(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.4-${ARCH}.zip > SHA256.txt)
 echo "Built self-contained $RUNTIME Mac preview: $OUT"
