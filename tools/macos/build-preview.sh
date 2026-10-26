@@ -11,17 +11,28 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 python3 mobile/tools/prepare_360.py
 
 dotnet publish src/AchievementLabs.Desktop/AchievementLabs.Desktop.csproj -c Release -r "$RUNTIME" --self-contained true -p:LabsMacOS=true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:NuGetAudit=false -p:LabsXbox360SigningFile="$ROOT/mobile/Shared360/signing.dat" -o "$OUT/publish"
-# Keep the self-contained host, runtime and managed entry point adjacent.
-# Do not depend on archive extractors preserving hundreds of runtime symlinks.
-python3 - "$OUT/publish" "$APP/Contents/MacOS" <<'PY'
+# Keep real runtime files in Resources, where managed DLLs are bundle resources.
+# The native bootstrap loader is also a real file beside the executable.
+python3 - "$OUT/publish" "$APP" <<'PY'
 from pathlib import Path
 import shutil,sys
-published,target=map(Path,sys.argv[1:])
+published,app=map(Path,sys.argv[1:])
+target=app/'Contents/Resources/App';target.mkdir(parents=True,exist_ok=True)
 for entry in published.iterdir():
     destination=target/entry.name
     if entry.is_dir():shutil.copytree(entry,destination,dirs_exist_ok=True,symlinks=False)
     else:shutil.copy2(entry,destination,follow_symlinks=True)
-assert not any(p.is_symlink() for p in target.rglob('*'))
+host=bytearray((target/'AchievementLabs').read_bytes())
+old=b'AchievementLabs.dll\0';new=b'../Resources/App/AchievementLabs.dll\0'
+# .NET apphost reserves 1024 bytes for its relative managed-entrypoint path.
+assert host.count(old)==1, 'Expected a unique apphost entrypoint'
+offset=host.index(old)
+assert host[offset+len(old):offset+1024]==bytes(1024-len(old)), 'Unexpected apphost path reservation'
+host[offset:offset+len(new)]=new
+(app/'Contents/MacOS/AchievementLabs').write_bytes(host)
+shutil.copy2(target/'libhostfxr.dylib',app/'Contents/MacOS/libhostfxr.dylib')
+(target/'AchievementLabs').unlink()
+assert not any(p.is_symlink() for p in app.rglob('*'))
 PY
 chmod +x "$APP/Contents/MacOS/AchievementLabs"
 python3 - "$APP" <<'PY'
@@ -43,7 +54,7 @@ PLIST
 # Ad-hoc signing is for local testing only; Developer ID/notarization is a later release step.
 while IFS= read -r -d '' binary; do
   if file -b "$binary" | grep -q 'Mach-O'; then codesign --force --sign - --options runtime --entitlements "$OUT/entitlements.plist" "$binary"; fi
-done < <(find "$APP/Contents/MacOS" -type f -print0)
+done < <(find "$APP/Contents/MacOS" "$APP/Contents/Resources/App" -type f -print0)
 codesign --force --sign - --options runtime --entitlements "$OUT/entitlements.plist" "$APP"
 codesign --verify --strict --verbose=2 "$APP"
 python3 - "$APP" <<'PY'
