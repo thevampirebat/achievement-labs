@@ -4,34 +4,27 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 OUT="${LABS_MAC_OUTPUT:-$ROOT/artifacts/macos-preview}"
 APP="$OUT/Achievement Labs.app"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/App" "$APP/Contents/Frameworks"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 python3 mobile/tools/prepare_360.py
+
 dotnet publish src/AchievementLabs.Desktop/AchievementLabs.Desktop.csproj -c Release -r osx-arm64 --self-contained true -p:LabsMacOS=true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:NuGetAudit=false -p:LabsXbox360SigningFile="$ROOT/mobile/Shared360/signing.dat" -o "$OUT/publish"
-python3 - "$OUT/publish" "$APP" <<'PY'
+# Keep the self-contained host, runtime and managed entry point adjacent.
+# Do not depend on archive extractors preserving hundreds of runtime symlinks.
+python3 - "$OUT/publish" "$APP/Contents/MacOS" <<'PY'
 from pathlib import Path
-import os,shutil,subprocess,sys
-published,app=map(Path,sys.argv[1:]);mac=app/'Contents/MacOS';resources=app/'Contents/Resources/App';frameworks=app/'Contents/Frameworks'
+import shutil,sys
+published,target=map(Path,sys.argv[1:])
 for entry in published.iterdir():
-    native=entry.is_file() and 'Mach-O' in subprocess.check_output(['file','-b',str(entry)],text=True)
-    target=(frameworks if native and entry.suffix=='.dylib' else mac if native else resources)/entry.name
-    if entry.is_dir():shutil.copytree(entry,target,dirs_exist_ok=True)
-    else:shutil.copy2(entry,target)
-    link=mac/entry.name
-    if target!=link:
-        if link.is_symlink():link.unlink()
-        link.symlink_to(os.path.relpath(target,mac),target_is_directory=target.is_dir())
-    # The apphost resolves the managed entry-point symlink to Resources/App.
-    # Keep native runtime dependencies visible from that application base too.
-    if native and target.parent==frameworks:
-        dependency=resources/entry.name
-        if dependency.is_symlink():dependency.unlink()
-        dependency.symlink_to(os.path.relpath(target,resources))
+    destination=target/entry.name
+    if entry.is_dir():shutil.copytree(entry,destination,dirs_exist_ok=True,symlinks=False)
+    else:shutil.copy2(entry,destination,follow_symlinks=True)
+assert not any(p.is_symlink() for p in target.rglob('*'))
 PY
 chmod +x "$APP/Contents/MacOS/AchievementLabs"
 python3 - "$APP" <<'PY'
 from pathlib import Path
 import plistlib,sys
-app=Path(sys.argv[1]);info={'CFBundleName':'Achievement Labs','CFBundleDisplayName':'Achievement Labs','CFBundleIdentifier':'org.achievementlabs.desktop.macos.preview','CFBundleExecutable':'AchievementLabs','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.1.0','CFBundleVersion':'1','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,'CFBundleIconFile':'AchievementLabs.icns','NSHumanReadableCopyright':'Unofficial Achievement Labs fork; upstream: Achievement-Labs/achievement-labs'}
+app=Path(sys.argv[1]);info={'CFBundleName':'Achievement Labs','CFBundleDisplayName':'Achievement Labs','CFBundleIdentifier':'org.achievementlabs.desktop.macos.preview','CFBundleExecutable':'AchievementLabs','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.1.0','CFBundleVersion':'2','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,'CFBundleIconFile':'AchievementLabs.icns','NSHumanReadableCopyright':'Unofficial Achievement Labs fork; upstream: Achievement-Labs/achievement-labs'}
 (app/'Contents/Info.plist').write_bytes(plistlib.dumps(info))
 PY
 ICONSET="$OUT/AchievementLabs.iconset"
@@ -47,7 +40,7 @@ PLIST
 # Ad-hoc signing is for local testing only; Developer ID/notarization is a later release step.
 while IFS= read -r -d '' binary; do
   if file -b "$binary" | grep -q 'Mach-O'; then codesign --force --sign - --options runtime --entitlements "$OUT/entitlements.plist" "$binary"; fi
-done < <(find "$APP/Contents/MacOS" "$APP/Contents/Frameworks" -type f -print0)
+done < <(find "$APP/Contents/MacOS" -type f -print0)
 codesign --force --sign - --options runtime --entitlements "$OUT/entitlements.plist" "$APP"
 codesign --verify --strict --verbose=2 "$APP"
 python3 - "$APP" <<'PY'
@@ -58,6 +51,6 @@ assert not bad,bad
 print('Verified Mac bundle excludes Windows EXEs, source/debug files and personal-profile/credential stores.')
 PY
 cp docs/macos-preview.md "$OUT/README.md"
-ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.1-arm64.zip"
-(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.1-arm64.zip > SHA256.txt)
+ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.2-arm64.zip"
+(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.2-arm64.zip > SHA256.txt)
 echo "Built Apple Silicon Mac preview: $OUT"

@@ -12,4 +12,10 @@ For this first preview, Mac updates are manual downloads from https://github.com
 
 The .app is self-contained and needs no separate .NET installation. It is ad-hoc signed for testing, not Developer ID signed or notarized. Normal public Mac distribution still needs that signing/notarization step. Do not disable macOS security protections.
 
-Build on a Mac with .NET 9 SDK: `bash tools/macos/build-preview.sh`. Output: `artifacts/macos-preview/AchievementLabs-macOS-0.1.0.1-arm64.zip`. The app contains only the approved reusable CON identity; no personal profiles, account sessions or custom signing stores are packaged. CI uses a synthetic profile to check editing/signing and renders disconnected screens without Xbox account/event requests.
+Build on a Mac with .NET 9 SDK: `bash tools/macos/build-preview.sh`. Output: `artifacts/macos-preview/AchievementLabs-macOS-0.1.0.2-arm64.zip`. The app contains only the approved reusable CON identity; no personal profiles, account sessions or custom signing stores are packaged. CI uses a synthetic profile to check editing/signing and renders disconnected screens without Xbox account/event requests.
+
+## Preview 0.1.0.2 startup checks
+
+The app now keeps its self-contained runtime beside the entry point instead of relying on runtime symlinks. The downloadable ZIP is extracted and launched through macOS LaunchServices from /, with normal startup and a visible native window checked separately from the synthetic profile smoke test.
+
+If it still does not open, check ~/Library/Logs/AchievementLabs/startup.log. This report includes only version, runtime/architecture, startup stages and exception type names; it excludes sign-in data, profile contents and exception messages. A managed startup failure also displays a native alert. A failure before the .NET runtime starts may produce no report. The app remains ad-hoc signed for testing, without Developer ID notarization.

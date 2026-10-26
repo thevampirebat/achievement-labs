@@ -23,6 +23,7 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        MacStartup.Stage("Loading main window");
         InitializeComponent(); DataContext = model;
         AddHandler(KeyDownEvent, NavigationKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel, true);
         AddHandler(PointerPressedEvent, NavigationPointerPressed, Avalonia.Interactivity.RoutingStrategies.Tunnel, true); model.EventTokenRequired = ShowEventTokenRequiredAsync;
@@ -87,6 +88,7 @@ public partial class MainWindow : Window
         };
         Opened += async (_, _) =>
         {
+            MacStartup.Stage("Window opened");
             if (Environment.GetCommandLineArgs().Contains("--mac-smoke-test")) { await RunMacSmokeAsync(); return; }
             // Headless regression tests must never attach to a real account.
             if (offlineChecks)
@@ -157,7 +159,7 @@ public partial class MainWindow : Window
             if (!Environment.GetCommandLineArgs().Contains("--smoke-test")) {
                 var health = Environment.GetCommandLineArgs().SkipWhile(a => a != "--update-health").Skip(1).FirstOrDefault();
                 if (health != null && AppUpdater.IsUpdatePath(health)) File.WriteAllText(health, "Ready");
-                await model.LoadPreferencesAsync(); RestoreWindowPreferences(); _ = model.CheckForUpdatesAsync(); _ = model.RefreshDlcCatalogueAsync(false); _ = model.RefreshEventCatalogueAsync(false); await model.AttachXboxPcAppAsync(); return;
+                await model.LoadPreferencesAsync(); RestoreWindowPreferences(); _ = model.CheckForUpdatesAsync(); _ = model.RefreshDlcCatalogueAsync(false); _ = model.RefreshEventCatalogueAsync(false); await model.AttachXboxPcAppAsync(); MacStartup.Stage("Ready"); return;
             }
             try
             {

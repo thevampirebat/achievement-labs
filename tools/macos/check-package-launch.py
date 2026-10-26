@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Exercise the downloaded bundle through LaunchServices, outside the build directory."""
 from pathlib import Path
-import json,os,signal,subprocess,sys,tempfile,time
+import atexit,json,os,shutil,signal,subprocess,sys,tempfile,time
 root=Path(__file__).resolve().parents[2]
 out=root/'artifacts/macos-preview/checks';out.mkdir(exist_ok=True)
-archive=root/'artifacts/macos-preview/AchievementLabs-macOS-0.1.0.1-arm64.zip'
+archive=root/'artifacts/macos-preview/AchievementLabs-macOS-0.1.0.2-arm64.zip'
+def copy_startup_report():
+    report=Path.home()/'Library/Logs/AchievementLabs/startup.log'
+    if report.exists():shutil.copy2(report,out/'mac-startup.txt')
+atexit.register(copy_startup_report)
 window_query=out/'windows.swift'
 window_query.write_text('''import CoreGraphics
 import Foundation

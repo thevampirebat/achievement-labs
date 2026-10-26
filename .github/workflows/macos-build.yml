@@ -12,7 +12,7 @@ concurrency:
 jobs:
   apple-silicon:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feature/macos-desktop-preview'
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
         with:
           name: AchievementLabs-macOS-Apple-Silicon-Preview
           path: |
-            artifacts/macos-preview/AchievementLabs-macOS-0.1.0.1-arm64.zip
+            artifacts/macos-preview/AchievementLabs-macOS-0.1.0.2-arm64.zip
             artifacts/macos-preview/SHA256.txt
             artifacts/macos-preview/README.md
           if-no-files-found: error
@@ -55,5 +55,6 @@ jobs:
             artifacts/macos-preview/checks/*.png
             artifacts/macos-preview/checks/mac-smoke*.txt
             artifacts/macos-preview/checks/finder-*
+            artifacts/macos-preview/checks/mac-startup.txt
           if-no-files-found: ignore
           retention-days: 7
