@@ -52,7 +52,7 @@ public static class LanPairing
     }
 
     internal static X509Certificate2 LoadIdentity(byte[] pfx) => X509CertificateLoader.LoadPkcs12(pfx, null,
-        X509KeyStorageFlags.Exportable | (OperatingSystem.IsWindows() ? X509KeyStorageFlags.UserKeySet : X509KeyStorageFlags.EphemeralKeySet));
+        X509KeyStorageFlags.Exportable | X509KeyStorageFlags.UserKeySet);
 
     public static string Fingerprint(X509Certificate certificate) => Convert.ToHexString(SHA256.HashData(certificate.GetRawCertData()));
 
