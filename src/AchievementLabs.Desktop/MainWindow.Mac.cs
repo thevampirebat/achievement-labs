@@ -53,6 +53,8 @@ public partial class MainWindow
             if (notificationStatus < 100 || notificationStatus > 104) throw new Exception("Native Mac notification status query failed.");
             await MacEventTokenChecks.RunAsync();
             PcPresenceChecks.Run();
+            if (this.FindControl<CheckBox>("MacRememberSignInToggle")?.IsVisible != true) throw new Exception("Mac remember sign-in option is hidden.");
+            await MacRememberSignInChecks.RunAsync(model);
             var syntheticExpiry = DateTimeOffset.UtcNow.AddMinutes(30);
             await EventTokenIssuerExpiry.SaveAsync("synthetic-event-token", syntheticExpiry, CancellationToken.None);
             if (await EventTokenIssuerExpiry.ReadAsync("synthetic-event-token", CancellationToken.None) != syntheticExpiry ||
@@ -75,7 +77,7 @@ public partial class MainWindow
             {
                 model.Navigate(page);await Task.Delay(350);using var bitmap=new RenderTargetBitmap(new PixelSize((int)root.Bounds.Width,(int)root.Bounds.Height),new Vector(96,96));bitmap.Render(root); // Validate rendering without exporting any image.
             }
-            File.WriteAllText(Path.Combine(output,"mac-smoke.txt"),"PASS: native "+System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture+" UI startup; Microsoft sign-in entry and callback validation; native notification bridge status query (no permission prompt or delivery); mobile-style event exchange with fake transport and account/expiry rejection; Keychain-backed AES-GCM round trip/tamper rejection; synthetic Xbox 360 working-copy edit and signed export verified; Home, Library, Game Session, Xbox 360 and Settings render; no account or event requests.");
+            File.WriteAllText(Path.Combine(output,"mac-smoke.txt"),"PASS: native "+System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture+" UI startup; Microsoft sign-in entry and callback validation; visible remember choice, persisted opt-in/opt-out, Keychain-protected synthetic sign-in and removal; native notification bridge status query (no permission prompt or delivery); mobile-style event exchange with fake transport and account/expiry rejection; Keychain-backed AES-GCM round trip/tamper rejection; synthetic Xbox 360 working-copy edit and signed export verified; Home, Library, Game Session, Xbox 360 and Settings render; no account or event requests.");
         }
         catch(Exception ex){File.WriteAllText(Path.Combine(output,"mac-smoke-error.txt"),ex.ToString());Environment.ExitCode=1;}
         finally{Close();}

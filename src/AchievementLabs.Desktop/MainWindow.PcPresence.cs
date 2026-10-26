@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
@@ -32,17 +33,28 @@ public partial class MainWindow
                 }
                 finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(buffer); }
             }
-            var dialog = new Window { Title = "Pair PC authorization", Width = 540, Height = 340,
+            var dialog = new Window { Title = "Pair PC authorization", Width = 580, Height = 380,
                 CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner };
             var key = new TextBox { PlaceholderText = "Separate pairing key from PC", PasswordChar = '●', MaxLength = 43 };
             var confirm = new Button { Content = "Verify and use for spoofer" };
             var cancel = new Button { Content = "Cancel" };
+            var paste = new Button { Content = "Paste key" };
+            paste.Click += async (_, _) =>
+            {
+                try
+                {
+                    var text = Clipboard == null ? null : await Clipboard.TryGetTextAsync();
+                    if (text?.Trim() is { Length: 43 } value) key.Text = value;
+                    else key.PlaceholderText = "Copy the 43-character pairing key on PC first";
+                }
+                catch { key.PlaceholderText = "Could not read clipboard; paste the key with ⌘V"; }
+            };
             confirm.Click += (_, _) => dialog.Close(key.Text);
             cancel.Click += (_, _) => dialog.Close();
             dialog.Content = new StackPanel { Margin = new Thickness(24), Spacing = 16, Children = {
                 new TextBlock { Text = "Use PC authorization for this Mac session?", FontSize = 21, TextWrapping = TextWrapping.Wrap },
                 new TextBlock { Text = "Only the same account is accepted. Pairing verifies your profile; it does not start spoofing. The PC authorization stays in memory until removed, disconnected or the app closes. Event tokens and your Mac sign-in are retained.", TextWrapping = TextWrapping.Wrap },
-                key, new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children = { confirm, cancel } }
+                key, new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children = { paste, confirm, cancel } }
             } };
             string? entered;
             try { entered = await dialog.ShowDialog<string?>(this); }
@@ -57,4 +69,5 @@ public partial class MainWindow
     }
 
     private void RemovePcPresence(object? sender, RoutedEventArgs args) => model.ClearPcPresence();
+    private async void RememberMacSignIn(object? sender, RoutedEventArgs args) => await model.ApplyMacRememberSignInAsync();
 }

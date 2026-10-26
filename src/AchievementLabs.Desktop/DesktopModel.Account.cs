@@ -32,7 +32,7 @@ public sealed partial class DesktopModel
 
     public async Task AttachXboxPcAppAsync()
     {
-        if (OperatingSystem.IsMacOS()) { PrepareMacSignIn(); if (CanConnect && File.Exists(NativeSessionStore.DefaultPath)) { SessionPath=NativeSessionStore.DefaultPath; await ConnectSavedOAuthFallbackAsync(); } return; }
+        if (OperatingSystem.IsMacOS()) { PrepareMacSignIn(); if (CanConnect && RememberBrowserSession && File.Exists(NativeSessionStore.DefaultPath)) { SessionPath=NativeSessionStore.DefaultPath; await ConnectSavedOAuthFallbackAsync(); } return; }
         if (!CanConnect) return;
         Busy(true);
         XboxApiClient? candidate = null;
@@ -245,7 +245,8 @@ public sealed partial class DesktopModel
     }
     private BrowserXboxLogin? browserLogin;
     private string browserProfileName = "";
-    public bool RememberBrowserSession { get; set; }
+    private bool rememberBrowserSession;
+    public bool RememberBrowserSession { get => rememberBrowserSession; set { rememberBrowserSession = value; Changed(); } }
     private string loginRedirect = "";
     public string LoginRedirect { get => loginRedirect; set { loginRedirect = value ?? ""; Changed(); } }
     public async Task StartBrowserLoginAsync()
@@ -293,7 +294,7 @@ public sealed partial class DesktopModel
                     SessionPath = NativeSessionStore.DefaultPath;
                     activeOAuthSessionPath = NativeSessionStore.DefaultPath;
                     await SavePreferencesAsync();
-                    Notice = "Signed in. Session saved securely for this user; use Connect saved session next time.";
+                    Notice = OperatingSystem.IsMacOS() ? "Signed in. This Mac will reconnect using the protected saved sign-in next time." : "Signed in. Session saved securely for this user; use Connect saved session next time.";
                 }
                 catch (OperationCanceledException) { throw; }
                 catch { Notice = "Signed in for this app session, but the saved session could not be written."; }

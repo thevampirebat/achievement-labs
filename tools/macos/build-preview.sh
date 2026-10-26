@@ -43,7 +43,7 @@ xcrun swiftc -emit-library -parse-as-library -swift-version 5 -O -target "${SWIF
 python3 - "$APP" <<'PY'
 from pathlib import Path
 import plistlib,sys
-app=Path(sys.argv[1]);info={'CFBundleName':'Achievement Labs','CFBundleDisplayName':'Achievement Labs','CFBundleIdentifier':'org.achievementlabs.desktop.macos.preview','CFBundleExecutable':'AchievementLabs','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.1.0','CFBundleVersion':'5','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,'CFBundleIconFile':'AchievementLabs.icns','NSHumanReadableCopyright':'Unofficial Achievement Labs fork; upstream: Achievement-Labs/achievement-labs'}
+app=Path(sys.argv[1]);info={'CFBundleName':'Achievement Labs','CFBundleDisplayName':'Achievement Labs','CFBundleIdentifier':'org.achievementlabs.desktop.macos.preview','CFBundleExecutable':'AchievementLabs','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.1.0','CFBundleVersion':'6','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,'CFBundleIconFile':'AchievementLabs.icns','NSHumanReadableCopyright':'Unofficial Achievement Labs fork; upstream: Achievement-Labs/achievement-labs'}
 (app/'Contents/Info.plist').write_bytes(plistlib.dumps(info))
 PY
 ICONSET="$OUT/AchievementLabs.iconset"
@@ -70,6 +70,6 @@ assert not bad,bad
 print('Verified Mac bundle excludes Windows EXEs, source/debug files and personal-profile/credential stores.')
 PY
 cp docs/macos-preview.md "$OUT/README.md"
-ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.5-${ARCH}.zip"
-(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.5-${ARCH}.zip > SHA256.txt)
+ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/AchievementLabs-macOS-0.1.0.6-${ARCH}.zip"
+(cd "$OUT" && shasum -a 256 AchievementLabs-macOS-0.1.0.6-${ARCH}.zip > SHA256.txt)
 echo "Built self-contained $RUNTIME Mac preview: $OUT"
