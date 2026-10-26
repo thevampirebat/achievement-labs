@@ -103,9 +103,10 @@ public sealed partial class DesktopModel
                 string? authorization;
                 if (OperatingSystem.IsMacOS())
                 {
-                    await EnsureAuthorizationFreshAsync(cancellation.Token);
+                    var paired = PairedPresenceAuthorization(xuid);
+                    if (paired == null) await EnsureAuthorizationFreshAsync(cancellation.Token);
                     if (session?.Xuid != xuid) throw new InvalidOperationException("Account changed; spoofing stopped.");
-                    authorization = session.Authorization;
+                    authorization = paired ?? session.Authorization;
                 }
                 else authorization = await AchievementLabs.Core.XboxPcAppAuthorizationReader.TryReadValidatedAsync(xuid, RegionOverride, cancellation.Token);
                 if (string.IsNullOrWhiteSpace(authorization)) throw new InvalidOperationException("Open and sign in to the Xbox PC app.");
@@ -122,18 +123,21 @@ public sealed partial class DesktopModel
                     if (result.StatusCode < 200 || result.StatusCode >= 300)
                     {
                         heartbeatRefused = result.StatusCode is 401 or 403;
-                        failure = OperatingSystem.IsMacOS() && result.StatusCode == 403
+                        failure = OperatingSystem.IsMacOS() && pairedPcPresence != null && result.StatusCode == 403
+                            ? "Xbox refused the PC-paired authorization on this Mac (HTTP 403). No retry was sent. This pairing has not demonstrated heartbeat access."
+                            : OperatingSystem.IsMacOS() && result.StatusCode == 403
                             ? "Xbox refused heartbeat access for this Mac sign-in (HTTP 403). The profile check passed, but presence needs separate authorization. Xbox PC-app authorization remains the verified route; an event token does not grant heartbeat access."
                             : $"Heartbeat HTTP {result.StatusCode}";
                         PresenceHeartbeat = StatsOutput = failure; break;
                     }
                     heartbeatAccepted = true;
-                    PresenceHeartbeat = $"Last heartbeat: {DateTimeOffset.Now:HH:mm:ss} · HTTP {result.StatusCode}";
+                    PresenceHeartbeat = $"Last heartbeat: {DateTimeOffset.Now:HH:mm:ss} · HTTP {result.StatusCode}" + (pairedPcPresence != null ? " · PC-paired authorization" : "");
                     lastHeartbeat = stopwatch.Elapsed;
                 }
                 finally { requests.Release(); }
                 while (stopwatch.Elapsed - lastHeartbeat < TimeSpan.FromMinutes(5))
                 {
+                    if (OperatingSystem.IsMacOS() && pairedPcPresence != null) PairedPresenceAuthorization(xuid);
                     SpoofingStatus = "Spoofing active";
                     UpdatePresenceElapsed(stopwatch.Elapsed);
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellation.Token);
@@ -141,7 +145,7 @@ public sealed partial class DesktopModel
             }
         }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
-        catch { failure = "Presence heartbeat failed or timed out."; PresenceHeartbeat = StatsOutput = failure; }
+        catch { failure = pairedPcPresence != null ? "PC-paired heartbeat failed, or the pairing has expired. Stop and import a fresh PC sync file before retrying." : "Presence heartbeat failed or timed out."; PresenceHeartbeat = StatsOutput = failure; }
         finally
         {
             await requests.WaitAsync();

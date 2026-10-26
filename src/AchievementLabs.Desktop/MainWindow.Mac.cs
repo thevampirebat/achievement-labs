@@ -52,6 +52,7 @@ public partial class MainWindow
             var notificationStatus = await MacNotifications.StatusAsync();
             if (notificationStatus < 100 || notificationStatus > 104) throw new Exception("Native Mac notification status query failed.");
             await MacEventTokenChecks.RunAsync();
+            PcPresenceChecks.Run();
             var syntheticExpiry = DateTimeOffset.UtcNow.AddMinutes(30);
             await EventTokenIssuerExpiry.SaveAsync("synthetic-event-token", syntheticExpiry, CancellationToken.None);
             if (await EventTokenIssuerExpiry.ReadAsync("synthetic-event-token", CancellationToken.None) != syntheticExpiry ||

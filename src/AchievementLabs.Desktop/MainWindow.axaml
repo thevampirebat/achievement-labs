@@ -302,6 +302,13 @@
       <Button Content="Show mobile QR code" Click="ShowMobileSync" IsEnabled="{Binding CanQuery}"/>
       <Button Content="Export encrypted mobile sign-in" Click="ExportMobileTransfer" IsEnabled="{Binding CanQuery}"/>
      </StackPanel></Border>
+<Border Classes="panel" Padding="24" IsVisible="{Binding IsMacPlatform}"><StackPanel Spacing="12">
+      <TextBlock Text="PC-to-Mac spoofer test" FontSize="22"/>
+      <TextBlock Text="On Windows, attach the Xbox PC app for the same account, then export an encrypted mobile sign-in file. Import that .labslink file here within 10 minutes and enter its separate pairing key. This test changes only the Game Session spoofer; Auto Unlock keeps its existing authorization." TextWrapping="Wrap" Classes="muted"/>
+      <Button Content="Import PC authorization for spoofer…" Click="ImportPcPresence" IsEnabled="{Binding CanQuery}"/>
+      <Button Content="Remove PC pairing" Click="RemovePcPresence"/>
+      <TextBlock Text="{Binding PcPresenceStatus}" TextWrapping="Wrap" Classes="muted"/>
+     </StackPanel></Border>
      </StackPanel></ScrollViewer></TabItem>
      <TabItem Header="Library"><ScrollViewer><StackPanel Spacing="18" MaxWidth="900" Margin="0,14,14,14">
 <Border Classes="panel" Padding="24"><StackPanel Spacing="12">
