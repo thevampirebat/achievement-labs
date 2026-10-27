@@ -58,10 +58,29 @@ public final class ConfirmationDialogsTest {
   fail("Confirmation dialog did not appear; action must not silently cancel");
  }
  @Test public void testDisconnectCancelThenConfirm()throws Exception{
-  script("page='settings';settingsTab='Account';render();document.querySelector('[data-action=disconnect]').click()");
-  answer(false);waitFor("!busy && !!state.account");assertNotNull(activity.engine.account);
-  script("document.querySelector('[data-action=disconnect]').click()");
-  answer(true);waitFor("!busy && !state.account");assertNull(activity.engine.account);
+  script("window.__testActions=[];run=async(a,p)=>{window.__testActions.push(a);return {}};page='settings';settingsTab='Account';render();document.querySelector('[data-action=disconnect]').click()");
+  answer(false);assertEquals("0",evaluate("window.__testActions.length"));assertNotNull(activity.engine.account);
+  script("document.querySelector('[data-action=disconnect]').click()");answer(true);
+  waitFor("window.__testActions.length===1");
+  assertEquals("\"disconnect\"",evaluate("window.__testActions[0]"));
+ }
+ @Test public void testDisconnectClearsStoredAccountAndKeepsSavedQueue()throws Exception{
+  // An isolated synthetic store exercises the real disconnect without weakening preview mode.
+  final java.io.File files=new java.io.File(activity.getCacheDir(),"confirmation-native-tests");
+  assertTrue(files.isDirectory()||files.mkdirs());
+  android.content.Context isolatedContext=new android.content.ContextWrapper(activity){
+   @Override public android.content.Context getApplicationContext(){return this;}
+   @Override public java.io.File getFilesDir(){return files;}
+  };
+  SessionEngine isolated=new SessionEngine(isolatedContext,true,"queue");
+  assertTrue(isolated.preview);assertNotNull(isolated.account);assertEquals(1,isolated.queue.length());
+  isolated.preview=false;
+  try{
+   isolated.handle("disconnect",new org.json.JSONObject());
+   assertNull(isolated.account);
+   org.json.JSONObject saved=isolated.vault.read();
+   assertFalse(saved.has("account"));assertEquals(1,saved.getJSONObject("queues").getJSONArray("0").length());
+  }finally{isolated.work.shutdownNow();isolated.sessions.shutdownNow();}
  }
  @Test public void testUnlockCancelThenConfirmDoesNotSendLiveRequests()throws Exception{
   // Intercept after the real action/confirmation handler so Xbox is never contacted.
