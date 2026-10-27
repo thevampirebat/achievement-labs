@@ -598,10 +598,14 @@ namespace AchievementLabs.Desktop.Workflows
                 await PrepareEventMappingsAsync(token);
                 SaveState();
                 await WaitForCredentialsAsync(_state.IsEventBased && _state.Queue.Any(e => !e.Completed && !e.EventSubmissionPendingVerification), token);
-                account.SpoofedTitleID = _state.TitleId;
-                account.SpoofingStatus = 1;
-                await UpdatePresenceAsync();
-                lastPresenceHeartbeat = Stopwatch.GetTimestamp();
+                var nextEntry = _state.Queue.Skip(_state.CurrentIndex).FirstOrDefault(e => !e.Completed);
+                if (nextEntry != null && !nextEntry.EventSubmissionPendingVerification)
+                {
+                    account.SpoofedTitleID = _state.TitleId;
+                    account.SpoofingStatus = 1;
+                    await UpdatePresenceAsync();
+                    lastPresenceHeartbeat = Stopwatch.GetTimestamp();
+                }
                 await RunAutoUnlockLoop(token);
             }
             catch (OperationCanceledException)
@@ -705,6 +709,13 @@ namespace AchievementLabs.Desktop.Workflows
                 // Unlock the achievement
                 await WaitForCredentialsAsync(_state.IsEventBased && !entry.EventSubmissionPendingVerification, token);
                 token.ThrowIfCancellationRequested();
+                if (!entry.EventSubmissionPendingVerification && account.SpoofingStatus != 1)
+                {
+                    account.SpoofedTitleID = _state.TitleId;
+                    account.SpoofingStatus = 1;
+                    await UpdatePresenceAsync();
+                    lastPresenceHeartbeat = Stopwatch.GetTimestamp();
+                }
                 _state.RemainingDelaySeconds = 0;
                 SaveState();
                 Avalonia.Threading.Dispatcher.UIThread.Invoke(() =>
