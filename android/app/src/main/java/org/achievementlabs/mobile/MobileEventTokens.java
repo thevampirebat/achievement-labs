@@ -55,6 +55,6 @@ final class MobileEventTokens {
   JSONObject eventId=claim(events);if(!hash.equals(eventId.optString("uhs"))||(!eventId.optString("xid").isEmpty()&&!previous.getString("xuid").equals(eventId.optString("xid"))))throw new Failure("Event account mismatch. Existing event token retained.");
   Instant expiry;try{expiry=Instant.parse(events.getString("NotAfter"));}catch(Exception e){throw new Failure("Event-token expiry missing or invalid. Existing token retained.");}
   if(!expiry.isAfter(Instant.now().plusSeconds(60)))throw new Failure("Event token already expiring. Existing token retained.");
-  JSONObject result=new JSONObject(previous.toString());result.put("refreshToken",next).put("authorization",verified.getString("authorization")).put("authorizationExpiresAt",identity.optString("NotAfter")).put("eventToken",Core.token("x:XBL3.0 x="+hash+";"+token(events),true)).put("eventTokenExpiresAt",expiry.toString());return result;
+  JSONObject result=new JSONObject(previous.toString());result.put("refreshToken",next).put("authorization",verified.getString("authorization")).put("authorizationExpiresAt",identity.optString("NotAfter")).put("eventToken",Core.token("x:XBL3.0 x="+hash+";"+token(events),true)).put("eventTokenExpiresAt",expiry.toString());result.put("eventTokenExpiryHash",EventTokenLifetime.fingerprint(result.getString("eventToken")));return result;
  }
 }

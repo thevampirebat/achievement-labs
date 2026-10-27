@@ -160,6 +160,7 @@ public struct XboxService {
         let redacted = account.authorization.replacingOccurrences(of: #"(?i)x=[^;]+;"#, with: "x=-;", options: .regularExpression)
         let headers = ["Content-Type":"application/x-json-stream; charset=utf-8", "Accept":"application/json", "User-Agent":"MSDW", "reliability-mode":"standard", "Client-Id":"NO_AUTH", "client-version":"EUTC-Windows-C++-no-10.0.22621.3296.amd64fre.ni_release.220506-1250-no", "apikey":"0890af88a9ed4cc886a14f5e174a2827-9de66c5e-f867-43a8-a7b8-e0ddd481cca4-7548,95c1f21d6cb047a09e7b423c1cb2222e-9965f07b-54fa-498e-9727-9e8d24dec39e-7027", "authxtoken":redacted, "tickets":"\"1\"=\"\(token)\""]
         headers.forEach { r.setValue($1, forHTTPHeaderField: $0) }
+
         let (data, response) = try await transfer(r); try Self.check(response, data:data, event: true,endpoint:route.url.host!); try Self.validateCollector(data)
     }
     public static func validateCollector(_ data: Data) throws {
@@ -178,10 +179,11 @@ public struct XboxHTTPFailure: LocalizedError {
     public let endpoint: String
     public let message: String
     public let serverCode: String?
+    public let xboxErrorCode: String?
     public let correlation: String?
     public var errorDescription: String? { message }
     public var diagnostic: String {
-        "HTTP \(status) · \(endpoint)" + (serverCode.map { "\nServer code: " + $0 } ?? "\nNo structured server error code supplied.") + (correlation.map { "\nCorrelation: " + $0 } ?? "")
+        "HTTP \(status) · \(endpoint)" + (serverCode.map { "\nServer code: " + $0 } ?? "\nNo structured server error code supplied.") + (xboxErrorCode.map { "\nXbox error header: " + $0 } ?? "") + (correlation.map { "\nCorrelation: " + $0 } ?? "")
     }
     init(status: Int, endpoint: String, message: String, response: HTTPURLResponse, data: Data) {
         self.status = status; self.endpoint = endpoint; self.message = message
@@ -191,6 +193,7 @@ public struct XboxHTTPFailure: LocalizedError {
         let json = data.count <= 65536 ? (try? JSON.object(data)) : nil
         let error = json?["error"] as? [String:Any]
         serverCode = safeCode(response.value(forHTTPHeaderField:"x-xbl-error-code")) ?? safeCode(JSON.string(json?["XErr"] ?? json?["code"] ?? json?["errorCode"] ?? error?["code"]))
+        if let value=response.value(forHTTPHeaderField:"x-err"),value.utf8.count<=20,value.range(of:#"^(?:[0-9]{1,20}|0[xX][0-9A-Fa-f]{1,8})$"#,options:.regularExpression) != nil { xboxErrorCode=value } else { xboxErrorCode=nil }
         let header = response.value(forHTTPHeaderField:"x-ms-request-id") ?? response.value(forHTTPHeaderField:"ms-cv")
         if let header, header.count <= 128, header.range(of:#"^[A-Za-z0-9+/.=_-]+$"#,options:.regularExpression) != nil { correlation = header } else { correlation = nil }
     }
