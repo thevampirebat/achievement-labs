@@ -66,6 +66,9 @@ using (var host = new LanPairing.Host(loopbackOnly: true))
 using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(12)))
 {
     string? report = null;
+    using (var departed = new UdpClient())
+        await departed.SendAsync(Encoding.ASCII.GetBytes("AL-LAN-PAIR-1?"), new IPEndPoint(IPAddress.Loopback, LanPairing.DiscoveryPort), timeout.Token);
+    await Task.Delay(100, timeout.Token);
     var found = await LanPairing.DiscoverOnInterfacesAsync([
         new(IPAddress.Loopback, IPAddress.Parse("255.0.0.0")),
         // Two independent bound source sockets; avoid requiring a loopback alias

@@ -63,10 +63,11 @@ public static class LanPairing
         readonly CancellationTokenSource stop = new();
         readonly string session = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
         int disposed;
+        readonly int port;
         int discoveryQueries, discoveryReplies;
         string discoveryError = "none";
-        public string DiscoveryStatus => $"Discovery requests received: {Volatile.Read(ref discoveryQueries)}; replies sent: {Volatile.Read(ref discoveryReplies)}; last socket status: {discoveryError}.";
-        public int Port => ((IPEndPoint)listener.LocalEndpoint).Port;
+        public string DiscoveryStatus => $"Discovery requests received: {Volatile.Read(ref discoveryQueries)}; replies sent: {Volatile.Read(ref discoveryReplies)}; last socket error: {discoveryError}.";
+        public int Port => port;
         public Host() : this(false) { }
         internal Host(bool loopbackOnly)
         {
@@ -77,6 +78,7 @@ public static class LanPairing
             {
                 discovery.Client.Bind(new IPEndPoint(bindAddress, DiscoveryPort));
                 listener.Start(1);
+                port = ((IPEndPoint)listener.LocalEndpoint).Port;
                 _ = AdvertiseAsync();
             }
             catch { listener.Stop(); discovery.Dispose(); stop.Dispose(); throw; }
@@ -87,7 +89,16 @@ public static class LanPairing
             {
                 while (!stop.IsCancellationRequested)
                 {
-                    var packet = await discovery.ReceiveAsync(stop.Token);
+                    UdpReceiveResult packet;
+                    try { packet = await discovery.ReceiveAsync(stop.Token); }
+                    catch (SocketException ex)
+                    {
+                        // Windows may report an ICMP reply from a scanner that
+                        // has already closed its socket. Keep serving later probes.
+                        discoveryError = ex.SocketErrorCode.ToString();
+                        await Task.Delay(100, stop.Token);
+                        continue;
+                    }
                     if (!IsLocalAddress(packet.RemoteEndPoint.Address) || !packet.Buffer.AsSpan().SequenceEqual(Encoding.ASCII.GetBytes(Probe))) continue;
                     Interlocked.Increment(ref discoveryQueries);
                     var reply = Encoding.ASCII.GetBytes($"AL-LAN-PAIR-1|{Port}|{session}");
