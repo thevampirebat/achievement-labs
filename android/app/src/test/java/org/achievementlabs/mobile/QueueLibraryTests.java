@@ -52,7 +52,7 @@ public class QueueLibraryTests {
   String text=QueueTransfer.export("42",saved).toString();assertFalse(text.contains("authorization"));JSONObject parsed=QueueTransfer.parse(text,"42");assertEquals(23,parsed.getJSONArray("games").getJSONObject(0).getJSONArray("items").getJSONObject(0).getInt("remainingDelaySeconds"));
   try{QueueTransfer.parse(text,"43");fail();}catch(Exception expected){}
   parsed.getJSONArray("games").getJSONObject(0).getJSONArray("items").getJSONObject(0).put("delaySeconds",-1);try{QueueTransfer.validate(parsed,"42");fail();}catch(Exception expected){}
-  assertEquals("Waiting",QueueTransfer.importedStatus("Waiting",false));assertTrue(QueueTransfer.importedStatus("Accepted",false).startsWith("Needs review"));assertEquals("Already unlocked",QueueTransfer.importedStatus("Failed",true));
+  assertEquals("Waiting",QueueTransfer.importedStatus("Waiting",false));assertTrue(QueueTransfer.importedStatus("Accepted",false).startsWith("Unconfirmed"));assertEquals("Already unlocked",QueueTransfer.importedStatus("Failed",true));
  }
  @Test public void failuresRequireReviewAndAreNotCompletion(){assertTrue(QueuePolicy.review("Unconfirmed — connection lost"));assertTrue(QueuePolicy.review("Failed: HTTP 400"));assertFalse(QueuePolicy.terminal("Unconfirmed"));assertTrue(QueuePolicy.terminal("Skipped by user"));assertTrue(QueuePolicy.terminal("Confirmed unlocked"));assertFalse(QueuePolicy.transientFailure(new Net.HttpFailure(403,"Forbidden")));assertTrue(QueuePolicy.transientFailure(new java.io.IOException()));}
 }

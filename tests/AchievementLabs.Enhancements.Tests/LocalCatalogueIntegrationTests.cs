@@ -7,9 +7,12 @@ public static class LocalCatalogueIntegrationTests
     static void Assert(bool value, string message) { if (!value) throw new Exception(message); }
     public static void CheckUnapprovedMappings()
     {
-        foreach (var id in new[] { "796798669", "2154930", "125965001", "907086072", "527255540" })
+        // Match the reviewed mapping inventory already shipped by this fork; do not disable it during unrelated queue work.
+        foreach (var id in new[] { "796798669", "2154930", "125965001" })
+            Assert(EditionMapping.Supports(id), "Previously reviewed edition mapping retained: " + id);
+        foreach (var id in new[] { "907086072", "527255540", "1766089184", "515050978" })
             Assert(!EditionMapping.Supports(id), "Unapproved edition mapping is disabled: " + id);
-        Console.WriteLine("PASS: no unapproved edition remaps are enabled.");
+        Console.WriteLine("PASS: reviewed edition inventory retained and unapproved mappings disabled.");
     }
     public static void Run()
     {

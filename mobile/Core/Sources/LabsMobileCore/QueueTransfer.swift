@@ -22,6 +22,7 @@ public struct QueueTransfer: Codable {
     }
     public static func importedStatus(_ status: String, unlocked: Bool) -> String {
         if unlocked { return "Already unlocked" }
+        if QueuePolicy.pendingVerification(status) { return "Unconfirmed — transferred request; check Xbox progress" }
         if status == "Waiting" { return "Waiting" }
         if status == "Skipped by user" { return status }
         return "Needs review — transferred progress; refresh before retrying"

@@ -1,0 +1,10 @@
+package org.achievementlabs.mobile;
+import org.junit.Test;import static org.junit.Assert.*;import org.json.*;import java.util.concurrent.atomic.AtomicInteger;
+public final class QueueVerificationTests {
+ static JSONObject row(String state,int current)throws Exception{return new JSONObject().put("progressState",state).put("progression",new JSONObject().put("requirements",new JSONArray().put(new JSONObject().put("current",current).put("target",25))));}
+ @Test public void delayedConfirmationOnlyAchievedCounts()throws Exception{AtomicInteger calls=new AtomicInteger();QueueVerification.Result r=QueueVerification.verify(()->row(calls.incrementAndGet()==3?"Achieved":"InProgress",69),()->true,millis->{});assertTrue(r.confirmed);assertEquals(3,calls.get());}
+ @Test public void incompleteIsBoundedAndDoesNotSend()throws Exception{AtomicInteger reads=new AtomicInteger();QueueVerification.Result r=QueueVerification.verify(()->{reads.incrementAndGet();return row("InProgress",69);},()->true,millis->{});assertFalse(r.confirmed);assertEquals(5,reads.get());assertTrue(r.progress.contains("69/25"));}
+ @Test public void missingAndCancellationCannotConfirm()throws Exception{assertFalse(QueueVerification.verify(()->null,()->true,millis->{}).confirmed);try{QueueVerification.verify(()->row("Achieved",25),()->false,millis->{});fail();}catch(InterruptedException expected){}}
+ @Test public void acceptedAndInterruptedStatusesNeverFinishOrResend(){for(String s:new String[]{"Accepted — verify progress","Verifying — accepted request","Unconfirmed — 5/25","Interrupted — refresh before retry","Submitting"}){assertTrue(QueuePolicy.pendingVerification(s));assertEquals(1,QueuePolicy.action(s,true));assertEquals(1,QueuePolicy.action(s,false));assertFalse(QueuePolicy.terminal(s));}assertTrue(QueuePolicy.terminal("Confirmed unlocked"));}
+ @Test public void readFailurePropagatesWithoutSuccess()throws Exception{try{QueueVerification.verify(()->{throw new java.io.IOException("synthetic");},()->true,millis->{});fail();}catch(java.io.IOException expected){}}
+}

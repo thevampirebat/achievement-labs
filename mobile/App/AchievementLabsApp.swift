@@ -286,15 +286,15 @@ struct QueueRow: View {
                     VStack(alignment:.leading,spacing:2) { Text(item.achievement.name).font(.subheadline.weight(.semibold)); Text(item.game.name).font(.caption2).foregroundStyle(.secondary).lineLimit(1) }
                 }
                 Text(item.achievement.detail).font(.caption).foregroundStyle(.secondary)
-                Text(item.status).font(.caption2).foregroundStyle(item.status == "Already unlocked" ? .green : .secondary)
+                Text(item.status).font(.caption2).foregroundStyle((item.status == "Already unlocked" || item.status.hasPrefix("Confirmed")) ? .green : .secondary)
                 if let source = item.referenceGamertag, let date = item.referenceDate { Text(source + " · " + date.formatted(date:.abbreviated,time:.shortened)).font(.caption2).foregroundStyle(.secondary) }
                 HStack {
                     Text("Delay (minutes)").font(.caption)
                     TextField("Minutes",text:$delayText).keyboardType(.decimalPad).submitLabel(.done).focused($delayFocused).onSubmit { confirmDelay() }.multilineTextAlignment(.trailing).disabled(m.running).accessibilityIdentifier("queue-delay-field")
                 }
                 HStack {
-                    if QueuePolicy.needsReview(item.status) { Button("Retry") { m.resetQueueItem(itemID) }.disabled(m.running || m.busy); Button("Skip") { m.skipQueueItem(itemID) }.disabled(m.running || m.busy) }
-                    else if item.status != "Waiting" { Button("Reset") { m.resetQueueItem(itemID) }.disabled(m.running || m.busy) }
+                    if QueuePolicy.needsReview(item.status) { Button(QueuePolicy.pendingVerification(item.status) ? "Check progress" : "Retry") { m.resetQueueItem(itemID) }.disabled(m.running || m.busy); Button("Skip") { m.skipQueueItem(itemID) }.disabled(m.running || m.busy) }
+                    else if item.status != "Waiting" { Button(QueuePolicy.pendingVerification(item.status) ? "Check progress" : "Reset") { m.resetQueueItem(itemID) }.disabled(m.running || m.busy) }
                     Spacer(); Button("Remove",role:.destructive) { delayFocused = false; m.editingQueueDelay = false; m.removeQueueItem(itemID) }.disabled(m.running || m.busy)
                 }.font(.caption).buttonStyle(.borderless)
             }.padding(.vertical,2)

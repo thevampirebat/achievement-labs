@@ -731,7 +731,7 @@ public class XboxApiClient : IDisposable
         }, ct);
     }
 
-    public async Task<AchievementsResponse?> GetAchievementsForTitleAsync(string xuid, string titleId)
+    public async Task<AchievementsResponse?> GetAchievementsForTitleAsync(string xuid, string titleId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(xuid) || string.IsNullOrWhiteSpace(titleId))
         {
@@ -743,7 +743,7 @@ public class XboxApiClient : IDisposable
         _httpClient.DefaultRequestHeaders.Add(HeaderNames.Host, Hosts.Achievements);
         _httpClient.DefaultRequestHeaders.Add(HeaderNames.Connection, HeaderValues.KeepAlive);
 
-        var response = await (await _httpClient.GetAsync(string.Format(InterpolatedXboxAPIUrls.QueryAchievementsUrl, xuid, titleId))).Content.ReadAsStringAsync();
+        var response = await (await _httpClient.GetAsync(string.Format(InterpolatedXboxAPIUrls.QueryAchievementsUrl, xuid, titleId), cancellationToken)).Content.ReadAsStringAsync();
         LastAchievementsRawResponse = response;
         WriteAchievementsDebugLog(titleId, response);
         var achievements = JsonConvert.DeserializeObject<AchievementsResponse>(response);

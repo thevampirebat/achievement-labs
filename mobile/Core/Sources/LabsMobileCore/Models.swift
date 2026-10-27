@@ -35,6 +35,7 @@ public struct Game: Codable, Identifiable, Hashable {
 }
 public struct Achievement: Codable, Identifiable, Hashable {
     public var id: String; public var name: String; public var detail: String; public var unlocked: Bool
+    public var verificationProgress: String?
     public var serviceConfigID: String; public var eventBased: Bool; public var score: String
     public var unlockedAt: Date?
     public init(_ j: [String: Any], legacy: Bool = false) throws {
@@ -43,6 +44,11 @@ public struct Achievement: Codable, Identifiable, Hashable {
         unlocked = legacy ? (j["unlocked"] as? Bool ?? false) : JSON.string(j["progressState"]).lowercased() == "achieved"
         serviceConfigID = JSON.string(j["serviceConfigId"])
         let p = j["progression"] as? [String: Any] ?? [:]
+        let counters = (p["requirements"] as? [[String:Any]] ?? []).prefix(10).map { requirement -> String in
+            func number(_ key:String) -> String { let text=JSON.string(requirement[key]); return Double(text).map { $0.isFinite } == true ? text : "?" }
+            return number("current")+"/"+number("target")
+        }
+        verificationProgress = counters.isEmpty ? nil : "Xbox progress: " + counters.joined(separator:", ")
         unlockedAt = ServiceDates.parse(JSON.string(p["timeUnlocked"] ?? j["timeUnlocked"]))
         eventBased = (p["requirements"] as? [[String: Any]] ?? []).contains {
             let s = JSON.string($0["id"]); return !s.isEmpty && s != "00000000-0000-0000-0000-000000000000"
