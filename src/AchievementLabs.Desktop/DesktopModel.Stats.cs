@@ -124,7 +124,7 @@ public sealed partial class DesktopModel
                     {
                         heartbeatRefused = result.StatusCode is 401 or 403;
                         failure = OperatingSystem.IsMacOS() && pairedPcPresence != null && result.StatusCode == 403
-                            ? "Xbox refused the PC-paired authorization on this Mac (HTTP 403). No retry was sent. This pairing has not demonstrated heartbeat access."
+                            ? "Xbox refused the PC-paired authorization (HTTP 403). Pair with Windows again from Settings → Sync."
                             : OperatingSystem.IsMacOS() && result.StatusCode == 403
                             ? "Xbox refused heartbeat access for this Mac sign-in (HTTP 403). The profile check passed, but presence needs separate authorization. Xbox PC-app authorization remains the verified route; an event token does not grant heartbeat access."
                             : $"Heartbeat HTTP {result.StatusCode}";
@@ -145,7 +145,7 @@ public sealed partial class DesktopModel
             }
         }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
-        catch { failure = pairedPcPresence != null ? "PC-paired heartbeat failed, or the pairing has expired. Stop and import a fresh PC sync file before retrying." : "Presence heartbeat failed or timed out."; PresenceHeartbeat = StatsOutput = failure; }
+        catch { failure = pairedPcPresence != null ? "PC-paired heartbeat failed or authorization expired. Pair with Windows again from Settings → Sync, or import a fresh PC sync file." : "Presence heartbeat failed or timed out."; PresenceHeartbeat = StatsOutput = failure; }
         finally
         {
             await requests.WaitAsync();
@@ -159,7 +159,7 @@ public sealed partial class DesktopModel
                 }
             }
             catch { StatsOutput = "Presence stop request failed; the service may retain presence until it expires."; }
-            finally { var cancelled = cancellation.IsCancellationRequested; presenceCancellation = null; requests.Release(); cancellation.Dispose(); UpdatePresenceElapsed(stopwatch.Elapsed); CompletePresence(failure, cancelled); Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect)); }
+            finally { var cancelled = cancellation.IsCancellationRequested; presenceCancellation = null; requests.Release(); cancellation.Dispose(); UpdatePresenceElapsed(stopwatch.Elapsed); CompletePresence(failure, cancelled); if (heartbeatRefused && OperatingSystem.IsMacOS()) ClearPcPresence(); Changed(nameof(PresenceRunning)); Changed(nameof(CanStartPresence)); Changed(nameof(CanDisconnect)); }
         }
     }
     public void StopPresence() => presenceCancellation?.Cancel();

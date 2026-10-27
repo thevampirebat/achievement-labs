@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace AchievementLabs.Core;
 
-public sealed record PcPresenceAuthorization(string Authorization, string Xuid, DateTimeOffset ExpiresAt, bool IssuerExpiryKnown);
+public sealed record PcPresenceAuthorization(string Authorization, string Xuid, DateTimeOffset? ExpiresAt, bool IssuerExpiryKnown);
 
 // Reads the existing encrypted PC-sync file, without importing event or renewal credentials.
 public static class PcPresenceTransfer
@@ -41,8 +41,9 @@ public static class PcPresenceTransfer
             if (auth.Length is < 12 or > 65536 || !auth.StartsWith("XBL3.0 x=", StringComparison.Ordinal) ||
                 auth.Any(c => char.IsControl(c)) || auth.IndexOf(';') < 10) throw new InvalidDataException();
             // Native Xbox tokens may be opaque: do not invent an issuer expiry.
-            // Bound this diagnostic pairing to twenty minutes even if a longer expiry is known.
-            var deadline = now.AddMinutes(20);
+            // Transfer invitations expire separately. Opaque Xbox authorization
+            // has no inferable expiry; do not substitute a local test deadline.
+            DateTimeOffset? deadline = null;
             var value = root.GetProperty("authorizationExpiresAt");
             var known = value.ValueKind != JsonValueKind.Null;
             if (known)
@@ -50,7 +51,7 @@ public static class PcPresenceTransfer
                 if (!DateTimeOffset.TryParse(value.GetString(), System.Globalization.CultureInfo.InvariantCulture,
                     System.Globalization.DateTimeStyles.RoundtripKind, out var authExpiry) || authExpiry <= now.AddMinutes(1))
                     throw new InvalidDataException();
-                if (authExpiry < deadline) deadline = authExpiry;
+                deadline = authExpiry;
             }
             return new(auth, xuid, deadline, known);
         }

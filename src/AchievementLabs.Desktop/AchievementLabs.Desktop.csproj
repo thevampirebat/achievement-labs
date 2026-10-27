@@ -68,7 +68,7 @@
   <Error Condition="'@(ForbiddenReleaseFile)' != ''" Text="Private/source files found in release: @(ForbiddenReleaseFile)" />
 </Target>
 <PropertyGroup Condition="'$(LabsMacOS)' == 'true'">
-  <DefineConstants>$(DefineConstants);LABS_MACOS</DefineConstants><AssemblyVersion>0.1.0.8</AssemblyVersion><FileVersion>0.1.0.8</FileVersion><InformationalVersion>0.1.0-macos-preview.8</InformationalVersion>
+  <DefineConstants>$(DefineConstants);LABS_MACOS</DefineConstants><AssemblyVersion>0.1.0.9</AssemblyVersion><FileVersion>0.1.0.9</FileVersion><InformationalVersion>0.1.0-macos-preview.9</InformationalVersion>
 </PropertyGroup>
 <ItemGroup Condition="'$(LabsMacOS)' == 'true'">
   <Content Remove="../../gfwlam/**/*.*;../../uplayachievements/**/*.*;../../Uplay spools/**/*.spool;../../tools/Submit-ColdAlleyAchievements.ps1" />

@@ -22,7 +22,7 @@ internal static class PcPresenceChecks
         var expiry = now.AddHours(1);
         var transfer = MobileTransfer.Create("XBL3.0 x=hash;synthetic-account", "123", "synthetic-event", expiry);
         var imported = PcPresenceTransfer.Read(transfer.Bytes, transfer.PairingKey, "123", now);
-        if (imported.Authorization != "XBL3.0 x=hash;synthetic-account" || imported.Xuid != "123" || imported.ExpiresAt != now.AddMinutes(20) || !imported.IssuerExpiryKnown)
+        if (imported.Authorization != "XBL3.0 x=hash;synthetic-account" || imported.Xuid != "123" || imported.ExpiresAt != expiry || !imported.IssuerExpiryKnown)
             throw new Exception("PC pairing round trip failed.");
         void Reject(byte[] bytes, string key, string xuid, DateTimeOffset time)
         {
@@ -50,7 +50,7 @@ internal static class PcPresenceChecks
         PcPresenceTransfer.Read(signIn.Bytes, signIn.PairingKey, "123", now);
         var opaque = MobileTransfer.Create("XBL3.0 x=hash;synthetic", "123", "", null, signInOnly:true);
         var bounded = PcPresenceTransfer.Read(opaque.Bytes, opaque.PairingKey, "123", now);
-        if (bounded.IssuerExpiryKnown || bounded.ExpiresAt != now.AddMinutes(20)) throw new Exception("Opaque issuer expiry was invented.");
+        if (bounded.IssuerExpiryKnown || bounded.ExpiresAt != null) throw new Exception("Opaque issuer expiry was invented.");
         var shortLived = MobileTransfer.Create("XBL3.0 x=hash;synthetic", "123", "", now.AddMinutes(5), signInOnly:true);
         if (PcPresenceTransfer.Read(shortLived.Bytes, shortLived.PairingKey, "123", now).ExpiresAt != now.AddMinutes(5)) throw new Exception("Known expiry ignored.");
     }

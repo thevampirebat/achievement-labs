@@ -16,6 +16,8 @@ async Task Reject(Func<Task> action)
 foreach (var ip in new[] { "127.0.0.1", "10.1.2.3", "192.168.1.1", "172.16.1.2", "172.31.255.254", "169.254.1.1" }) Check(LanPairing.IsLocalAddress(IPAddress.Parse(ip)), "Local address rejected.");
 foreach (var ip in new[] { "8.8.8.8", "0.0.0.0", "172.32.0.1", "224.0.0.1", "::ffff:8.8.8.8" }) Check(!LanPairing.IsLocalAddress(IPAddress.Parse(ip)), "Public or multicast address accepted.");
 Console.WriteLine("PASS: local IPv4 destinations only.");
+AchievementLabs.Desktop.PcPresenceChecks.Run();
+Console.WriteLine("PASS: known Xbox expiry retained, unknown expiry stays unknown without a twenty-minute deadline; expired/replayed/wrong-account/tampered transfers rejected.");
 
 async Task Exchange(bool acceptHost, bool acceptClient, bool wrongAccount = false, string session = "")
 {

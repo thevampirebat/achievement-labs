@@ -18,7 +18,7 @@ public partial class MainWindow
         {
             var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Import encrypted PC sign-in for spoofer test", AllowMultiple = false,
+                Title = "Import encrypted PC sign-in", AllowMultiple = false,
                 FileTypeFilter = [new FilePickerFileType("Achievement Labs PC sync") { Patterns = ["*.labslink"] }]
             });
             if (files.Count != 1) return;

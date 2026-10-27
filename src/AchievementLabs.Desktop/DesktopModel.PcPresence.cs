@@ -30,8 +30,8 @@ public sealed partial class DesktopModel
     public PcPresenceAuthorization ReadPcPresence(byte[] bytes, string key)
         => PcPresenceTransfer.Read(bytes, key, session?.Xuid ?? "", DateTimeOffset.UtcNow);
     public string PcPresenceStatus => pairedPcPresence != null && pairedPcPresenceGeneration == sessionGeneration
-        ? $"PC pairing test stops by {pairedPcPresence.ExpiresAt.LocalDateTime:g}. " + (pairedPcPresence.IssuerExpiryKnown ? "Known authorization expiry is respected. " : "Token expiry is unknown; this is a local test limit. ") + "Start the spoofer to test acceptance. Automatic renewal is unavailable."
-        : "Optional test: import a PC sync file for the same Xbox account. Mac sign-in and event tokens stay in place. The pairing is kept in memory only.";
+        ? (pairedPcPresence.ExpiresAt is { } expires ? $"PC authorization expires at {expires.LocalDateTime:g}. " : "Xbox did not supply an authorization expiry. ") + "Ready for Game Session spoofing. Pair again if Xbox refuses or the session expires. Authorization stays in memory until removed, disconnected or the app closes; remembered devices do not renew it automatically."
+        : "Pair with Windows on your local network, or import a PC sync file for the same Xbox account. Your Mac sign-in and event tokens stay in place. See Settings → Guides for the steps.";
 
     public async Task ImportPcPresenceAsync(PcPresenceAuthorization imported, CancellationToken token = default)
     {
@@ -52,7 +52,7 @@ public sealed partial class DesktopModel
             pairedPcPresenceGeneration = generation;
             PcPresenceComparison = "PC authorization paired. Choose Compare authorization metadata to generate a local report; no network request is sent.";
             Changed(nameof(PcPresenceStatus));
-            Notice = "PC authorization verified for the same account. No heartbeat sent. Open Game Session and start the spoofer to test it.";
+            Notice = "PC authorization verified for the same account. Open Game Session and start spoofing when ready.";
         }
         finally { Busy(false); }
     }
@@ -71,7 +71,7 @@ public sealed partial class DesktopModel
         if (pairedPcPresenceGeneration != sessionGeneration || pairedPcPresence.Xuid != xuid)
         { ClearPcPresence(); throw new InvalidOperationException("PC pairing belongs to an earlier sign-in. Pair again."); }
         if (pairedPcPresence.ExpiresAt <= DateTimeOffset.UtcNow.AddMinutes(1))
-            throw new InvalidOperationException("PC presence authorization has expired or is expiring. Export a fresh PC sync file and pair again.");
+            throw new InvalidOperationException("PC authorization has expired or is expiring. Use Settings → Sync → Pair with Windows again, or import a fresh PC sync file.");
         return pairedPcPresence.Authorization;
     }
 }

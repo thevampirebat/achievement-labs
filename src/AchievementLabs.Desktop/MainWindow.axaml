@@ -307,12 +307,14 @@
       <TextBlock Text="Pair directly on the same local network. Open the pairing window on Windows, find your PC here, and approve the matching code on both devices. Remembered devices need approval without re-entering a key." TextWrapping="Wrap" Classes="muted"/>
       <Button Content="Pair with Windows on this network…" Click="ConnectLanPairing" IsEnabled="{Binding CanQuery}"/>
       <Button Content="Forget remembered network devices" Click="ForgetLanPairing"/>
-      <TextBlock Text="On Windows, attach the Xbox PC app for the same account, then export an encrypted mobile sign-in file. Import that .labslink file here within 10 minutes and enter its separate pairing key. This test changes only the Game Session spoofer; Auto Unlock keeps its existing authorization." TextWrapping="Wrap" Classes="muted"/>
+      <TextBlock Text="File fallback: export an encrypted mobile sign-in on Windows, then import the .labslink file and its separate key here within 10 minutes. Pairing supplies Game Session spoofing authorization; your Mac sign-in and event token stay in place. See Guides for step-by-step help." TextWrapping="Wrap" Classes="muted"/>
       <Button Content="Import PC authorization for spoofer…" Click="ImportPcPresence" IsEnabled="{Binding CanQuery}"/>
       <Button Content="Remove PC pairing" Click="RemovePcPresence"/>
       <TextBlock Text="{Binding PcPresenceStatus}" TextWrapping="Wrap" Classes="muted"/>
+      <Expander Header="Advanced pairing diagnostics"><StackPanel Spacing="12">
       <Button Content="Compare authorization metadata" Click="ComparePcPresenceMetadata" IsEnabled="{Binding CanQuery}"/>
       <SelectableTextBlock Text="{Binding PcPresenceComparison}" TextWrapping="Wrap" Classes="muted"/>
+      </StackPanel></Expander>
      </StackPanel></Border>
 <Border Classes="panel" Padding="24" IsVisible="{Binding IsWindowsPlatform}"><StackPanel Spacing="12">
       <TextBlock Text="Pair a Mac" FontSize="22"/>
@@ -321,6 +323,7 @@
       <Button Content="Forget remembered network devices" Click="ForgetLanPairing"/>
      </StackPanel></Border>
      </StackPanel></ScrollViewer></TabItem>
+
      <TabItem Header="Library"><ScrollViewer><StackPanel Spacing="18" MaxWidth="900" Margin="0,14,14,14">
 <Border Classes="panel" Padding="24"><StackPanel Spacing="12">
       <TextBlock Text="Library completion appearance" FontSize="22"/>
@@ -369,7 +372,32 @@
       <ListBox ItemsSource="{Binding CatalogFindings}" MaxHeight="260" Background="Transparent"><ListBox.ItemTemplate><DataTemplate x:DataType="core:CatalogFinding"><StackPanel Margin="8" Spacing="4"><TextBlock Text="{Binding TitleId}"/><TextBlock Text="{Binding Status}"/><TextBlock Text="{Binding Detail}" TextWrapping="Wrap" Classes="muted"/></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox>
      </StackPanel></Expander></Border>
      </StackPanel></ScrollViewer></TabItem>
-    </TabControl>
+         <TabItem Header="Guides"><ScrollViewer><StackPanel Spacing="18" MaxWidth="900" Margin="0,14,14,14">
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12">
+      <TextBlock Text="PC → Mac spoofing" FontSize="22"/>
+      <TextBlock Text="1. Connect the same Xbox account in both apps. On Windows, attach to the signed-in Xbox PC app. Use the same local network." TextWrapping="Wrap"/>
+      <TextBlock Text="2. Windows: Settings → Sync → Pair a Mac on this network." TextWrapping="Wrap"/>
+      <TextBlock Text="3. Mac: Settings → Sync → Pair with Windows on this network. Select your PC and click Pair selected PC." TextWrapping="Wrap"/>
+      <TextBlock Text="4. Compare the code and approve on both devices. Select Remember this device on both to recognize each other next time." TextWrapping="Wrap"/>
+      <TextBlock Text="5. Mac: open Game Session, choose the game and start spoofing." TextWrapping="Wrap"/>
+      <TextBlock Text="Not found? Enter the private address and port shown on Windows. After one remembered pairing, searches also query that PC directly. Keep the Windows pairing window open during the transfer." Classes="muted" TextWrapping="Wrap"/>
+     </StackPanel></Border>
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12">
+      <TextBlock Text="PC → iPhone, iPad or Android spoofing" FontSize="22"/>
+      <TextBlock Text="1. On Windows, attach to your signed-in Xbox PC app." TextWrapping="Wrap"/>
+      <TextBlock Text="2. Windows: Settings → Sync → Show mobile QR code. Choose Sign-in only, or Sign-in + event token if you also need the event token." TextWrapping="Wrap"/>
+      <TextBlock Text="3. On your phone or tablet, stop active sessions and tap Scan QR. Keep the camera on the cycling codes until all frames are collected." TextWrapping="Wrap"/>
+      <TextBlock Text="4. Check the displayed gamertag, then choose Connect this PC account (iOS) or Connect PC account (Android). Import event token only does not enable spoofing." TextWrapping="Wrap"/>
+      <TextBlock Text="5. Mobile: open Game Session, select your game and start spoofing. QR transfer does not need the same Wi-Fi network." TextWrapping="Wrap"/>
+     </StackPanel></Border>
+<Border Classes="panel" Padding="24"><StackPanel Spacing="12">
+      <TextBlock Text="Reconnecting and privacy" FontSize="22"/>
+      <TextBlock Text="Mobile QR codes and file invitations expire after 10 minutes. The Mac network invitation lasts two minutes. Those transfer deadlines are separate from Xbox authorization expiry." TextWrapping="Wrap"/>
+      <TextBlock Text="The Mac has no 20-minute pairing limit. It respects known Xbox expiry, stops if Xbox refuses access, and keeps authorization in memory until disconnect or app close. Remembered devices do not automatically renew authorization; pair again when needed." TextWrapping="Wrap"/>
+      <TextBlock Text="Event tokens are separate and do not grant spoofing access. QR sign-in codes and .labslink keys contain private access information: never share screenshots or send them to others." Classes="muted" TextWrapping="Wrap"/>
+     </StackPanel></Border>
+     </StackPanel></ScrollViewer></TabItem>
+</TabControl>
    </Grid>
    <Grid Grid.Row="1" IsVisible="{Binding IsDiagnostics}" RowDefinitions="Auto,Auto,*">
     <Border Classes="panel" Padding="24"><StackPanel Spacing="12"><TextBlock Text="Event catalog integrity" FontSize="24"/><TextBlock Text="Check title blocks, supported IDs, and standalone template files. This inspection does not modify the catalog." TextWrapping="Wrap" Classes="muted"/><TextBlock Text="{Binding EventsDirectory}" TextWrapping="Wrap"/><WrapPanel><Button Content="Inspect catalog" Click="InspectCatalog" IsEnabled="{Binding CanInteract}"/><Button Content="Test event replacements" Click="TestEventReplacements" IsEnabled="{Binding CanInteract}" Margin="10,0"/></WrapPanel></StackPanel></Border>
