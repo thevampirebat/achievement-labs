@@ -730,7 +730,7 @@ namespace AchievementLabs.Desktop.Workflows
 
                 try
                 {
-                    if (_state.IsEventBased)
+                    if (_state.IsEventBased || entry.EventSubmissionPendingVerification)
                     {
                         unlockSuccess = await UnlockEventBasedAchievementAsync(entry, token);
                         if (unlockSuccess)
