@@ -1,6 +1,10 @@
 # Achievement Labs — unofficial fork
 
-## Current unofficial fork release
+## Current unofficial fork releases
+
+[Android 0.6.15 — Unlock/Disconnect hotfix](https://github.com/thevampirebat/achievement-labs/releases/tag/android-v0.6.15), contributed in [mobile PR #2](https://github.com/Achievement-Labs/achievement-labs-mobile/pull/2). The APK installs over 0.6.14 with the same signing identity. Mobile contributions now target the upstream mobile repository; fork app releases stay here.
+
+### Combined desktop/iOS release
 
 [Download fork .19 — Windows 1.0.8.19, Apple Silicon Mac 0.1.0.9, Android 0.6.14 and iOS 0.12.17](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.19).
 
