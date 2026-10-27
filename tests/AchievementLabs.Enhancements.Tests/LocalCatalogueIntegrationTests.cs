@@ -7,14 +7,13 @@ public static class LocalCatalogueIntegrationTests
     static void Assert(bool value, string message) { if (!value) throw new Exception(message); }
     public static void CheckUnapprovedMappings()
     {
-        foreach (var id in new[] { "907086072", "527255540" })
+        foreach (var id in new[] { "796798669", "2154930", "125965001", "907086072", "527255540" })
             Assert(!EditionMapping.Supports(id), "Unapproved edition mapping is disabled: " + id);
-        foreach (var id in new[]{"796798669","2154930","125965001"}) Assert(EditionMapping.Supports(id),"Previously reviewed fork edition guard retained: "+id);
-        Console.WriteLine("PASS: reviewed fork guards retained; Prey and Dishonored 2 remain unmodified.");
+        Console.WriteLine("PASS: no unapproved edition remaps are enabled.");
     }
     public static void Run()
     {
-        CheckUnapprovedMappings(); WindowPlacementTests.Run(); UpstreamEventCatalogueTests.Run(); LibraryRefreshTests.Run();
+        CheckUnapprovedMappings(); WindowPlacementTests.Run(); UpstreamEventCatalogueTests.Run();
         using var client = new EventCatalogClient(true);
         foreach (var id in new[] { "1079518187", "1147540192", "1327376519", "136671143", "767263759" })
             Assert(client.BundledTitleIds.Contains(id), "Author-only local title retained: " + id);

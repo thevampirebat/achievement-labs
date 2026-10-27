@@ -12,8 +12,29 @@ class Program
     public static void Main(string[] args)
     {
         if (args.Length == 2 && args[0] == "--apply-update") { Environment.ExitCode = AppUpdater.Apply(args[1]); return; }
+        MacStartup.Begin();
+        try
+        {
+            if (args.Contains("--mac-smoke-test")) AppContext.SetSwitch("AchievementLabs.OfflineChecks", true);
+            ConfigureStartup(args);
+            MacStartup.Stage("Creating desktop lifetime");
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception error) when (OperatingSystem.IsMacOS())
+        {
+            MacStartup.Failed(error);Environment.ExitCode=1;
+        }
+    }
+
+    internal static void ConfigureStartup(string[] args)
+    {
+        // Preview isolation is opt-in; ordinary launches must attach to Xbox normally.
+        if (args.Contains("--xbox360-local-test") || args.Contains("--local-360-smoke-test"))
+        {
+            AppContext.SetSwitch("AchievementLabs.StartOnXbox360", true);
+            AppContext.SetSwitch("AchievementLabs.OfflineChecks", true);
+        }
         if (args.Contains("--visual-preview")) AppContext.SetSwitch("AchievementLabs.OfflineChecks", true);
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

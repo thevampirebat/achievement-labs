@@ -52,6 +52,60 @@ public sealed class UpstreamEventCatalogue
     }
 
     public bool Contains(string titleId) => Volatile.Read(ref current).Templates.ContainsKey(titleId);
+    public async Task<int> ImportPackAsync(string text, CancellationToken ct = default)
+    {
+        if (Encoding.UTF8.GetByteCount(text) > 32 * 1024 * 1024) throw new InvalidDataException("Event pack exceeds 32 MB.");
+        var pack = Parse(text);
+        if ((int?)pack["schemaVersion"] != 1 || pack["titles"] is not JObject titles || titles.Count > 5000)
+            throw new InvalidDataException("Choose an event pack containing templates and achievement mappings, not a single game template.");
+        await refreshGate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var previous = Volatile.Read(ref current);
+            var data = (JObject)previous.Data.DeepClone();
+            var templates = new Dictionary<string, string>(previous.Templates, StringComparer.Ordinal);
+            int added = 0;
+            foreach (var title in titles.Properties())
+            {
+                ct.ThrowIfCancellationRequested();
+                if (reserved.Contains(title.Name) || templates.ContainsKey(title.Name)) continue;
+                var template = (string?)title.Value["template"] ?? throw new InvalidDataException("Missing event template.");
+                var recipes = title.Value["recipes"]?["recipes"] as JObject ?? throw new InvalidDataException("Missing achievement mappings.");
+                var achievements = new JObject();
+                foreach (var recipe in recipes.Properties())
+                {
+                    if (!Regex.IsMatch(recipe.Name, "^[0-9]{1,10}$") || recipe.Value is not JArray requests || requests.Count is < 1 or > 20) throw new InvalidDataException("Invalid achievement mapping.");
+                    var converted = new JObject(); int r = 0;
+                    foreach (var request in requests)
+                    {
+                        if (request is not JArray operations || operations.Count is < 1 or > 100) throw new InvalidDataException("Invalid replacement list.");
+                        var mapped = new JObject(); int n = 0;
+                        foreach (var op in operations)
+                        {
+                            if (op["target"]?.Type != JTokenType.String || op["value"]?.Type != JTokenType.String) throw new InvalidDataException("Invalid replacement.");
+                            mapped[(n++).ToString()] = new JObject { ["ReplacementType"] = "Replace", ["Target"] = op["target"]!.DeepClone(), ["Replacement"] = op["value"]!.DeepClone() };
+                        }
+                        converted[(r++).ToString()] = mapped;
+                    }
+                    achievements[recipe.Name] = converted;
+                }
+                var block = new JObject { ["Achievements"] = achievements };
+                await ValidateAsync(title.Name, block, template, ct).ConfigureAwait(false);
+                data.Remove("SupportedTitleIDs"); data[title.Name] = block; templates.Add(title.Name, template); added++;
+            }
+            data.Remove("SupportedTitleIDs"); data["SupportedTitleIDs"] = new JArray(templates.Keys);
+            var next = new Snapshot(previous.Commit, previous.CheckedUtc, data, templates);
+            var saved = new JObject { ["commit"] = next.Commit, ["checkedUtc"] = next.CheckedUtc, ["data"] = data, ["templates"] = JObject.FromObject(templates) };
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(cachePath))!);
+            var temporary = cachePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try { await File.WriteAllTextAsync(temporary, saved.ToString(Formatting.None), ct).ConfigureAwait(false); ct.ThrowIfCancellationRequested(); File.Move(temporary, cachePath, true); }
+            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+            Volatile.Write(ref current, next);
+            Status = $"Imported {added:N0} new titles from event pack (Testing). Existing titles retained.";
+            return added;
+        }
+        finally { refreshGate.Release(); }
+    }
     public EventTitleMapping Title(string titleId)
     {
         var state = Volatile.Read(ref current);
@@ -72,7 +126,14 @@ public sealed class UpstreamEventCatalogue
         {
             var previous = Volatile.Read(ref current);
             if (!force && DateTime.UtcNow - previous.CheckedUtc < TimeSpan.FromHours(1)) return;
-            var release = Parse(await ReadAsync(http, "https://api.github.com/repos/ethanwp28/achievement-labs/releases/latest", 1024 * 1024, ct).ConfigureAwait(false));
+            var releaseText = await ReadAsync(http, "https://api.github.com/repos/Achievement-Labs/achievement-labs/releases?per_page=100", 4 * 1024 * 1024, ct).ConfigureAwait(false);
+            using var releaseReader = new JsonTextReader(new StringReader(releaseText)) { MaxDepth = 64 };
+            var releases = JArray.Load(releaseReader, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+            if (releases.Count > 100) throw new InvalidDataException("Release list limit exceeded.");
+            var release = releases.OfType<JObject>().FirstOrDefault(r => (bool?)r["draft"] == false && (bool?)r["prerelease"] == false
+                && Regex.IsMatch((string?)r["tag_name"] ?? "", @"^v[0-9]+\.[0-9]+\.[0-9]+(?:[-.][A-Za-z0-9.-]+)?$")
+                && r["assets"] is JArray list && list.OfType<JObject>().Any(a => (string?)a["name"] == "Events.zip"))
+                ?? throw new InvalidDataException("No stable release containing Events.zip was found.");
             if ((bool?)release["draft"] != false || (bool?)release["prerelease"] != false) throw new InvalidDataException("No stable published release.");
             var tag = (string?)release["tag_name"] ?? "";
             if (!Regex.IsMatch(tag, "^v[0-9]+\\.[0-9]+\\.[0-9]+(?:[-.][A-Za-z0-9.-]+)?$")) throw new InvalidDataException("Unexpected release tag.");
@@ -82,7 +143,7 @@ public sealed class UpstreamEventCatalogue
             var asset = assets[0]; var digest = (string?)asset["digest"] ?? "";
             if (!Regex.IsMatch(digest, "^sha256:[a-fA-F0-9]{64}$")) throw new InvalidDataException("Events.zip SHA-256 digest is missing.");
             var revision = digest[7..].ToLowerInvariant();
-            var url = "https://github.com/ethanwp28/achievement-labs/releases/download/" + tag + "/Events.zip";
+            var url = "https://github.com/Achievement-Labs/achievement-labs/releases/download/" + tag + "/Events.zip";
             if ((string?)asset["browser_download_url"] != url) throw new InvalidDataException("Unexpected archive location.");
             var data = (JObject)previous.Data.DeepClone();
             var templates = new Dictionary<string, string>(previous.Templates, StringComparer.Ordinal);
@@ -182,6 +243,9 @@ public sealed class UpstreamEventCatalogue
                     var op = (JObject)operation.Value;
                     var target = (string)op["Target"]!;
                     if (!draft.Contains(target, StringComparison.Ordinal)) throw new InvalidDataException("Replacement target is absent.");
+                    var replacement = (string)op["Replacement"]!;
+                    var occurrences = (draft.Length - draft.Replace(target, "", StringComparison.Ordinal).Length) / target.Length;
+                    if (replacement.Length > 1024 * 1024 || (long)draft.Length + (long)occurrences * (replacement.Length - target.Length) > 2 * 1024 * 1024) throw new InvalidDataException("Event expansion limit exceeded.");
                     draft = draft.Replace(target, (string)op["Replacement"]!, StringComparison.Ordinal);
                 }
             }

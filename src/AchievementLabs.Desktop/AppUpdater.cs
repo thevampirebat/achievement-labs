@@ -19,37 +19,55 @@ internal sealed class AppUpdater(HttpClient? client = null, string? directory = 
     private readonly string root = directory ?? Root;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
+    private static Version? TagCeiling(string tag)
+    {
+        if (!tag.StartsWith("v", StringComparison.Ordinal) || !Version.TryParse(tag[1..].Replace("-fork.", ".", StringComparison.Ordinal), out var version) || version.Build < 0) return null;
+        return version.Revision < 0 ? new(version.Major, version.Minor, version.Build, int.MaxValue) : version;
+    }
     internal async Task<AvailableUpdate?> CheckAsync(Version current, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/thevampirebat/achievement-labs/releases/latest");
+#if LABS_MACOS
+        if (OperatingSystem.IsMacOS()) return null;
+#endif
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/thevampirebat/achievement-labs/releases?per_page=100");
         request.Headers.UserAgent.ParseAdd("AchievementLabs/" + current);
         using var response = await http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
-        var release = document.RootElement;
-        if (release.GetProperty("draft").GetBoolean() || release.GetProperty("prerelease").GetBoolean()) return null;
-        var tag = release.GetProperty("tag_name").GetString()!;
-        var assets = release.GetProperty("assets").EnumerateArray().ToArray();
-        var feed = assets.FirstOrDefault(x => x.GetProperty("name").GetString() == "update.json");
-        if (feed.ValueKind == JsonValueKind.Undefined) return null;
-        var executable = assets.Single(x => x.GetProperty("name").GetString() == "AchievementLabs.exe");
-        string AssetUrl(JsonElement asset)
+        if (document.RootElement.ValueKind != JsonValueKind.Array || document.RootElement.GetArrayLength() > 100) throw new InvalidDataException("Invalid release list.");
+        var candidates = document.RootElement.EnumerateArray()
+            .Where(r => !r.GetProperty("draft").GetBoolean())
+            .Select(r => new { Release = r, Tag = r.GetProperty("tag_name").GetString()! })
+            .Select(r => new { r.Release, r.Tag, Ceiling = TagCeiling(r.Tag) })
+            .Where(r => r.Ceiling != null).OrderByDescending(r => r.Ceiling);
+        AvailableUpdate? best = null;
+        foreach (var candidate in candidates)
         {
-            var url = asset.GetProperty("browser_download_url").GetString()!;
-            if (!url.StartsWith(Repository + "/releases/download/" + Uri.EscapeDataString(tag) + "/", StringComparison.Ordinal))
-                throw new InvalidDataException("Unexpected update location.");
-            return url;
+            if (candidate.Ceiling! <= (best is null ? current : Version.Parse(best.Manifest.Version))) continue;
+            var assets = candidate.Release.GetProperty("assets").EnumerateArray().ToArray();
+            var feed = assets.FirstOrDefault(x => x.GetProperty("name").GetString() == "update.json");
+            var executable = assets.FirstOrDefault(x => x.GetProperty("name").GetString() == "AchievementLabs.exe");
+            if (feed.ValueKind == JsonValueKind.Undefined || executable.ValueKind == JsonValueKind.Undefined) continue;
+            string AssetUrl(JsonElement asset)
+            {
+                var url = asset.GetProperty("browser_download_url").GetString()!;
+                var expected = Repository + "/releases/download/" + Uri.EscapeDataString(candidate.Tag) + "/" + Uri.EscapeDataString(asset.GetProperty("name").GetString()!);
+                if (url != expected) throw new InvalidDataException("Unexpected update location.");
+                return url;
+            }
+            var manifest = JsonSerializer.Deserialize<UpdateManifest>(await http.GetStringAsync(AssetUrl(feed), ct), Json)
+                ?? throw new InvalidDataException("Empty update metadata.");
+            if (!Version.TryParse(manifest.Version, out var version) || version.Revision < 0 ||
+                !(candidate.Tag == $"v{version.Major}.{version.Minor}.{version.Build}" || candidate.Tag == "v" + version || candidate.Tag == $"v{version.Major}.{version.Minor}.{version.Build}-fork.{version.Revision}"))
+                throw new InvalidDataException("Invalid update version.");
+            if (version <= current || best != null && version <= Version.Parse(best.Manifest.Version)) continue;
+            if (manifest.Bytes <= 0 || manifest.Sha256.Length != 64 || !manifest.Sha256.All(Uri.IsHexDigit)
+                || executable.GetProperty("size").GetInt64() != manifest.Bytes
+                || executable.GetProperty("digest").GetString() != "sha256:" + manifest.Sha256.ToLowerInvariant())
+                throw new InvalidDataException("Update metadata does not match the published executable. Try again later.");
+            best = new(manifest, AssetUrl(executable));
         }
-        var manifest = JsonSerializer.Deserialize<UpdateManifest>(await http.GetStringAsync(AssetUrl(feed), ct), Json)
-            ?? throw new InvalidDataException("Empty update metadata.");
-        if (!Version.TryParse(manifest.Version, out var version) || version.Revision < 0 || tag != $"v{version.Major}.{version.Minor}.{version.Build}-fork.{version.Revision}")
-            throw new InvalidDataException("Invalid update version.");
-        if (version <= current) return null;
-        if (manifest.Bytes <= 0 || manifest.Sha256.Length != 64 || !manifest.Sha256.All(Uri.IsHexDigit)
-            || executable.GetProperty("size").GetInt64() != manifest.Bytes
-            || executable.GetProperty("digest").GetString() != "sha256:" + manifest.Sha256.ToLowerInvariant())
-            throw new InvalidDataException("Update metadata does not match the published executable. Try again later.");
-        return new(manifest, AssetUrl(executable));
+        return best;
     }
 
     internal async Task<string> DownloadAsync(AvailableUpdate update, CancellationToken ct)
@@ -57,7 +75,7 @@ internal sealed class AppUpdater(HttpClient? client = null, string? directory = 
         var folder = Path.Combine(root, Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
         var partial = Path.Combine(folder, "download.part");
-        var target = Path.Combine(folder, "AchievementLabs.exe");
+        var target = Path.Combine(folder, OperatingSystem.IsMacOS() ? "AchievementLabs-macOS-arm64.zip" : "AchievementLabs.exe");
         try
         {
             using var response = await http.GetAsync(update.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, ct);
@@ -83,8 +101,8 @@ internal sealed class AppUpdater(HttpClient? client = null, string? directory = 
     internal static void Verify(string file, UpdateManifest manifest)
     {
         using var stream = File.OpenRead(file);
-        if (stream.Length != manifest.Bytes || stream.ReadByte() != 'M' || stream.ReadByte() != 'Z')
-            throw new InvalidDataException("The update is not the expected Windows executable.");
+        if (stream.Length != manifest.Bytes || stream.ReadByte() != (OperatingSystem.IsMacOS() ? 'P' : 'M') || stream.ReadByte() != (OperatingSystem.IsMacOS() ? 'K' : 'Z'))
+            throw new InvalidDataException("The update is not the expected platform package.");
         stream.Position = 0;
         if (!Convert.ToHexString(SHA256.HashData(stream)).Equals(manifest.Sha256, StringComparison.OrdinalIgnoreCase))
             throw new CryptographicException("The update checksum does not match. Your current app has not changed.");
@@ -93,6 +111,9 @@ internal sealed class AppUpdater(HttpClient? client = null, string? directory = 
     internal static void StartInstall(string download, UpdateManifest manifest)
     {
         Verify(download, manifest);
+#if LABS_MACOS
+        if (OperatingSystem.IsMacOS()) throw new PlatformNotSupportedException("Mac preview updates are installed manually from fork releases.");
+#endif
         var target = Environment.ProcessPath ?? throw new InvalidOperationException("Application path unavailable.");
         if (!target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Use the published Windows EXE to install an update.");
         // Confirm the app's location is writable before asking it to exit.

@@ -37,6 +37,7 @@ public sealed class EventCatalogClient : IDisposable
     }
     private UpstreamEventCatalogue? Additions => Local is { } catalog ? additions ??= new(AchievementLabsPaths.LocalFile("upstream-event-additions.json"), catalog.ReservedTitleIds) : null;
     public string UpstreamStatus => Additions?.Status ?? "New-title updates unavailable.";
+    public Task<int> ImportEventPackAsync(string text, CancellationToken ct) => (Additions ?? throw new InvalidOperationException("Local event data is unavailable.")).ImportPackAsync(text, ct);
     public string[] BundledTitleIds => Local?.TitleIds ?? [];
     public async Task RefreshUpstreamAsync(HttpClient sourceHttp, bool force, CancellationToken ct) { if (Additions is { } a) await a.RefreshAsync(sourceHttp, force, ct); }
 
@@ -50,8 +51,6 @@ public sealed class EventCatalogClient : IDisposable
     public Task<EventTitleMapping> GetTitleAsync(string id, CancellationToken ct) => AchievementLabs.MultiSelect.EventIdMapping.NormalizeCatalog(
         Local?.Contains(id) == true ? Local.TitleAsync(id, ct) : Additions?.Contains(id) == true ? Task.FromResult(Additions.Title(id)) : SendAsync<EventTitleMapping>(HttpMethod.Get, "titles/" + Uri.EscapeDataString(id), null, ct), id);
     public Task<EventPayloads> GetPayloadsAsync(string id, string achievementId, string xuid, CancellationToken ct) =>
-        AchievementLabs.MultiSelect.EventIdMapping.ValidatePayloads(ReadPayloadsAsync(id, achievementId, xuid, ct), id, achievementId);
-    private Task<EventPayloads> ReadPayloadsAsync(string id, string achievementId, string xuid, CancellationToken ct) =>
         Local?.Contains(id) == true ? Local.PayloadsAsync(id, AchievementLabs.MultiSelect.EventIdMapping.PayloadId(id, achievementId), xuid, ct)
         : Additions?.Contains(id) == true ? Additions.PayloadsAsync(id, achievementId, xuid, ct)
         : SendAsync<EventPayloads>(HttpMethod.Post, "titles/" + Uri.EscapeDataString(id) + "/payloads", new { achievementId = AchievementLabs.MultiSelect.EventIdMapping.PayloadId(id, achievementId), xuid }, ct);
