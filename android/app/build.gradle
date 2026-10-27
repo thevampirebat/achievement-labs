@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
  namespace 'org.achievementlabs.mobile'
  compileSdk 35
- defaultConfig { applicationId 'org.achievementlabs.mobile'; minSdk 26; targetSdk 35; versionCode 23; versionName '0.6.15'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
+ defaultConfig { applicationId 'org.achievementlabs.mobile'; minSdk 26; targetSdk 35; versionCode 23; versionName '0.6.15'; testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
  buildFeatures { buildConfig true }
  testOptions { unitTests.all { testLogging { events "passed", "failed", "skipped"; exceptionFormat "full" } } }
@@ -12,6 +12,8 @@ dependencies {
  implementation 'androidx.webkit:webkit:1.12.1'
  implementation 'androidx.core:core:1.15.0'
  implementation 'com.google.zxing:core:3.5.3'
+ androidTestImplementation 'androidx.test:runner:1.6.2'
+ androidTestImplementation 'androidx.test.ext:junit:1.2.1'
  testImplementation 'junit:junit:4.13.2'
  testImplementation 'org.json:json:20240303'
 }
