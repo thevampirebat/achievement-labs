@@ -1,5 +1,12 @@
 # Achievement Labs — unofficial fork
 
+## Current unofficial fork release
+
+[Download fork .19 — Windows 1.0.8.19, Apple Silicon Mac 0.1.0.9, Android 0.6.14 and iOS 0.12.17](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.19).
+
+This is an **unofficial fork** of [Achievement Labs](https://github.com/Achievement-Labs/achievement-labs). [Upstream feature PR #24](https://github.com/Achievement-Labs/achievement-labs/pull/24) contains the Mac app, encrypted PC pairing and in-app pairing guides. Fork app updates use this repository; event JSON updates continue to use Achievement Labs.
+
+
 > **This is an independently maintained, unofficial fork of [Achievement-Labs/achievement-labs](https://github.com/Achievement-Labs/achievement-labs), the upstream/main project. It is not the official release repository.**
 >
 > Download this fork’s Windows, Android and iOS builds from [thevampirebat releases](https://github.com/thevampirebat/achievement-labs/releases). App update checks for this fork use this repository; event JSON updates come from the upstream Achievement Labs repository. Feature contributions are submitted as PRs to the upstream project.
