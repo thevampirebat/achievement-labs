@@ -1,6 +1,12 @@
 # Achievement Labs — unofficial fork
 
-## Current unofficial fork releases
+## Current unofficial fork release
+
+[Download fork .21 — Windows 1.0.8.21, Mac Apple Silicon 0.1.0.10, Android 0.6.16 and unsigned iOS 0.12.18](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.21).
+
+Queues now verify Xbox achievement state and pause unconfirmed entries instead of treating accepted requests as unlocked. Saved checkpoints resume with read-only checks. Upstream contributions: [desktop PR #28](https://github.com/Achievement-Labs/achievement-labs/pull/28) and [mobile PR #3](https://github.com/Achievement-Labs/achievement-labs-mobile/pull/3). This is an unofficial fork; fork app updates use this repository and event JSON/feed updates use Achievement Labs.
+
+### Previous fork releases
 
 [Android 0.6.15 — Unlock/Disconnect hotfix](https://github.com/thevampirebat/achievement-labs/releases/tag/android-v0.6.15), contributed in [mobile PR #2](https://github.com/Achievement-Labs/achievement-labs-mobile/pull/2). The APK installs over 0.6.14 with the same signing identity. Mobile contributions now target the upstream mobile repository; fork app releases stay here.
 
