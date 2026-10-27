@@ -92,7 +92,7 @@ try{preview=BuildConfig.DEBUG&&previewMode;previewPage=startPage;vault=new Vault
     }
    }
    boolean done=true;for(int x=0;x<queue.length();x++)if(!QueuePolicy.terminal(queue.getJSONObject(x).optString("status")))done=false;
-   if(done&&prefs.optBoolean("notifyComplete",true))notifyUser("Auto Unlock finished","Xbox confirmed the processed achievements.");
+   if(done&&prefs.optBoolean("notifyComplete",true))notifyUser("Auto Unlock finished","Queue finished. Confirmed and explicitly skipped entries processed.");
   }catch(Exception e){notice=safe(e);}finally{queueRunning=false;queueStarted=0;nextAt=0;nextQueueName="";nextQueueGame="";queueGate.finish(run);keepAwake();try{save();}catch(Exception ignored){}push();}});
  }
  void transferFile(boolean exporting)throws Exception{

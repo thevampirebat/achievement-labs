@@ -578,8 +578,8 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 }
             }
             if !Task.isCancelled && !self.queue.contains(where: { !QueuePolicy.terminal($0.status) }) {
-                self.status = "Queue finished. Xbox confirmed the processed achievements."
-                if self.notifyCompletion { await self.notify("Auto unlock finished", body: "Xbox confirmed the processed achievements.") }
+                self.status = "Queue finished. Confirmed and explicitly skipped entries processed."
+                if self.notifyCompletion { await self.notify("Auto unlock finished", body: "Confirmed and explicitly skipped entries processed.") }
             }
         }
     }
