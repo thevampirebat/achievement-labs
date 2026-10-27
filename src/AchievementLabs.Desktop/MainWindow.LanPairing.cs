@@ -39,17 +39,19 @@ public partial class MainWindow
         if (!OperatingSystem.IsWindows() || !model.CanQuery) return;
         if (lanPairingWindow != null) { lanPairingWindow.Activate(); return; }
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-        var dialog = new Window { Title = "Pair a Mac on this network", Width = 580, Height = 400,
+        var dialog = new Window { Title = "Pair a Mac on this network", Width = 580, Height = 460,
             WindowStartupLocation = WindowStartupLocation.CenterOwner };
         lanPairingWindow = dialog;
         var status = new TextBlock { Text = "Preparing local pairing…", TextWrapping = TextWrapping.Wrap };
+        var diagnostics = new TextBlock { TextWrapping = TextWrapping.Wrap };
+        var discoveryTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.5) };
         var close = new Button { Content = "Close" };
         close.Click += (_, _) => dialog.Close();
         dialog.Closed += (_, _) => cancellation.Cancel();
-        dialog.Content = new StackPanel { Margin = new Thickness(24), Spacing = 18, Children = {
+        dialog.Content = new ScrollViewer { Content = new StackPanel { Margin = new Thickness(24), Spacing = 18, Children = {
             new TextBlock { Text = "On Mac: Settings → Sync → Pair with Windows", FontSize = 21, TextWrapping = TextWrapping.Wrap },
             new TextBlock { Text = "Use the same local network and Xbox account. If Windows asks, allow this app on your private network. Pairing closes after one attempt or two minutes.", TextWrapping = TextWrapping.Wrap },
-            status, close } };
+            status, diagnostics, close } } };
         LanPairing.Host? host = null;
         LanPairingStore? store = null;
         Task? transfer = null;
@@ -58,6 +60,8 @@ public partial class MainWindow
             var account = model.LanPairingAccount;
             var generation = model.LanPairingSession;
             store = new LanPairingStore(); host = new LanPairing.Host();
+            discoveryTimer.Tick += (_, _) => diagnostics.Text = host.DiscoveryStatus;
+            discoveryTimer.Start();
             status.Text = "Waiting for Mac…\nManual address: " + string.Join("  /  ", LanPairing.LocalAddresses().Select(a => $"{a}:{host.Port}"));
             async Task RunAsync()
             {
@@ -71,7 +75,7 @@ public partial class MainWindow
                 }
                 catch (OperationCanceledException) { status.Text = "Pairing cancelled or timed out. Close and reopen to try again."; }
                 catch { status.Text = "Pairing did not complete. Keep the Xbox app signed in to the same account; check the network, then reopen this window. No diagnostic credential values were logged."; }
-                finally { host.Dispose(); }
+                finally { discoveryTimer.Stop(); diagnostics.Text = host.DiscoveryStatus; host.Dispose(); }
             }
             transfer = RunAsync();
             await dialog.ShowDialog(this);
@@ -79,7 +83,7 @@ public partial class MainWindow
         catch { model.Notice = "Could not start local pairing. Close another pairing window or check local network access and secure storage."; }
         finally
         {
-            cancellation.Cancel(); host?.Dispose();
+            discoveryTimer.Stop(); cancellation.Cancel(); host?.Dispose();
             if (transfer != null) await transfer;
             store?.Dispose(); lanPairingWindow = null;
         }
@@ -90,23 +94,25 @@ public partial class MainWindow
         if (!OperatingSystem.IsMacOS() || !model.CanQuery || model.PresenceRunning) return;
         if (lanPairingWindow != null) { lanPairingWindow.Activate(); return; }
         using var cancellation = new CancellationTokenSource();
-        var dialog = new Window { Title = "Pair with Windows", Width = 600, Height = 500,
+        var dialog = new Window { Title = "Pair with Windows", Width = 600, Height = 600,
             WindowStartupLocation = WindowStartupLocation.CenterOwner };
         lanPairingWindow = dialog;
         var status = new TextBlock { Text = "On Windows, open Settings → Sync → Pair a Mac on this network.", TextWrapping = TextWrapping.Wrap };
         var devices = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch, PlaceholderText = "Select your Windows app" };
         var address = new TextBox { PlaceholderText = "Manual fallback: 192.168.1.10:12345" };
+        devices.SelectionChanged += (_, _) => { if (devices.SelectedItem != null) address.Text = ""; };
+        var diagnostics = new TextBlock { TextWrapping = TextWrapping.Wrap };
         var find = new Button { Content = "Find Windows app" };
         var connect = new Button { Content = "Pair selected PC" };
         var close = new Button { Content = "Close" };
         close.Click += (_, _) => dialog.Close();
         dialog.Closed += (_, _) => cancellation.Cancel();
-        dialog.Content = new StackPanel { Margin = new Thickness(24), Spacing = 16, Children = {
+        dialog.Content = new ScrollViewer { Content = new StackPanel { Margin = new Thickness(24), Spacing = 16, Children = {
             new TextBlock { Text = "Pair with Windows", FontSize = 24 },
             new TextBlock { Text = "No files or pairing keys. Keep both apps open on the same local network, using the same Xbox account.", TextWrapping = TextWrapping.Wrap },
-            status, devices, find, address,
+            status, diagnostics, devices, find, address,
             new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children = { connect, close } }
-        } };
+        } } };
         var account = model.LanPairingAccount;
         var generation = model.LanPairingSession;
         Task? operation = null;
@@ -115,9 +121,11 @@ public partial class MainWindow
             find.IsEnabled = connect.IsEnabled = false; status.Text = "Looking for Windows apps…";
             try
             {
-                var found = await LanPairing.DiscoverAsync(cancellation.Token);
+                using var store = new LanPairingStore();
+                var found = await LanPairing.DiscoverAsync(cancellation.Token, store.KnownAddresses(account),
+                    text => Dispatcher.UIThread.Post(() => diagnostics.Text = text));
                 devices.ItemsSource = found; devices.SelectedIndex = found.Count == 1 ? 0 : -1;
-                status.Text = found.Count == 0 ? "No Windows app found. Open its pairing window, check local network permission, or enter its displayed address below. Guest Wi-Fi or a VPN may separate devices." : "Choose your PC, then compare the code on both devices.";
+                status.Text = found.Count == 0 ? "No Windows app found. Keep its pairing window open. UDP discovery may be blocked even when manual pairing works. Pair manually with Remember enabled on both devices to save its address for future direct searches." : "Choose your PC, then compare the code on both devices.";
             }
             catch (OperationCanceledException) { }
             catch { status.Text = "Discovery unavailable. Allow local network access, or enter the address shown on Windows."; }
@@ -148,7 +156,7 @@ public partial class MainWindow
                             var imported = model.ReadPcPresence(transfer.Bytes, transfer.PairingKey);
                             await model.ImportPcPresenceAsync(imported, token);
                         }, cancellation.Token);
-                    if (result.Remember) store.Remember(result.PeerFingerprint, account);
+                    if (result.Remember) store.Remember(result.PeerFingerprint, account, candidate.Address);
                     status.Text = "Paired successfully. Open Game Session to start spoofing. Device recognition is remembered only if both devices selected it.";
                 }
                 catch (OperationCanceledException) { status.Text = "Pairing cancelled or timed out. Reopen pairing on Windows to try again."; }

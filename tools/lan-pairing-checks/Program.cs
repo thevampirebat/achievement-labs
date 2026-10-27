@@ -60,6 +60,22 @@ using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
 }
 Console.WriteLine("PASS: local discovery returns invitation and port without account authorization.");
 
+// Discovery itself is exercised, with broadcasts disabled: an address retained
+// after manual pairing must still find the PC's newly selected TCP port.
+using (var host = new LanPairing.Host(loopbackOnly: true))
+using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(12)))
+{
+    string? report = null;
+    var found = await LanPairing.DiscoverOnInterfacesAsync([
+        new(IPAddress.Loopback, IPAddress.Parse("255.0.0.0")),
+        new(IPAddress.Parse("127.0.0.2"), IPAddress.Parse("255.0.0.0"))
+    ], [IPAddress.Loopback, IPAddress.Parse("8.8.8.8")], text => report = text, timeout.Token, broadcast: false);
+    Check(found.Count == 1 && found[0].Port == host.Port && found[0].Address == "127.0.0.1", "Remembered unicast discovery failed or duplicated interfaces.");
+    Check(report?.Contains("2 interfaces, 6 probes sent, 6 replies") == true, "Interface retries were not exercised.");
+    Check(!report!.Contains("127.") && !report.Contains("synthetic"), "Discovery report contains endpoint/account data.");
+}
+Console.WriteLine("PASS: remembered-address discovery without broadcasts, three retries on each source interface, duplicate replies merged; safe counters exclude addresses and credentials.");
+
 foreach (var size in new[] { -1, 0, 1, 196609, int.MaxValue })
 {
     var prefix = new byte[4]; BinaryPrimitives.WriteInt32BigEndian(prefix, size);
@@ -81,11 +97,24 @@ if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS())
     {
         string fingerprint;
         using var peer = LanPairing.NewIdentity(); var peerFingerprint = LanPairing.Fingerprint(peer);
-        using (var store = new LanPairingStore(path)) { fingerprint = LanPairing.Fingerprint(store.Identity); store.Remember(peerFingerprint, "123"); }
+        using (var store = new LanPairingStore(path)) { fingerprint = LanPairing.Fingerprint(store.Identity); store.Remember(peerFingerprint, "123", "192.168.1.42"); }
         using (var loaded = new LanPairingStore(path))
         {
             Check(fingerprint == LanPairing.Fingerprint(loaded.Identity) && loaded.IsTrusted(peerFingerprint, "123") && !loaded.IsTrusted(peerFingerprint, "456"), "Trust not stable or not account scoped.");
+            Check(loaded.KnownAddresses("123").Single().ToString() == "192.168.1.42" && !loaded.KnownAddresses("456").Any(), "Saved endpoint leaked between accounts or did not persist.");
         }
+        // Previous preview stores have no Addresses field; keep their keys/trust.
+        var legacyPlain = SecureUserData.Unprotect(File.ReadAllBytes(path));
+        try
+        {
+            var legacy = System.Text.Json.Nodes.JsonNode.Parse(legacyPlain)!.AsObject(); legacy.Remove("Addresses");
+            var bytes = Encoding.UTF8.GetBytes(legacy.ToJsonString());
+            try { File.WriteAllBytes(path, SecureUserData.Protect(bytes)); }
+            finally { CryptographicOperations.ZeroMemory(bytes); }
+        }
+        finally { CryptographicOperations.ZeroMemory(legacyPlain); }
+        using (var legacyStore = new LanPairingStore(path))
+            Check(legacyStore.IsTrusted(peerFingerprint, "123") && !legacyStore.KnownAddresses("123").Any(), "Previous-preview trust migration failed.");
         var cipher = File.ReadAllBytes(path); cipher[0] ^= 0x80; File.WriteAllBytes(path, cipher);
         try { using var invalid = new LanPairingStore(path); throw new Exception("Tampered storage accepted."); }
         catch (CryptographicException) { }

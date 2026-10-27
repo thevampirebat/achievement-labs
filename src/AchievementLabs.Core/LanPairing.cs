@@ -63,6 +63,9 @@ public static class LanPairing
         readonly CancellationTokenSource stop = new();
         readonly string session = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
         int disposed;
+        int discoveryQueries, discoveryReplies;
+        string discoveryError = "none";
+        public string DiscoveryStatus => $"Discovery requests received: {Volatile.Read(ref discoveryQueries)}; replies sent: {Volatile.Read(ref discoveryReplies)}; last socket status: {discoveryError}.";
         public int Port => ((IPEndPoint)listener.LocalEndpoint).Port;
         public Host() : this(false) { }
         internal Host(bool loopbackOnly)
@@ -86,8 +89,10 @@ public static class LanPairing
                 {
                     var packet = await discovery.ReceiveAsync(stop.Token);
                     if (!IsLocalAddress(packet.RemoteEndPoint.Address) || !packet.Buffer.AsSpan().SequenceEqual(Encoding.ASCII.GetBytes(Probe))) continue;
+                    Interlocked.Increment(ref discoveryQueries);
                     var reply = Encoding.ASCII.GetBytes($"AL-LAN-PAIR-1|{Port}|{session}");
-                    await discovery.SendAsync(reply, packet.RemoteEndPoint, stop.Token);
+                    try { await discovery.SendAsync(reply, packet.RemoteEndPoint, stop.Token); Interlocked.Increment(ref discoveryReplies); }
+                    catch (SocketException ex) { discoveryError = ex.SocketErrorCode.ToString(); }
                 }
             }
             catch (Exception ex) when (ex is OperationCanceledException or ObjectDisposedException or SocketException) { }
@@ -129,38 +134,86 @@ public static class LanPairing
         public void Dispose() { if (Interlocked.Exchange(ref disposed, 1) != 0) return; stop.Cancel(); listener.Stop(); discovery.Dispose(); stop.Dispose(); }
     }
 
-    public static async Task<IReadOnlyList<Candidate>> DiscoverAsync(CancellationToken token)
+    internal sealed record DiscoveryInterface(IPAddress Address, IPAddress Mask);
+    public static Task<IReadOnlyList<Candidate>> DiscoverAsync(CancellationToken token, IEnumerable<IPAddress>? remembered = null, Action<string>? status = null)
     {
-        using var udp = new UdpClient(AddressFamily.InterNetwork) { EnableBroadcast = true };
-        udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
+        var interfaces = NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up)
+            .SelectMany(n => n.GetIPProperties().UnicastAddresses)
+            .Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && IsLocalAddress(a.Address) && !IPAddress.IsLoopback(a.Address))
+            .Select(a => new DiscoveryInterface(a.Address, a.IPv4Mask)).DistinctBy(a => a.Address).Take(16).ToList();
+        return DiscoverOnInterfacesAsync(interfaces, remembered ?? [], status, token);
+    }
+
+    internal static async Task<IReadOnlyList<Candidate>> DiscoverOnInterfacesAsync(IReadOnlyList<DiscoveryInterface> interfaces,
+        IEnumerable<IPAddress> remembered, Action<string>? status, CancellationToken token, bool broadcast = true)
+    {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
-        timeout.CancelAfter(TimeSpan.FromSeconds(4));
-        var targets = new HashSet<IPAddress> { IPAddress.Broadcast };
-        foreach (var nic in NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up))
-            foreach (var address in nic.GetIPProperties().UnicastAddresses.Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && IsLocalAddress(a.Address)))
+        timeout.CancelAfter(TimeSpan.FromSeconds(8));
+        var known = remembered.Where(IsLocalAddress).Where(a => a.AddressFamily == AddressFamily.InterNetwork).Distinct().Take(32).ToArray();
+        var found = new Dictionary<string, Candidate>();
+        var errors = new HashSet<SocketError>();
+        var gate = new object();
+        var attempts = 0; var sent = 0; var received = 0;
+        var probe = Encoding.ASCII.GetBytes(Probe);
+        void Error(SocketError error) { lock (gate) errors.Add(error); }
+        void Report()
+        {
+            string text;
+            lock (gate) text = $"Discovery: {attempts} interfaces, {sent} probes sent, {received} replies; socket status: {(errors.Count == 0 ? "none" : string.Join(", ", errors.OrderBy(e => e)))}.";
+            status?.Invoke(text);
+        }
+        async Task Search(DiscoveryInterface binding)
+        {
+            Interlocked.Increment(ref attempts);
+            using var udp = new UdpClient(AddressFamily.InterNetwork) { EnableBroadcast = true };
+            try { udp.Client.Bind(new IPEndPoint(binding.Address, 0)); }
+            catch (SocketException ex) { Error(ex.SocketErrorCode); Report(); return; }
+            var targets = new HashSet<IPAddress>(known);
+            if (broadcast)
             {
-                var bytes = address.Address.GetAddressBytes(); var mask = address.IPv4Mask.GetAddressBytes();
+                targets.Add(IPAddress.Broadcast);
+                var bytes = binding.Address.GetAddressBytes(); var mask = binding.Mask.GetAddressBytes();
                 targets.Add(new IPAddress(bytes.Select((b, i) => (byte)(b | ~mask[i])).ToArray()));
             }
-        var probe = Encoding.ASCII.GetBytes(Probe);
-        foreach (var address in targets)
-            try { await udp.SendAsync(probe, new IPEndPoint(address, DiscoveryPort), timeout.Token); }
-            catch (SocketException) { }
-        var found = new Dictionary<string, Candidate>();
-        try
-        {
-            while (found.Count < 32)
+            async Task SendProbes()
             {
-                var packet = await udp.ReceiveAsync(timeout.Token);
-                if (!IsLocalAddress(packet.RemoteEndPoint.Address) || packet.Buffer.Length > 100) continue;
-                var parts = Encoding.ASCII.GetString(packet.Buffer).Split('|');
-                if (parts.Length != 3 || parts[0] != "AL-LAN-PAIR-1" || !int.TryParse(parts[1], out var port) || port is < 1 or > 65535 || parts[2].Length != 32 || !parts[2].All(char.IsAsciiHexDigit)) continue;
-                var candidate = new Candidate(packet.RemoteEndPoint.Address.ToString(), port, parts[2]);
-                found[$"{candidate.Address}:{port}"] = candidate;
+                try
+                {
+                    for (var round = 0; round < 3; round++)
+                    {
+                        if (round > 0) await Task.Delay(2500, timeout.Token);
+                        foreach (var address in targets)
+                        {
+                            try { await udp.SendAsync(probe, new IPEndPoint(address, DiscoveryPort), timeout.Token); Interlocked.Increment(ref sent); }
+                            catch (SocketException ex) { Error(ex.SocketErrorCode); }
+                        }
+                        Report();
+                    }
+                }
+                catch (OperationCanceledException) when (!token.IsCancellationRequested) { }
             }
+            var sending = SendProbes();
+            try
+            {
+                while (!timeout.IsCancellationRequested)
+                {
+                    var packet = await udp.ReceiveAsync(timeout.Token);
+                    if (!IsLocalAddress(packet.RemoteEndPoint.Address) || packet.Buffer.Length > 100) continue;
+                    var parts = Encoding.ASCII.GetString(packet.Buffer).Split('|');
+                    if (parts.Length != 3 || parts[0] != "AL-LAN-PAIR-1" || !int.TryParse(parts[1], out var port) || port is < 1 or > 65535 || parts[2].Length != 32 || !parts[2].All(char.IsAsciiHexDigit)) continue;
+                    Interlocked.Increment(ref received);
+                    var candidate = new Candidate(packet.RemoteEndPoint.Address.ToString(), port, parts[2]);
+                    lock (gate) { if (found.Count < 32) found[$"{candidate.Address}:{port}"] = candidate; }
+                    Report();
+                }
+            }
+            catch (OperationCanceledException) when (!token.IsCancellationRequested) { }
+            catch (SocketException ex) { Error(ex.SocketErrorCode); }
+            finally { await sending; }
         }
-        catch (OperationCanceledException) when (!token.IsCancellationRequested) { }
+        await Task.WhenAll(interfaces.Select(Search));
         token.ThrowIfCancellationRequested();
+        Report();
         return found.Values.ToList();
     }
 
