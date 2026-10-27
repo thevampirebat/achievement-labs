@@ -28,7 +28,14 @@ public static class SecureUserData
     static class MacKeychain
     {
         const string Library="/System/Library/Frameworks/Security.framework/Security";
-        static readonly byte[] Service=Encoding.UTF8.GetBytes("org.achievementlabs.desktop.encryption"),Account=Encoding.UTF8.GetBytes("storage-key-v1");
+        // The standalone synthetic test executable must not create the real app's
+        // Keychain item with an ACL belonging to the dotnet test host.
+#if LABS_LAN_PAIRING_CHECKS
+        const string ServiceName="org.achievementlabs.desktop.lan-pairing.synthetic-checks";
+#else
+        const string ServiceName="org.achievementlabs.desktop.encryption";
+#endif
+        static readonly byte[] Service=Encoding.UTF8.GetBytes(ServiceName),Account=Encoding.UTF8.GetBytes("storage-key-v1");
         static readonly object Gate=new();
         [DllImport(Library)] static extern int SecKeychainFindGenericPassword(IntPtr chain,uint sl,byte[] service,uint al,byte[] account,out uint length,out IntPtr data,out IntPtr item);
         [DllImport(Library)] static extern int SecKeychainAddGenericPassword(IntPtr chain,uint sl,byte[] service,uint al,byte[] account,uint length,byte[] data,out IntPtr item);
