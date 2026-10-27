@@ -8,9 +8,9 @@
     <ApplicationIcon>../AchievementLabs.App/app.ico</ApplicationIcon>
     <AssemblyName>AchievementLabs</AssemblyName>
     <Version>1.0.8</Version>
-    <AssemblyVersion>1.0.8.18</AssemblyVersion>
-    <FileVersion>1.0.8.18</FileVersion>
-    <InformationalVersion>1.0.8.18</InformationalVersion>
+    <AssemblyVersion>1.0.8.19</AssemblyVersion>
+    <FileVersion>1.0.8.19</FileVersion>
+    <InformationalVersion>1.0.8.19</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup><ProjectReference Include="../AchievementLabs.Enhancements/AchievementLabs.Enhancements.csproj" /></ItemGroup>
