@@ -1,6 +1,12 @@
 # Achievement Labs — unofficial fork
 
-## Current unofficial fork release
+## Current mobile fork release
+
+[Download Android 0.6.17 and unsigned iOS 0.12.19 — complete Metro catalogue](https://github.com/thevampirebat/achievement-labs/releases/tag/mobile-v0.6.17-ios0.12.19).
+
+Metro Redux now bundles all 98 mappings, and the standalone Metro games each have 49. Native confirmation dialogs, queue verification and edition guards are retained. Install Android over the existing app; iOS requires user signing. [Upstream mobile regression PR #5](https://github.com/Achievement-Labs/achievement-labs-mobile/pull/5). App updates use this unofficial fork; event data remains with Achievement Labs. Windows and Mac release packages are unchanged by this phone release.
+
+## Previous combined unofficial fork release
 
 [Download fork .21 — Windows 1.0.8.21, Mac Apple Silicon 0.1.0.10, Android 0.6.16 and unsigned iOS 0.12.18](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.21).
 
