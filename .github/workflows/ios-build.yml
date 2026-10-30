@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   network-probe:
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 5
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
@@ -25,7 +25,7 @@ jobs:
           swift /tmp/collector-probe.swift
         # The core tests below also exercise the scoped collector trust.
   build:
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 35
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer

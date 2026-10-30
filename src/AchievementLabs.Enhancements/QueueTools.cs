@@ -92,7 +92,11 @@ public static class QueueTools
   ToolTip.SetTip(completed,"Remove confirmed completed entries while preserving the active item and countdown.");
   panel.Children.Add(remove);panel.Children.Add(completed);bool editing=false;
   object? Queue()=>P(model,"XboxQueue");
-  void Refresh(){var q=Queue();completed.IsEnabled=!editing && F(q,"_state") is object state && P(state,"Queue") is IList entries && entries.Cast<object>().Any(e=>P(e,"Completed") is true);remove.IsEnabled=!editing && P(q,"IsRunning") is not true && F(q,"_state") is object s && P(s,"Queue") is IList l && l.Count>0;}
+  void Refresh(){var q=Queue();completed.IsEnabled=!editing && F(q,"_state") is object state && P(state,"Queue") is IList entries && entries.Cast<object>().Any(e=>P(e,"Completed") is true);remove.IsEnabled=!editing && P(model,"CanQuery") is true && P(q,"IsRunning") is not true && F(q,"_state") is object s && P(s,"Queue") is IList l && l.Count>0;}
+  var queueChanges=Queue() as System.ComponentModel.INotifyPropertyChanged;
+  System.ComponentModel.PropertyChangedEventHandler onQueueChanged=(_,_)=>Refresh();
+  if(queueChanges!=null)queueChanges.PropertyChanged+=onQueueChanged;
+  owner.Closed+=(_,_)=>{if(queueChanges!=null)queueChanges.PropertyChanged-=onQueueChanged;};
   var tick=new DispatcherTimer{Interval=TimeSpan.FromSeconds(1)};tick.Tick+=(_,_)=>Refresh();tick.Start();Refresh();owner.Closed+=(_,_)=>tick.Stop();
   completed.Click+=(_,_)=>
   {
