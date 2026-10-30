@@ -5,6 +5,15 @@ final class QueueVerification {
  interface Reader { JSONObject read() throws Exception; }
  interface Sleeper { void sleep(long millis) throws InterruptedException; }
  static final class Result {final boolean confirmed;final String progress;Result(boolean c,String p){confirmed=c;progress=p;}}
+ static Result watch(Reader read,BooleanSupplier allowed,Sleeper sleep,java.util.function.Consumer<String> progress)throws Exception{
+  while(true){
+   Result result=verify(read,allowed,sleep);
+   if(result.confirmed)return result;
+   progress.accept(result.progress);
+   if(Thread.currentThread().isInterrupted()||!allowed.getAsBoolean())throw new InterruptedException();
+   sleep.sleep(30000);
+  }
+ }
  static Result verify(Reader read,BooleanSupplier allowed,Sleeper sleep)throws Exception{
   String progress="Xbox progress unavailable";long end=System.nanoTime()+45_000_000_000L;
   for(long wait:new long[]{0,2000,4000,8000,12000}){

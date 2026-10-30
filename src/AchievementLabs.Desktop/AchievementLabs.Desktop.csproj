@@ -8,9 +8,9 @@
     <ApplicationIcon>../AchievementLabs.App/app.ico</ApplicationIcon>
     <AssemblyName>AchievementLabs</AssemblyName>
     <Version>1.0.8</Version>
-    <AssemblyVersion>1.0.8.22</AssemblyVersion>
-    <FileVersion>1.0.8.22</FileVersion>
-    <InformationalVersion>1.0.8.22-preview</InformationalVersion>
+    <AssemblyVersion>1.0.8.23</AssemblyVersion>
+    <FileVersion>1.0.8.23</FileVersion>
+    <InformationalVersion>1.0.8.23-preview</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup><ProjectReference Include="../AchievementLabs.Enhancements/AchievementLabs.Enhancements.csproj" /></ItemGroup>
@@ -68,7 +68,7 @@
   <Error Condition="'@(ForbiddenReleaseFile)' != ''" Text="Private/source files found in release: @(ForbiddenReleaseFile)" />
 </Target>
 <PropertyGroup Condition="'$(LabsMacOS)' == 'true'">
-  <DefineConstants>$(DefineConstants);LABS_MACOS</DefineConstants><AssemblyVersion>0.1.0.9</AssemblyVersion><FileVersion>0.1.0.9</FileVersion><InformationalVersion>0.1.0-macos-preview.9</InformationalVersion>
+  <DefineConstants>$(DefineConstants);LABS_MACOS</DefineConstants><AssemblyVersion>0.1.0.11</AssemblyVersion><FileVersion>0.1.0.11</FileVersion><InformationalVersion>0.1.0-macos-preview.11</InformationalVersion>
 </PropertyGroup>
 <ItemGroup Condition="'$(LabsMacOS)' == 'true'">
   <Content Remove="../../gfwlam/**/*.*;../../uplayachievements/**/*.*;../../Uplay spools/**/*.spool;../../tools/Submit-ColdAlleyAchievements.ps1" />

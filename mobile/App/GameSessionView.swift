@@ -65,7 +65,7 @@ struct QueueView: View {
                 }.font(.caption)
             }
             Button(m.running ? "Pause queue" : "Start / Resume queue",systemImage:m.running ? "pause.fill" : "play.fill") { if m.running { m.pauseQueue() } else { m.startQueue() } }
-                .buttonStyle(.borderedProminent).foregroundStyle(appearance.accentInk).disabled(m.account == nil || m.busy || m.queue.isEmpty || m.editingQueueDelay)
+                .buttonStyle(.borderedProminent).foregroundStyle(appearance.accentInk).disabled(!m.running && (m.account == nil || m.busy || m.queue.isEmpty || m.editingQueueDelay))
             Text(m.status).font(.caption).foregroundStyle(.secondary)
             if m.continueQueueInBackground { Text(m.extendedAudio.active ? m.extendedAudio.status : m.continuedQueue.status).font(.caption2).foregroundStyle(.secondary) }
         }.labsTile()
@@ -86,6 +86,6 @@ struct SessionTitleSettings:View {
             Button("Refresh Xbox playtime") { Task { await m.readPlaytime(m.presenceTitle) } }.disabled(m.account == nil || !JSON.numeric(m.presenceTitle))
             if !m.spoofDiagnostics.isEmpty { DisclosureGroup("Diagnostics") { Text(m.spoofDiagnostics).font(.caption.monospaced()).textSelection(.enabled);Button("Copy diagnostics") { UIPasteboard.general.string=m.spoofDiagnostics } } }
         }.listRowBackground(LabsGlassSurface())
-        Section("Queue tools") { Button("Remove completed items") { Task { await m.removeCompleted() } }.disabled(m.running || m.busy) }.listRowBackground(LabsGlassSurface())
+        Section("Queue tools") { Button("Remove completed items") { Task { await m.removeCompleted() } }.disabled(m.busy) }.listRowBackground(LabsGlassSurface())
     }
 }

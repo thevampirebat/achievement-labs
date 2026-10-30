@@ -1,6 +1,14 @@
 # Achievement Labs — unofficial fork
 
-## Current mobile fork release
+## Current unofficial fork release — .23
+
+[Download Windows 1.0.8.23, Apple Silicon Mac 0.1.0.11, Android 0.6.18 and unsigned iOS 0.12.20](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.23).
+
+Auto Unlock keeps checking accepted requests and continues once Xbox confirms the unlock, without automatically resending events. Completed entries can be removed during a run while the active item and countdown are protected. Windows also includes the previously previewed upstream Steam fixes and Achievement Mirror. Upstream contributions: [desktop PR #29](https://github.com/Achievement-Labs/achievement-labs/pull/29) and [mobile PR #6](https://github.com/Achievement-Labs/achievement-labs-mobile/pull/6).
+
+This remains an unofficial fork of [Achievement Labs](https://github.com/Achievement-Labs/achievement-labs). Fork app updates use this repository; event JSON/feed updates remain with Achievement Labs. iOS requires user signing; Mac is ad-hoc signed and not notarized. Full package and validation details are in the release notes.
+
+## Previous mobile fork release
 
 [Download Android 0.6.17 and unsigned iOS 0.12.19 — complete Metro catalogue](https://github.com/thevampirebat/achievement-labs/releases/tag/mobile-v0.6.17-ios0.12.19).
 

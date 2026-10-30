@@ -41,6 +41,18 @@ with tempfile.TemporaryDirectory(prefix='Achievement Labs downloaded app ') as f
             if windows:break
             if launch.poll() not in (None,0):break
             time.sleep(1)
+        if not windows:
+            print('LaunchServices process exit:', launch.poll(), flush=True)
+            startup=Path.home()/'Library/Logs/AchievementLabs/startup.log'
+            print(startup.read_text() if startup.exists() else 'No managed startup report was created.', flush=True)
+            # Clean hosted CI only; no account/configuration exists. Run the same
+            # extracted binary with offline smoke arguments to distinguish app
+            # startup from LaunchServices/window enumeration failures.
+            diagnostic=subprocess.run([str(app/'Contents/MacOS/AchievementLabs'),'--mac-smoke-test','--fixture',str(root/'mobile/Shared360/synthetic.dat'),'--output',str(out),'--mac-x64-package-check'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=120)
+            print('Offline diagnostic exit:', diagnostic.returncode, flush=True)
+            print(diagnostic.stdout[-6000:], flush=True)
+            error=out/'mac-smoke-error.txt'
+            if error.exists(): print(error.read_text()[-6000:], flush=True)
         assert windows, 'Downloaded .app did not create a visible window through LaunchServices'
         time.sleep(5)
         assert json.loads(subprocess.check_output([str(query)],text=True)), 'Normal startup window disappeared'
