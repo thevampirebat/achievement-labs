@@ -86,4 +86,38 @@ class EditionCatalogueTests(unittest.TestCase):
         self.assertFalse(recipes)
 
 
+class MetroCatalogueTests(unittest.TestCase):
+    def test_complete_metro_catalogues_survive_mobile_generation(self):
+        expected = {'1953382311': 98, '1251455286': 49, '511110146': 49}
+        data = json.loads((catalogue.SOURCE / 'Data.json').read_text(encoding='utf-8-sig'))
+        selected = {title: data[title] for title in expected}
+        selected['SupportedTitleIDs'] = list(expected)
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / 'src/AchievementLabs.App/Events'
+            output = root / 'mobile/Catalogue'
+            source.mkdir(parents=True)
+            (root / 'Events').mkdir()
+            guards = root / 'src/AchievementLabs.Enhancements/EditionMappings.json'
+            guards.parent.mkdir(parents=True)
+            guards.write_text('[]', encoding='utf-8')
+            (root / 'catalog').mkdir()
+            for name in ['achievement-packs.json', 'achievement-hubs.json', 'achievement-totals.json']:
+                (root / 'catalog' / name).write_text('{}', encoding='utf-8')
+            for path in [source / 'Data.json', root / 'Events/Data.json']:
+                path.write_text(json.dumps(selected), encoding='utf-8')
+            for title in expected:
+                (source / f'{title}.json').write_bytes((catalogue.SOURCE / f'{title}.json').read_bytes())
+            with patch.multiple(catalogue, ROOT=root, SOURCE=source, OUTPUT=output), contextlib.redirect_stdout(io.StringIO()):
+                catalogue.prepare()
+            index = json.loads((output / 'MobileIndex.json').read_text(encoding='utf-8'))
+            for title, count in expected.items():
+                with self.subTest(title=title):
+                    self.assertIsNone(index[title]['reason'])
+                    self.assertEqual(index[title]['count'], count)
+                    recipes = json.loads((output / f'Events/{title}.mapping.json').read_text(encoding='utf-8'))['recipes']
+                    self.assertEqual(set(recipes), set(data[title]['Achievements']))
+                    self.assertEqual(len(recipes), count)
+
+
 if __name__ == '__main__': unittest.main()

@@ -49,8 +49,10 @@ static class Test
   if(args.Contains("--queue-tools")){DlcCatalogueTests.Run();CompletionPresentationTests.Run();GameDetailsTests.Run();QueueToolTests.Run();SavedGameQueueTests.Run();
   QueueTransferTests.Run();return;}
   if(args.Contains("--playtime")){PlaytimeTests.Run();return;}
+  if(args.Contains("--mirror")){MirrorTests.Run();return;}
   if(args.Contains("--export")){ExportTests.Run();return;}
   if(args.Contains("--mapping")){MappingTests.Run();return;}
+  if(args.Contains("--catalogue")){LocalCatalogueIntegrationTests.Run();return;}
   if(args.Contains("--editions")){LocalCatalogueIntegrationTests.CheckUnapprovedMappings();return;}
   if(args.Contains("--port")){PortTests.Run();return;}
   if(args.Contains("--integration") || args.Contains("--scroll"))
@@ -90,7 +92,7 @@ static class Test
    Assert(Desc<TextBox>(window).Count(c=>c.Tag as string=="lookup-spoof")==1,"Only title lookup accepts Enter, never start presence");
    Assert(!Desc<TextBox>(window).Any(c=>c.AcceptsReturn && c.Tag is string tag && tag=="save-token"),"Multiline text keeps normal Enter behaviour");
    var settingsTabs=Desc<TabControl>(window).Single(t=>t.Name=="DesktopSettingsTabs");
-   Assert(settingsTabs.Items.OfType<TabItem>().Select(t=>t.Header?.ToString()).SequenceEqual(new[]{"Account","Sync","Library","App","Debug","Appearance"}),"Desktop settings categories are explicit and complete");
+   Assert(settingsTabs.Items.OfType<TabItem>().Select(t=>t.Header?.ToString()).SequenceEqual(new[]{"Account","Sync","Library","App","Debug","Guides","Appearance"}),"Desktop settings categories are explicit and complete");
    Assert(Desc<Button>(window).Count(b=>b.Name=="SaveAllSettings")==1,"One global save remains accessible above settings tabs");
    using (var routeClient = new AchievementLabs.Core.EventCatalogClient(true)) {
        Assert(!routeClient.BundledTitleIds.Contains("345903534"),"Legacy Minecraft uses upstream route rather than Bedrock bundled data");
