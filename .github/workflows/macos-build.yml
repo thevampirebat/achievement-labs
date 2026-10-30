@@ -1,6 +1,12 @@
 name: macOS desktop preview
 on:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: "Native host (macos-14 is a temporary minimum-OS diagnostic option)"
+        type: choice
+        default: macos-15-intel
+        options: [macos-15-intel, macos-14]
   pull_request:
     branches: [main]
     paths: [src/AchievementLabs.Desktop/**, src/AchievementLabs.Core/**, src/AchievementLabs.App/Services/Xbox360/**, tools/macos/**, docs/macos-preview.md, .github/workflows/macos-build.yml]
@@ -12,7 +18,9 @@ concurrency:
 jobs:
   apple-silicon:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-15-intel
+    runs-on: ${{ inputs.runner || 'macos-15-intel' }}
+    env:
+      DEVELOPER_DIR: ${{ inputs.runner == 'macos-14' && '/Applications/Xcode_16.2.app/Contents/Developer' || '/Applications/Xcode_26.2.app/Contents/Developer' }}
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
