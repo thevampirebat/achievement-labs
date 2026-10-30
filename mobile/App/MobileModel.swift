@@ -528,14 +528,15 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
                 }
             }
             queueLoop: while true {
-                let index: Int; let verificationOnly: Bool
+                let position: Int; let verificationOnly: Bool
                 switch QueuePolicy.next(self.queue,stopOnFailure:self.stopOnFailure) {
-                case .send(let i): index=i; verificationOnly=false
-                case .verify(let i): index=i; verificationOnly=true
+                case .send(let i): position=i; verificationOnly=false
+                case .verify(let i): position=i; verificationOnly=true
                 default: break queueLoop
                 }
                 if Task.isCancelled || (!self.foreground && !self.queueBackgroundAllowed) || version != self.generation { break }
-                let item = self.queue[index]; self.nextQueueItemID = item.id; var submitted = verificationOnly
+                let item = self.queue[position]; self.nextQueueItemID = item.id; var submitted = verificationOnly
+                var index: Int { self.queue.firstIndex(where: { $0.id == item.id }) ?? position }
                 let wait = max(0,min(item.remainingDelay ?? item.delay,31_536_000))
                 self.nextAction = Date().addingTimeInterval(wait); self.startSessionStatusUpdates(); self.updateSessionCard()
                 do {
@@ -583,12 +584,13 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             }
         }
     }
-    private func verifyQueueItem(_ index: Int, owner: String, version: UUID) async throws -> Bool {
-        let item=queue[index]
+    private func verifyQueueItem(_ initialIndex: Int, owner: String, version: UUID) async throws -> Bool {
+        let item=queue[initialIndex]
+        var index: Int { queue.firstIndex(where: { $0.id == item.id }) ?? initialIndex }
         queue[index].status="Verifying — accepted request"; nextAction=nil
         guard saveQueue() else { throw LabsError.message("Could not checkpoint accepted request.") }
         updateSessionCard()
-        let result = try await QueueVerification.verify(read: {
+        let result = try await QueueVerification.watch(read: {
             try Task.checkCancellation()
             guard self.generation == version, self.account?.xuid == owner, self.queue.indices.contains(index), self.queue[index].id == item.id,
                   self.foreground || self.queueBackgroundAllowed else { throw CancellationError() }
@@ -598,6 +600,10 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
             guard matches.count == 1 else { return nil }
             let row=matches[0]
             return UnlockVerificationSnapshot(achieved:row.unlocked,progress:row.verificationProgress ?? "Xbox progress unavailable")
+        }, progress: { snapshot in
+            self.queue[index].status="Verifying — waiting for Xbox confirmation; "+snapshot.progress
+            self.status="Waiting for Xbox confirmation. Auto Unlock will continue when unlocked."
+            _ = self.saveQueue(); self.updateSessionCard()
         })
         queue[index].status=result.achieved ? "Confirmed unlocked" : "Unconfirmed — "+result.progress
         guard saveQueue() else { throw LabsError.message("Could not save Xbox verification.") }
@@ -607,14 +613,15 @@ final class NotificationPresentation: NSObject, UNUserNotificationCenterDelegate
     }
     func pauseQueue() { if running { backgroundHadFailure = true; if let next = nextAction, let i = queue.firstIndex(where:{ $0.status == "Waiting" }) { queue[i].remainingDelay = max(0,next.timeIntervalSinceNow); _ = saveQueue() } }; queueTask?.cancel(); nextAction = nil; finishSessionIfIdle(); status = "Queue paused. Saved items can be reviewed before resuming." }
     func removeCompleted() async {
-        guard let account, !running, !busy else { return }; busy = true; defer { busy = false }
+        guard let account, !busy else { return }; let version=generation; busy = true; defer { busy = false }
         do {
             var completed = Set<String>()
             for game in Dictionary(grouping: queue, by: { $0.game.id }).values.compactMap({ $0.first?.game }) {
                 let loaded = try await readWithAccount { try await api.achievements(game,account:$0) }
                 for row in loaded where row.unlocked { completed.insert(game.id + "/" + row.id) }
             }
-            queue.removeAll { completed.contains($0.id) }; saveQueue(); status = "Removed achievements confirmed unlocked by Xbox."
+            guard generation == version, self.account?.xuid == account.xuid else { return }
+            queue.removeAll { completed.contains($0.id) && $0.id != nextQueueItemID }; saveQueue(); status = "Removed achievements confirmed unlocked by Xbox."
         } catch { self.error = error.localizedDescription }
     }
     func startPresence(_ title: String) {

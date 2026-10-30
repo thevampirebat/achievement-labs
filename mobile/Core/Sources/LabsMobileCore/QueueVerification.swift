@@ -6,6 +6,17 @@ public struct UnlockVerificationSnapshot: Equatable {
     public init(achieved: Bool, progress: String) { self.achieved = achieved; self.progress = progress }
 }
 public enum QueueVerification {
+    public static func watch(read: () async throws -> UnlockVerificationSnapshot?,
+                             sleep: (UInt64) async throws -> Void = { try await Task.sleep(nanoseconds:$0) },
+                             progress: (UnlockVerificationSnapshot) -> Void = { _ in }) async throws -> UnlockVerificationSnapshot {
+        while true {
+            let result = try await verify(read:read,sleep:sleep)
+            if result.achieved { return result }
+            progress(result)
+            try Task.checkCancellation()
+            try await sleep(30_000_000_000)
+        }
+    }
     public static func verify(read: () async throws -> UnlockVerificationSnapshot?,
                               sleep: (UInt64) async throws -> Void = { try await Task.sleep(nanoseconds:$0) }) async throws -> UnlockVerificationSnapshot {
         let deadline = Date().addingTimeInterval(45)

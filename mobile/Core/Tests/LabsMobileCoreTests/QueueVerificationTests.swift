@@ -25,4 +25,12 @@ final class QueueVerificationTests: XCTestCase {
   task.cancel();do{_ = try await task.value;XCTFail()}catch is CancellationError{}
   do{_ = try await QueueVerification.verify(read:{throw LabsError.message("synthetic")},sleep:{_ in});XCTFail()}catch{}
  }
+ func testWatchContinuesAfterInitialWindow() async throws {
+  var reads=0;var updates=0
+  let result=try await QueueVerification.watch(read:{reads += 1;return UnlockVerificationSnapshot(achieved:reads==7,progress:"25/25")},sleep:{_ in},progress:{_ in updates += 1})
+  XCTAssertTrue(result.achieved);XCTAssertEqual(reads,7);XCTAssertEqual(updates,1)
+ }
+ func testWatchCanBeCancelledBetweenWindows() async throws {
+  do { _ = try await QueueVerification.watch(read:{UnlockVerificationSnapshot(achieved:false,progress:"pending")},sleep:{ nanos in if nanos==30_000_000_000 { throw CancellationError() } });XCTFail() } catch is CancellationError {}
+ }
 }

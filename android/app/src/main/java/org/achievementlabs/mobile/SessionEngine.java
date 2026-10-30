@@ -9,6 +9,7 @@ final class SessionEngine extends ContextWrapper {
  final ExecutorService work=Executors.newSingleThreadExecutor(),sessions=Executors.newFixedThreadPool(2);
  volatile boolean foreground,backgroundReady,queueRunning,spoofRunning,preview;volatile long nextAt,spoofStarted,queueStarted;
  volatile String nextQueueName="",nextQueueGame="";
+ volatile JSONObject activeQueueItem;
  volatile String eventTokenProbeStatus="";
  volatile String spoofTitle="",spoofStatus="Not spoofing",notice="Ready";Future<?> queueJob,spoofJob;String previewPage="home";
  final Object stateLock=new Object();final Core.SessionGate queueGate=new Core.SessionGate(),spoofGate=new Core.SessionGate();
@@ -71,8 +72,9 @@ try{preview=BuildConfig.DEBUG&&previewMode;previewPage=startPage;vault=new Vault
   if(prefs.optBoolean("stopOnFailure",true))for(int i=0;i<queue.length();i++){String status=queue.getJSONObject(i).optString("status","Waiting");if(QueuePolicy.review(status)&&!QueuePolicy.pendingVerification(status))throw new Exception("Review the failed achievement, then choose Retry or Skip before resuming.");if(status.equals("Waiting"))break;}
   String queueOwner=auth().getString("xuid");SessionService.ensure(this);long run=queueGate.start();queueRunning=true;queueStarted=System.currentTimeMillis();keepAwake();
   queueJob=sessions.submit(()->{if(!queueGate.begin(run))return;try{
-   for(int i=0;i<queue.length()&&queueGate.running(run)&&sessionAllowed();i++){
-    JSONObject item=queue.getJSONObject(i);String status=item.optString("status","Waiting");
+   JSONArray scheduled=queue,runItems=new JSONArray();for(int n=0;n<scheduled.length();n++)runItems.put(scheduled.getJSONObject(n));
+   for(int i=0;i<runItems.length()&&queueGate.running(run)&&sessionAllowed();i++){
+    JSONObject item=runItems.getJSONObject(i);activeQueueItem=item;String status=item.optString("status","Waiting");
     if(QueuePolicy.action(status,prefs.optBoolean("stopOnFailure",true))==2){notice="Review "+item.optString("name")+" before resuming.";break;}
     if(QueuePolicy.action(status,prefs.optBoolean("stopOnFailure",true))==3)continue;boolean submitted=QueuePolicy.pendingVerification(status);
     nextQueueName=item.getString("name");nextQueueGame=item.getJSONObject("game").getString("name");
@@ -93,7 +95,7 @@ try{preview=BuildConfig.DEBUG&&previewMode;previewPage=startPage;vault=new Vault
    }
    boolean done=true;for(int x=0;x<queue.length();x++)if(!QueuePolicy.terminal(queue.getJSONObject(x).optString("status")))done=false;
    if(done&&prefs.optBoolean("notifyComplete",true))notifyUser("Auto Unlock finished","Queue finished. Confirmed and explicitly skipped entries processed.");
-  }catch(Exception e){notice=safe(e);}finally{queueRunning=false;queueStarted=0;nextAt=0;nextQueueName="";nextQueueGame="";queueGate.finish(run);keepAwake();try{save();}catch(Exception ignored){}push();}});
+  }catch(Exception e){notice=safe(e);}finally{activeQueueItem=null;queueRunning=false;queueStarted=0;nextAt=0;nextQueueName="";nextQueueGame="";queueGate.finish(run);keepAwake();try{save();}catch(Exception ignored){}push();}});
  }
  void transferFile(boolean exporting)throws Exception{
   if(queueGate.busy())throw new Exception("Pause Auto Unlock before transferring queues.");auth();save();
@@ -122,11 +124,11 @@ try{preview=BuildConfig.DEBUG&&previewMode;previewPage=startPage;vault=new Vault
  }
  boolean verifyQueueItem(JSONObject item,String owner,long run)throws Exception{
   item.put("status","Verifying — accepted request");nextAt=0;save();push();
-  QueueVerification.Result result=QueueVerification.verify(()->{
+  QueueVerification.Result result=QueueVerification.watch(()->{
    Core.sameOwner(owner,auth().getString("xuid"));
    JSONObject row=selectRow(rows(item.getJSONObject("game"),owner),item.getString("achievementId"));
    Core.sameOwner(owner,auth().getString("xuid"));return row;
-  },()->queueGate.running(run)&&sessionAllowed(),Thread::sleep);
+  },()->queueGate.running(run)&&sessionAllowed(),Thread::sleep,progress->{try{item.put("status","Verifying — waiting for Xbox confirmation; "+progress);notice="Waiting for Xbox confirmation. Auto Unlock will continue when unlocked.";save();push();}catch(Exception e){throw new IllegalStateException("Could not save verification progress",e);}});
   item.put("status",result.confirmed?"Confirmed unlocked":"Unconfirmed — "+result.progress);save();push();
   if(!result.confirmed){notice=item.optString("name")+": unlock unconfirmed. Queue paused; resume checks progress without resending.";if(prefs.optBoolean("notifyFailure",true))notifyUser("Auto Unlock needs attention",notice);}
   return result.confirmed;
@@ -176,7 +178,7 @@ try{preview=BuildConfig.DEBUG&&previewMode;previewPage=startPage;vault=new Vault
    case "enqueue":{if(queueGate.busy())throw new Exception("Pause queue before editing.");JSONObject g=lookup(p.getString("title"));JSONArray incoming=new JSONArray();JSONArray own=rows(g,auth().getString("xuid")),ids=p.getJSONArray("ids");for(int i=0;i<ids.length();i++){JSONObject row=selectRow(own,ids.getString(i));if(!row.optString("unavailable").isEmpty()||unlocked(row))continue;boolean exists=false;for(int q=0;q<queue.length();q++)if(queue.getJSONObject(q).getJSONObject("game").getString("titleId").equals(g.getString("titleId"))&&queue.getJSONObject(q).getString("achievementId").equals(row.getString("id")))exists=true;if(!exists||p.optBoolean("separate"))incoming.put(new JSONObject().put("game",g).put("achievementId",row.getString("id")).put("name",row.getString("name")).put("description",row.optString("description",row.optString("lockedDescription"))).put("delay",Math.max(0,Math.min(31536000,row.optLong("_delay",prefs.optLong("delay",60))))).put("status","Waiting"));}acceptQueue(incoming,p.optBoolean("separate"),false);return publicState(true);}
    case "reference":{if(queueGate.busy())throw new Exception("Pause before building the queue.");JSONObject g=lookup(p.getString("title")),a=auth();String tag=p.getString("gamertag").trim();if(tag.isEmpty()||tag.length()>64)throw new Exception("Enter a gamertag.");JSONObject profile=Net.xbox("https://profile.xboxlive.com/users/gt("+Net.enc(tag)+")/profile/settings?settings=Gamertag",a.getString("authorization"),"2","GET",null).getJSONArray("profileUsers").getJSONObject(0);JSONArray other=rows(g,Core.numeric(profile.getString("id"))),own=rows(g,a.getString("xuid"));List<JSONObject> ordered=new ArrayList<>();for(int i=0;i<other.length();i++){JSONObject row=other.getJSONObject(i);if(!unlocked(row))continue;try{JSONObject fresh=selectRow(own,row.getString("id"));if(!fresh.optString("name").equalsIgnoreCase(row.optString("name"))||!fresh.optString("serviceConfigId").equals(row.optString("serviceConfigId"))||unlocked(fresh)||!fresh.optString("unavailable").isEmpty())continue;JSONObject progression=row.optJSONObject("progression");String stamp=progression==null?row.optString("timeUnlocked"):progression.optString("timeUnlocked");long time=Instant.parse(stamp).toEpochMilli();if(time<946684800000L)continue;ordered.add(new JSONObject().put("row",fresh).put("time",time));}catch(Exception ignored){}}ordered.sort(Comparator.comparingLong(x->x.optLong("time")));if(ordered.isEmpty())throw new Exception("No matching locked achievements with reference times. Queue retained.");long previous=0;JSONArray replacement=new JSONArray();for(JSONObject item:ordered){JSONObject row=item.getJSONObject("row");long time=item.getLong("time"),delay=previous==0?0:Math.max(0,Math.min(31536000,(time-previous)/1000));replacement.put(new JSONObject().put("game",g).put("achievementId",row.getString("id")).put("name",row.getString("name")).put("description",row.optString("description",row.optString("lockedDescription"))).put("delay",delay).put("status","Waiting"));previous=time;}acceptQueue(replacement,p.optBoolean("separate"),true);notice=p.optBoolean("separate")?"Reference queue saved separately.":"Reference queue loaded. Review delays before starting.";return publicState(true);}
    case "editQueue":{if(queueGate.busy())throw new Exception("Pause before editing.");int index=QueueLibrary.find(queue,p.getString("id"));if(index<0||index>=queue.length())throw new Exception("Queue item missing.");if(p.optBoolean("remove"))queue.remove(index);else if(p.has("status")){String status=p.getString("status");if(!status.equals("Waiting")&&!status.equals("Skipped by user"))throw new Exception("Invalid queue action.");queue.getJSONObject(index).put("status",status.equals("Waiting")&&QueuePolicy.pendingVerification(queue.getJSONObject(index).optString("status"))?"Unconfirmed — awaiting Xbox verification":status).remove("remainingDelay");}else {queue.getJSONObject(index).put("delay",Math.max(0,Math.min(31536000,p.getDouble("delay"))));queue.getJSONObject(index).remove("remainingDelay");}save();return publicState(true);}
-   case "removeCompleted":{if(queueGate.busy())throw new Exception("Pause first.");JSONArray next=new JSONArray();Map<String,JSONArray> loaded=new HashMap<>();for(int i=0;i<queue.length();i++){JSONObject item=queue.getJSONObject(i),g=item.getJSONObject("game");String id=g.getString("titleId");if(!loaded.containsKey(id))loaded.put(id,rows(g,auth().getString("xuid")));if(!unlocked(selectRow(loaded.get(id),item.getString("achievementId"))))next.put(item);}queue=next;save();return publicState(true);}
+   case "removeCompleted":{String owner=auth().getString("xuid");JSONArray next=new JSONArray();Map<String,JSONArray> loaded=new HashMap<>();for(int i=0;i<queue.length();i++){JSONObject item=queue.getJSONObject(i),g=item.getJSONObject("game");String id=g.getString("titleId");if(!loaded.containsKey(id))loaded.put(id,rows(g,auth().getString("xuid")));if(item==activeQueueItem||!unlocked(selectRow(loaded.get(id),item.getString("achievementId"))))next.put(item);}Core.sameOwner(owner,auth().getString("xuid"));queue=next;save();return publicState(true);}
    case "openGameSession":{
     auth();if(queueGate.busy()||spoofRunning)throw new Exception("Stop active sessions before changing games.");
     String title=Core.numeric(p.getString("title"));
