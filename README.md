@@ -4,16 +4,20 @@
 
 <h1 align="center">Achievement Labs Desktop</h1>
 
+This is an unofficial fork of [Achievement Labs](https://github.com/Achievement-Labs/achievement-labs). Download fork builds from [thevampirebat releases](https://github.com/thevampirebat/achievement-labs/releases). Event catalogue updates come from the upstream project. Android and iOS development is tracked in the [mobile source repository](https://github.com/Achievement-Labs/achievement-labs-mobile).
+
+The 1.3.6 desktop integration is under review in [desktop PR #73](https://github.com/Achievement-Labs/achievement-labs/pull/73). [Fork .23](https://github.com/thevampirebat/achievement-labs/releases/tag/v1.0.8-fork.23) remains available as a previous release.
+
 <p align="center">Free, open-source Xbox achievement unlocker and Steam Achievement Manager tools, with stats, presence, and save editing.</p>
 
 <p align="center">
-  <a href="https://github.com/Achievement-Labs/achievement-labs/releases/latest"><img src="https://img.shields.io/github/v/release/Achievement-Labs/achievement-labs?style=flat-square&amp;color=83e6ad&amp;label=release" alt="Latest desktop release"></a>
-  <a href="https://github.com/Achievement-Labs/achievement-labs/releases"><img src="https://img.shields.io/github/downloads/Achievement-Labs/achievement-labs/total?style=flat-square&amp;color=83e6ad&amp;label=downloads" alt="Desktop release downloads"></a>
+  <a href="https://github.com/thevampirebat/achievement-labs/releases"><img src="https://img.shields.io/github/v/release/thevampirebat/achievement-labs?style=flat-square&amp;color=83e6ad&amp;label=release" alt="Latest desktop release"></a>
+  <a href="https://github.com/thevampirebat/achievement-labs/releases"><img src="https://img.shields.io/github/downloads/thevampirebat/achievement-labs/total?style=flat-square&amp;color=83e6ad&amp;label=downloads" alt="Desktop release downloads"></a>
   <a href="https://discord.gg/EY6AJpNfVu"><img src="https://img.shields.io/badge/Discord-Join_the_community-5865F2?style=flat-square&amp;logo=discord&amp;logoColor=white" alt="Join the Achievement Labs Discord"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Achievement-Labs/achievement-labs/releases/latest"><img src="https://img.shields.io/badge/Download-Windows-83e6ad?style=for-the-badge&amp;labelColor=14232b" alt="Download Achievement Labs for Windows"></a>
+  <a href="https://github.com/thevampirebat/achievement-labs/releases"><img src="https://img.shields.io/badge/Download-Windows-83e6ad?style=for-the-badge&amp;labelColor=14232b" alt="Download Achievement Labs for Windows"></a>
 </p>
 
 Bring your game library, achievement progress, Game Session queues, and profile tools into one desktop workspace. Windows includes workflows for Xbox, Xbox 360, Games for Windows Live, Steam, Epic, and Ubisoft. Separate Mac and Linux previews are also in development.
@@ -46,7 +50,7 @@ Bring your game library, achievement progress, Game Session queues, and profile 
 
 | Platform | Availability | Start here |
 | --- | --- | --- |
-| **Windows** | Published desktop release | [Download the latest release](https://github.com/Achievement-Labs/achievement-labs/releases/latest) |
+| **Windows** | Published desktop release | [Download the latest release](https://github.com/thevampirebat/achievement-labs/releases) |
 | **macOS** | Apple Silicon preview; macOS 14+ | [Mac preview and setup](docs/macos-preview.md) |
 | **Linux** | Ubuntu 24.04 x64 preview | [Linux preview and setup](docs/linux-preview.md) |
 
