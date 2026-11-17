@@ -12,7 +12,7 @@ internal sealed record UpdatePlan(int ParentPid, long ParentStartTicks, string T
 
 internal sealed class AppUpdater(HttpClient? client = null, string? directory = null) : IDisposable
 {
-    internal const string Repository = "https://github.com/Achievement-Labs/achievement-labs";
+    internal const string Repository = "https://github.com/thevampirebat/achievement-labs";
 #if LABS_UPDATE_TESTING || LABS_OPTIMIZATION_TEST
     internal static string Root => AchievementLabs.Core.AchievementLabsPaths.LocalFile("Updates");
 #else
@@ -40,7 +40,7 @@ internal sealed class AppUpdater(HttpClient? client = null, string? directory = 
 #if LABS_MACOS
         if (OperatingSystem.IsMacOS()) return null;
 #endif
-        using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/Achievement-Labs/achievement-labs/releases?per_page=100");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/thevampirebat/achievement-labs/releases?per_page=100");
         request.Headers.UserAgent.ParseAdd("AchievementLabs/" + current);
         using var response = await http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
@@ -121,10 +121,10 @@ internal sealed class AppUpdater(HttpClient? client = null, string? directory = 
 
     internal static void StartInstall(string download, UpdateManifest manifest)
     {
-        if (OperatingSystem.IsLinux()) throw new PlatformNotSupportedException("Download Linux updates manually from Achievement-Labs/achievement-labs releases.");
+        if (OperatingSystem.IsLinux()) throw new PlatformNotSupportedException("Download Linux updates manually from thevampirebat/achievement-labs releases.");
         Verify(download, manifest);
 #if LABS_MACOS
-        if (OperatingSystem.IsMacOS()) throw new PlatformNotSupportedException("Download Mac updates manually from Achievement-Labs/achievement-labs releases.");
+        if (OperatingSystem.IsMacOS()) throw new PlatformNotSupportedException("Download Mac updates manually from thevampirebat/achievement-labs releases.");
 #endif
         var target = Environment.ProcessPath ?? throw new InvalidOperationException("Application path unavailable.");
         if (!target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Use the published Windows EXE to install an update.");

@@ -21,10 +21,10 @@ internal sealed class UpdateTestTransport : HttpMessageHandler
         if (stage is not ("baseline" or "catalog" or "app" or "bad-catalog")) return Reply(HttpStatusCode.BadRequest, "Invalid test stage.");
         var uri = request.RequestUri!.AbsoluteUri;
         string relative;
-        if (uri == "https://api.github.com/repos/Achievement-Labs/achievement-labs/releases?per_page=100") relative = "releases.json";
+        if (uri is "https://api.github.com/repos/thevampirebat/achievement-labs/releases?per_page=100" or "https://api.github.com/repos/Achievement-Labs/achievement-labs/releases?per_page=100") relative = "releases.json";
         else
         {
-            var match = Regex.Match(uri, @"^https://github\.com/Achievement-Labs/achievement-labs/releases/download/(v[0-9]+\.[0-9]+\.[0-9]+(?:\.[0-9]+)?)/(update\.json|AchievementLabs\.exe|Events-Indexed\.zip)$");
+            var match = Regex.Match(uri, @"^https://github\.com/(?:Achievement-Labs|thevampirebat)/achievement-labs/releases/download/(v[0-9]+\.[0-9]+\.[0-9]+(?:\.[0-9]+)?)/(update\.json|AchievementLabs\.exe|Events-Indexed\.zip)$");
             if (!match.Success) return Reply(HttpStatusCode.Forbidden, "The private update build cannot use another feed.");
             relative = Path.Combine(match.Groups[1].Value, match.Groups[2].Value);
         }

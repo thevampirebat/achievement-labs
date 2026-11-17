@@ -12,7 +12,7 @@ Directory.CreateDirectory(root);
 var bytes = new byte[] { 77, 90, 1, 2, 3, 4 };
 var hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 var manifest = new UpdateManifest("1.0.6.1", bytes.Length, hash);
-if (AppUpdater.Repository != "https://github.com/Achievement-Labs/achievement-labs") throw new Exception("Wrong release repository");
+if (AppUpdater.Repository != "https://github.com/thevampirebat/achievement-labs") throw new Exception("Wrong release repository");
 var feed = "[" + JsonSerializer.Serialize(new { draft=false, prerelease=false, tag_name="v99.0.0", assets=Array.Empty<object>() }) + "," + JsonSerializer.Serialize(new { draft=false, prerelease=false, tag_name="v1.0.6", assets=new[] {
  new { name="update.json", browser_download_url=AppUpdater.Repository+"/releases/download/v1.0.6/update.json", size=0L, digest="" },
  new { name="AchievementLabs.exe", browser_download_url=AppUpdater.Repository+"/releases/download/v1.0.6/AchievementLabs.exe", size=(long)bytes.Length, digest="sha256:"+hash }
@@ -25,7 +25,7 @@ var badHandler = new Handler(url => url.Contains("/releases?per_page=100",String
 using (var mismatch = new AppUpdater(new HttpClient(badHandler),root)) {
  try { await mismatch.CheckAsync(new Version(1,0,6,0),default); throw new Exception("Mismatched publication accepted"); } catch(InvalidDataException) {}
 }
-var foreignFeed = feed.Replace(AppUpdater.Repository + "/releases/download/", "https://github.com/thevampirebat/achievement-labs/releases/download/", StringComparison.Ordinal);
+var foreignFeed = feed.Replace(AppUpdater.Repository + "/releases/download/", "https://github.com/Achievement-Labs/achievement-labs/releases/download/", StringComparison.Ordinal);
 using (var foreign = new AppUpdater(new HttpClient(new Handler(url => url.Contains("/releases?per_page=100",StringComparison.Ordinal) ? new StringContent(foreignFeed) : new StringContent("{}"))),root)) {
  try { await foreign.CheckAsync(new Version(1,0,6,0),default); throw new Exception("Old repository download accepted"); } catch(InvalidDataException) {}
 }
@@ -55,4 +55,4 @@ try { await oversized.DownloadAsync(update,default); throw new Exception("Oversi
 if(Directory.GetFiles(root,"download.part",SearchOption.AllDirectories).Length!=0) throw new Exception("Partial files retained");
 if(File.ReadAllText(Path.Combine(events,"Data.json"))!="user edits") throw new Exception("Events modified");
 Console.WriteLine("PASS: canonical repository, mixed-platform releases, highest revision, foreign download rejection, revision detection, same-version rejection, download verification, replacement, backup, startup rollback, checksum/truncated/oversized rejection, partial cleanup, Events preservation.");
-sealed class Handler(Func<string,HttpContent> response) : HttpMessageHandler { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct) { ct.ThrowIfCancellationRequested(); if(request.Headers.Contains("Authorization") || request.Headers.Contains("tickets")) throw new Exception("Account credentials reached update requests"); if(request.RequestUri!.Host=="api.github.com" && request.RequestUri.AbsoluteUri!="https://api.github.com/repos/Achievement-Labs/achievement-labs/releases?per_page=100") throw new Exception("Wrong release API"); return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=response(request.RequestUri!.AbsoluteUri)}); } }
+sealed class Handler(Func<string,HttpContent> response) : HttpMessageHandler { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct) { ct.ThrowIfCancellationRequested(); if(request.Headers.Contains("Authorization") || request.Headers.Contains("tickets")) throw new Exception("Account credentials reached update requests"); if(request.RequestUri!.Host=="api.github.com" && request.RequestUri.AbsoluteUri!="https://api.github.com/repos/thevampirebat/achievement-labs/releases?per_page=100") throw new Exception("Wrong release API"); return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=response(request.RequestUri!.AbsoluteUri)}); } }
