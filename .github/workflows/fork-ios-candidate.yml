@@ -46,12 +46,15 @@ jobs:
         env:
           LABS_CATALOGUE: ${{ github.workspace }}/mobile/Catalogue
         run: swift test --package-path mobile/Core
+      # Intel hosted Metal cannot run ImageRenderer; device and simulator checks remain required.
       - name: Render native Live Activity layouts without booting a simulator
+        if: runner.arch == 'ARM64'
         run: |
           mkdir -p mobile/layout-previews
           cat mobile/App/ActiveSessionStyle.swift mobile/Widget/SessionActivityCard.swift mobile/tools/render_session_card.swift > /tmp/session-card-preview.swift
           swift /tmp/session-card-preview.swift
       - uses: actions/upload-artifact@v4
+        if: runner.arch == 'ARM64'
         with:
           name: AchievementLabs-iOS-Live-Activity-Layouts
           path: mobile/layout-previews/
