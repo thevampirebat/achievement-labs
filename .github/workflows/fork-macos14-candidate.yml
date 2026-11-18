@@ -1,4 +1,4 @@
-name: macOS 14 release candidate
+name: macOS Intel release candidate
 on: workflow_dispatch
 permissions:
   contents: read
@@ -8,7 +8,7 @@ concurrency:
 jobs:
   apple-silicon:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-14
+    runs-on: macos-15-intel
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
