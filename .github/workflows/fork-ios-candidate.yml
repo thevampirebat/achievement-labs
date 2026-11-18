@@ -16,7 +16,7 @@ jobs:
         with:
           persist-credentials: false
           repository: thevampirebat/achievement-labs-mobile
-          ref: 306d411863203c1db532259c373e2271710ef66d
+          ref: fbf76baab95e867d39aab2b2aa9ec3c567e6a395
       - name: Probe public TLS endpoints without credentials or event data
         run: |
           cat mobile/Core/Sources/LabsMobileCore/CollectorTrust.swift mobile/tools/tls_probe.swift > /tmp/collector-probe.swift
@@ -32,7 +32,7 @@ jobs:
         with:
           persist-credentials: false
           repository: thevampirebat/achievement-labs-mobile
-          ref: 306d411863203c1db532259c373e2271710ef66d
+          ref: fbf76baab95e867d39aab2b2aa9ec3c567e6a395
       - name: Verify iOS 26 SDK
         run: xcodebuild -version
       - name: Prepare mobile catalogue without changing desktop data
