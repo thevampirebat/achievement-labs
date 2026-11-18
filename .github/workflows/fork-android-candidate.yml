@@ -16,7 +16,7 @@ jobs:
         with:
           persist-credentials: false
           repository: thevampirebat/achievement-labs-mobile
-          ref: 4b4beac4170fa0cb91ba10922972524a1d2a9103
+          ref: 306d411863203c1db532259c373e2271710ef66d
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
