@@ -73,8 +73,24 @@ $taskActivationSource = Join-Path $taskRoot "$taskActivationPath/ActivateHelper.
 $taskActivationOutput = Join-Path $taskHelpers "$taskActivationPath/ActivateHelper.dll"
 $taskFrameworkCompiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
 New-Item -ItemType Directory -Path (Split-Path -Parent $taskActivationOutput) -Force | Out-Null
-& $taskFrameworkCompiler /nologo /target:library /optimize+ "/out:$taskActivationOutput" $taskActivationSource
-if ($LASTEXITCODE -ne 0) { throw 'Windows 8 activation helper compilation failed.' }
+# The framework compiler cannot reliably open deeply nested source/output paths.
+$taskCompilerWork = Join-Path ([IO.Path]::GetTempPath()) ("labs-activation-" + [Guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $taskCompilerWork -Force | Out-Null
+Copy-Item -LiteralPath $taskActivationSource -Destination (Join-Path $taskCompilerWork 'ActivateHelper.cs')
+Push-Location -LiteralPath $taskCompilerWork
+try {
+    & $taskFrameworkCompiler /nologo /target:library /optimize+ /out:ActivateHelper.dll ActivateHelper.cs
+    if ($LASTEXITCODE -ne 0) { throw 'Windows 8 activation helper compilation failed.' }
+    Copy-Item -LiteralPath (Join-Path $taskCompilerWork 'ActivateHelper.dll') -Destination $taskActivationOutput
+} finally {
+    Pop-Location
+    foreach ($taskTemporaryFile in @('ActivateHelper.cs', 'ActivateHelper.dll')) {
+        Remove-Item -LiteralPath (Join-Path $taskCompilerWork $taskTemporaryFile) -Force -ErrorAction SilentlyContinue
+    }
+    if (@(Get-ChildItem -LiteralPath $taskCompilerWork -Force).Count -eq 0) {
+        Remove-Item -LiteralPath $taskCompilerWork -Force
+    }
+}
 
 & dotnet publish (Join-Path $taskRoot 'src/AchievementLabs.Desktop') -c Release -m:1 -nr:false -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=false -p:DebugType=None -p:DebugSymbols=false -p:LabsSingleFile=true "-p:LabsHelperDirectory=$taskHelpers" "-p:LabsEventsSource=$taskEventsSource" "-p:Version=$Version" "-p:AssemblyVersion=$Version.$BuildRevision" "-p:FileVersion=$Version.$BuildRevision" "-p:InformationalVersion=$Version" -p:UsedAvaloniaProducts= -p:NuGetAudit=false @taskBuildOptions @taskSigningOptions -o $taskOutput -v:q
 if ($LASTEXITCODE -ne 0) { throw 'Release publish failed.' }
